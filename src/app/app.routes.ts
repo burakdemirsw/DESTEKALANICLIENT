@@ -11,7 +11,7 @@ export const routes: Routes = [
     {
         path: 'home',
         component: Landing,
-        data: {title: 'WMSSupport â€” AI Destekli MÃ¼ÅŸteri Ä°letiÅŸim Platformu'}
+        data: {title: 'Destek Alanı - AI Destekli Müşteri İletişim Platformu'}
     },
     {
         path: '',

@@ -10,6 +10,7 @@ interface SupportStatus {
   title: string;
   count: number;
   colorClass: string;
+  colorCode?: string;
   isSolved?: boolean;
 }
 
@@ -57,14 +58,24 @@ export class Dashboard1 {
   private mapStatusItem(item: UserRequestStatusSummaryItemResponse): SupportStatus {
     const normalized = this.normalizeStatusName(item.statusName);
     const colorClass = this.getColorClassByStatus(normalized);
+    const colorCode = this.normalizeColorCode(item.colorCode);
     const isSolved = normalized.includes('cozum') || normalized.includes('tamam');
 
     return {
       title: item.statusName,
       count: item.count,
       colorClass,
+      colorCode,
       isSolved,
     };
+  }
+
+  private normalizeColorCode(colorCode?: string | null): string | undefined {
+    if (!colorCode) return undefined;
+    const trimmed = colorCode.trim();
+    if (!trimmed) return undefined;
+    if (trimmed.startsWith('#')) return trimmed;
+    return `#${trimmed}`;
   }
 
   private normalizeStatusName(statusName: string): string {

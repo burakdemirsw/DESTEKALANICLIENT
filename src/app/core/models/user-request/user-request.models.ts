@@ -114,6 +114,7 @@ export interface UserRequestStatusSummaryReportRequest {
 export interface UserRequestStatusSummaryItemResponse {
     statusName: string;
     count: number;
+    colorCode?: string | null;
 }
 
 export interface UserRequestStatusSummaryReportResponse {

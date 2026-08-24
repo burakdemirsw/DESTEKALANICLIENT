@@ -29,6 +29,7 @@ export class RequestStatusesPage implements OnInit {
     form: any = {
         name: '',
         description: '',
+        colorCode: '#64748b',
         isBlocked: false,
     };
 
@@ -77,7 +78,7 @@ export class RequestStatusesPage implements OnInit {
     openCreate(): void {
         this.editMode = false;
         this.selectedStatus = null;
-        this.form = { name: '', description: '', isBlocked: false };
+        this.form = { name: '', description: '', colorCode: '#64748b', isBlocked: false };
         this.showModal = true;
     }
 
@@ -87,6 +88,7 @@ export class RequestStatusesPage implements OnInit {
         this.form = {
             name: status.name,
             description: status.description,
+            colorCode: status.colorCode ?? '#64748b',
             isBlocked: status.isBlocked ?? false,
         };
         this.showModal = true;
@@ -98,6 +100,7 @@ export class RequestStatusesPage implements OnInit {
                 const req: UpdateRequestStatusRequest = {
                     name: this.form.name,
                     description: this.form.description,
+                    colorCode: this.form.colorCode,
                     isBlocked: this.form.isBlocked,
                 };
                 await this.statusService.update(this.selectedStatus.id, req);
@@ -105,6 +108,7 @@ export class RequestStatusesPage implements OnInit {
                 const req: CreateRequestStatusRequest = {
                     name: this.form.name,
                     description: this.form.description,
+                    colorCode: this.form.colorCode,
                 };
                 await this.statusService.create(req);
             }

@@ -27,7 +27,7 @@
           @if (supportStatuses.length > 0) {
             <div class="status-grid">
               @for (status of supportStatuses; track status.title) {
-                <div class="status-item" [ngClass]="status.colorClass">
+                <div class="status-item" [ngClass]="status.colorClass" [style.background-color]="status.colorCode">
                   <p class="status-title">{{ status.title }}</p>
                   <div class="status-count-wrap">
                     @if (status.isSolved) {

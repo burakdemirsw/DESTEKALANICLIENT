@@ -29,6 +29,7 @@
                                 <tr>
                                     <th>Durum Adı</th>
                                     <th>Açıklama</th>
+                                    <th>Renk Kodu</th>
                                     <th>Durum</th>
                                     <th class="text-end">İşlemler</th>
                                 </tr>
@@ -43,6 +44,13 @@
                                             </span>
                                         </td>
                                         <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="rounded-circle border" style="width: 14px; height: 14px; display: inline-block;"
+                                                      [style.background-color]="item.colorCode || '#64748b'"></span>
+                                                <span>{{ item.colorCode || '#64748b' }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
                                             @if (item.isBlocked) {
                                                 <span class="badge bg-danger-subtle text-danger">Pasif</span>
                                             } @else {
@@ -55,7 +63,7 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="4" class="text-center text-muted">Talep durumu bulunamadı.</td></tr>
+                                    <tr><td colspan="5" class="text-center text-muted">Talep durumu bulunamadı.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -112,6 +120,13 @@
                         <div class="mb-3">
                             <label class="form-label">Açıklama</label>
                             <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Renk Kodu</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="color" class="form-control form-control-color" [(ngModel)]="form.colorCode" name="colorCode" title="Renk seçin">
+                                <input type="text" class="form-control" [value]="form.colorCode" readonly>
+                            </div>
                         </div>
                         @if (editMode) {
                             <div class="mb-3">

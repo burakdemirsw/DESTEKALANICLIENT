@@ -19,13 +19,10 @@ export class Header {
 
     navItems = [
         { label: 'Ana Sayfa', id: 'home' },
-        { label: 'Hizmetler', id: 'services' },
-        { label: 'Ã–zellikler', id: 'features' },
-        { label: 'Planlar', id: 'plans' },
-        { label: 'Yorumlar', id: 'reviews' },
-        { label: 'Ä°letiÅŸim', id: 'contact' },
+        { label: 'Talep Oluştur', id: 'cta' },
+        { label: 'İletişim', id: 'contact' },
     ];
-    appName = 'WMSSupport';
+    appName = 'Destek Alanı';
 
     @HostListener('window:scroll', [])
     onWindowScroll() {
