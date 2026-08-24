@@ -22,7 +22,10 @@ export interface UserRequest {
     categoryName?: string | null;
     applicationName?: string | null;
     statusName?: string | null;
+    statusColorCode?: string | null;
+    colorCode?: string | null;
     priorityName?: string | null;
+    companyDescription?: string | null;
     priorityColorCode?: string | null;
 }
 
@@ -45,7 +48,10 @@ export interface UserRequestResponse {
     applicationName: string;
     categoryName: string;
     statusName: string;
+    statusColorCode?: string | null;
+    colorCode?: string | null;
     priorityName: string;
+    companyDescription?: string | null;
     userName: string;
     assignedUserName: string;
 }
@@ -126,6 +132,7 @@ export interface UserRequestStatusSummaryReportResponse {
 }
 
 export interface UserRequestPagedRequest {
+    userId: string;
     companyId: string;
     pageNumber?: number;
     pageSize?: number;

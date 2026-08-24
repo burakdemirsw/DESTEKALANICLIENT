@@ -2,6 +2,7 @@ export interface RequestStatusResponse {
     id: string;
     name: string;
     description: string;
+    order: number;
     colorCode?: string | null;
     isBlocked: boolean;
     createdDate: string;
@@ -11,12 +12,14 @@ export interface RequestStatusResponse {
 export interface CreateRequestStatusRequest {
     name: string;
     description: string;
+    order: number;
     colorCode?: string | null;
 }
 
 export interface UpdateRequestStatusRequest {
     name: string;
     description: string;
+    order: number;
     colorCode?: string | null;
     isBlocked: boolean;
 }

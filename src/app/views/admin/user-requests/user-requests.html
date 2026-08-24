@@ -1,4 +1,3 @@
-<app-page-title title="Kullanıcı Talepleri" subtitle="Yönetim" />
 
 <div class="row">
     <div class="col-12">
@@ -62,67 +61,89 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-centered table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-start">İşlemler</th>
-                                    <th>Tarih</th>
-                                    <th>Konu</th>
-                                    <th>Kullanıcı</th>
-                                    <th>Atanan Kişi</th>
-                                    <th>Uygulama</th>
-                                    <th>Kategori</th>
-                                    <th>Öncelik</th>
-                                    <th>Durum</th>
-                                    <th>Aktiflik</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (item of filteredRequests; track $index) {
-                                    <tr>
-                                        <td class="text-start">
-                                            <a class="btn btn-soft-info btn-sm me-1" [routerLink]="['/admin/user-requests', item.id]">
-                                                Detay
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <small>{{ formatDate(item.createdDate) }}</small>
-                                        </td>
-                                        <td>
-                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ item.subject }}">
-                                                {{ item.subject }}
+                    <div class="d-flex flex-column gap-3">
+                        @for (item of filteredRequests; track item.id) {
+                            <div class="border rounded-3 p-3 p-lg-4 bg-white shadow-sm">
+                                <div class="row g-3 align-items-start">
+                                    <div class="col-12 col-xl-4">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge text-white" [style.background-color]="getStatusColorCode(item) || '#64748b'">
+                                                {{ item.statusName || getStatusName(item.statusId) }}
                                             </span>
-                                        </td>
-                                        <td>{{ item.userName ? (item.userName + ' ' + (item.userLastName || '')) : getUserFullName(item.userId) }}</td>
-                                        <td>
+                                            @if (item.isBlocked) {
+                                                <span class="badge bg-danger-subtle text-danger">Pasif</span>
+                                            } @else {
+                                                <span class="badge bg-success-subtle text-success">Aktif</span>
+                                            }
+                                        </div>
+                                        <h6 class="mb-2" title="{{ item.subject }}">{{ item.subject || '-' }}</h6>
+                                        <div class="small text-muted">Tarih: {{ formatDate(item.createdDate) }}</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <div class="small text-muted mb-1">Kullanıcı</div>
+                                        <div>{{ item.userName ? (item.userName + ' ' + (item.userLastName || '')) : getUserFullName(item.userId) }}</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <div class="small text-muted mb-1">Atanan Kişi</div>
+                                        <div>
                                             @if (item.assignedUserId) {
                                                 {{ item.assignedUserName ? (item.assignedUserName + ' ' + (item.assignedUserLastName || '')) : getUserFullName(item.assignedUserId) }}
                                             } @else {
                                                 <span class="text-muted fst-italic">Atanmadı</span>
                                             }
-                                        </td>
-                                        <td>{{ item.applicationName || '-' }}</td>
-                                        <td>{{ item.categoryName || getCategoryName(item.categoryId) }}</td>
-                                        <td>
-                                            {{ item.priorityName || getPriorityName(item.priorityId) }}
-                                        </td>
-                                        <td>
-                                            {{ item.statusName || getStatusName(item.statusId) }}
-                                        </td>
-                                        <td>
-                                            @if (item.isBlocked) {
-                                                Pasif
-                                            } @else {
-                                                Aktif
-                                            }
-                                        </td>
-                                    </tr>
-                                } @empty {
-                                    <tr><td colspan="10" class="text-center text-muted">Talep bulunamadı.</td></tr>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <div class="small text-muted mb-1">Uygulama / Kategori</div>
+                                        <div>{{ item.applicationName || '-' }}</div>
+                                        <div class="small text-muted">{{ item.categoryName || getCategoryName(item.categoryId) }}</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xl-2">
+                                        <div class="small text-muted mb-1">Öncelik</div>
+                                        <div>{{ item.priorityName || getPriorityName(item.priorityId) }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end mt-3">
+                                    <a class="btn btn-soft-info btn-sm" [routerLink]="['/admin/user-requests', item.id]">
+                                        Detay
+                                    </a>
+                                </div>
+                            </div>
+                        } @empty {
+                            <div class="text-center text-muted border rounded-3 p-4 bg-light-subtle">Talep bulunamadı.</div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="small text-muted">
+                            Toplam: {{ totalCount }} kayıt | Sayfa {{ currentPage }} / {{ totalPages }}
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <button class="page-link" (click)="setPage(1)" [disabled]="currentPage === 1" title="İlk Sayfa">&laquo;&laquo;</button>
+                                </li>
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <button class="page-link" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">&laquo;</button>
+                                </li>
+                                @for (p of totalPagesArray; track p) {
+                                    <li class="page-item" [class.active]="p === currentPage">
+                                        <button class="page-link" (click)="setPage(p)">{{ p }}</button>
+                                    </li>
                                 }
-                            </tbody>
-                        </table>
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <button class="page-link" (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages">&raquo;</button>
+                                </li>
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <button class="page-link" (click)="setPage(totalPages)" [disabled]="currentPage === totalPages" title="Son Sayfa">&raquo;&raquo;</button>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 }
             </div>

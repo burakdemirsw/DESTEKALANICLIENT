@@ -29,6 +29,7 @@ export class RequestStatusesPage implements OnInit {
     form: any = {
         name: '',
         description: '',
+        order: 0,
         colorCode: '#64748b',
         isBlocked: false,
     };
@@ -44,7 +45,7 @@ export class RequestStatusesPage implements OnInit {
         try {
             const response = await this.statusService.getPaged({ companyId: this.authStateService.profile?.companyId ?? '', pageNumber: this.currentPage, pageSize: this.pageSize, searchTerm: this.searchTerm });
             const paged = response?.data;
-            this.statuses = paged?.items ?? [];
+            this.statuses = (paged?.items ?? []).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             this.totalCount = paged?.totalCount ?? this.statuses.length;
             this.totalPages = paged?.totalPages ?? Math.max(1, Math.ceil(this.totalCount / this.pageSize));
             this.totalPagesArray = Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -78,7 +79,7 @@ export class RequestStatusesPage implements OnInit {
     openCreate(): void {
         this.editMode = false;
         this.selectedStatus = null;
-        this.form = { name: '', description: '', colorCode: '#64748b', isBlocked: false };
+        this.form = { name: '', description: '', order: 0, colorCode: '#64748b', isBlocked: false };
         this.showModal = true;
     }
 
@@ -88,6 +89,7 @@ export class RequestStatusesPage implements OnInit {
         this.form = {
             name: status.name,
             description: status.description,
+            order: status.order ?? 0,
             colorCode: status.colorCode ?? '#64748b',
             isBlocked: status.isBlocked ?? false,
         };
@@ -100,6 +102,7 @@ export class RequestStatusesPage implements OnInit {
                 const req: UpdateRequestStatusRequest = {
                     name: this.form.name,
                     description: this.form.description,
+                    order: Number(this.form.order) || 0,
                     colorCode: this.form.colorCode,
                     isBlocked: this.form.isBlocked,
                 };
@@ -108,6 +111,7 @@ export class RequestStatusesPage implements OnInit {
                 const req: CreateRequestStatusRequest = {
                     name: this.form.name,
                     description: this.form.description,
+                    order: Number(this.form.order) || 0,
                     colorCode: this.form.colorCode,
                 };
                 await this.statusService.create(req);

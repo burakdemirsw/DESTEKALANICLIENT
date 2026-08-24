@@ -6,20 +6,26 @@
     </div>
 } @else if (request) {
     <div class="ticket-page">
-        <!-- ═══ Ticket Header ═══ -->
+        <!-- ═══ Ticket Header ═══ -->   
         <div class="ticket-header">
             <div class="ticket-header-left">
-                <h5 class="ticket-title">
-                    <span class="ticket-hash">#</span> {{ request.subject }}
-                </h5>
-                <span class="ticket-id-badge">
-                    Talep No: {{ request.requestNo || '-' }}
-                </span>
-                @if (request.statusName || getStatusName(request.statusId) !== '-') {
-                    <span class="ticket-id-badge">
-                        {{ request.statusName || getStatusName(request.statusId) }}
-                    </span>
-                }
+                <div class="ticket-title-row">
+                    <h5 class="ticket-title">
+                        <span class="ticket-hash">#</span> {{ request.requestNo }}
+                    </h5>
+                    <div class="ticket-badges-row">
+                        <!-- <span class="ticket-id-badge ticket-no-badge">
+                            Talep No: {{ request.requestNo || '-' }}
+                        </span> -->
+                        @if (request.statusName || getStatusName(request.statusId) !== '-') {
+                            <span class="ticket-id-badge ticket-status-badge"
+                                  [style.background-color]="request.statusColorCode || '#dbeafe'"
+                                  [style.color]="request.statusColorCode ? '#ffffff' : '#1e3a8a'">
+                                {{ request.statusName || getStatusName(request.statusId) }}
+                            </span>
+                        }
+                    </div>
+                </div>
             </div>
             <div class="ticket-header-actions">
                 <button class="btn btn-sm btn-outline-primary" (click)="goBack()">
@@ -45,29 +51,29 @@
 
         <!-- ═══ Ticket Meta Bar ═══ -->
         <div class="ticket-meta-bar">
-            <div class="meta-item">
+            <div class="meta-item meta-pill">
                 <i class="fa-solid fa-user me-1"></i>
                 <span>{{ request.userName || getUserFullName(request.userId) }}</span>
             </div>
             <div class="meta-divider"></div>
-            <div class="meta-item">
+            <div class="meta-item meta-pill">
                 <i class="fa-solid fa-tag me-1"></i>
                 <span>{{ request.categoryName || getCategoryName(request.categoryId) }}</span>
             </div>
             <div class="meta-divider"></div>
-            <div class="meta-item">
+            <div class="meta-item meta-pill">
                 <i class="fa-solid fa-flag me-1"></i>
                 <span class="priority-badge">{{ request.priorityName || getPriorityName(request.priorityId) }}</span>
             </div>
             @if (request.assignedUserId) {
                 <div class="meta-divider"></div>
-                <div class="meta-item">
+                <div class="meta-item meta-pill">
                     <i class="fa-solid fa-user-gear me-1"></i>
                     <span>{{ request.assignedUserName || getUserFullName(request.assignedUserId) }}</span>
                 </div>
             }
             <div class="meta-divider"></div>
-            <div class="meta-item">
+            <div class="meta-item meta-pill">
                 <i class="fa-solid fa-calendar me-1"></i>
                 <span>{{ formatDate(request.createdDate) }}</span>
             </div>

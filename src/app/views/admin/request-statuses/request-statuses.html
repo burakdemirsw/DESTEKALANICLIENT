@@ -29,6 +29,7 @@
                                 <tr>
                                     <th>Durum Adı</th>
                                     <th>Açıklama</th>
+                                    <th>Sıra</th>
                                     <th>Renk Kodu</th>
                                     <th>Durum</th>
                                     <th class="text-end">İşlemler</th>
@@ -43,6 +44,7 @@
                                                 {{ item.description }}
                                             </span>
                                         </td>
+                                        <td>{{ item.order }}</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <span class="rounded-circle border" style="width: 14px; height: 14px; display: inline-block;"
@@ -63,7 +65,7 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="5" class="text-center text-muted">Talep durumu bulunamadı.</td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted">Talep durumu bulunamadı.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -120,6 +122,10 @@
                         <div class="mb-3">
                             <label class="form-label">Açıklama</label>
                             <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sıra</label>
+                            <input type="number" class="form-control" [(ngModel)]="form.order" name="order" min="0" step="1" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Renk Kodu</label>

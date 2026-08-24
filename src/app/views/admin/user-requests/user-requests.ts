@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { PageTitle } from '@app/components/page-title';
 import { UserRequestsService } from '@/app/core/services/user-requests.service';
 import { RequestCategoriesService } from '@/app/core/services/request-categories.service';
 import { RequestPrioritiesService } from '@/app/core/services/request-priorities.service';
@@ -25,13 +24,13 @@ import { AuthStateService } from '@core/services/auth-state.service';
 
 @Component({
     selector: 'app-user-requests-page',
-    imports: [CommonModule, FormsModule, RouterModule, PageTitle],
+    imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './user-requests.html',
 })
     
 export class UserRequestsPage implements OnInit {
     private static readonly MIN_DESCRIPTION_LENGTH = 20;
-    private static readonly LIST_PAGE_SIZE = 1000;
+    private static readonly LIST_PAGE_SIZE = 20;
     requests: UserRequest[] = [];
     filteredRequests: UserRequest[] = [];
     categories: RequestCategoryResponse[] = [];
@@ -44,6 +43,11 @@ export class UserRequestsPage implements OnInit {
     editMode = false;
     saveAttempted = false;
     selectedRequest: UserRequest | null = null;
+    currentPage = 1;
+    pageSize = UserRequestsPage.LIST_PAGE_SIZE;
+    totalCount = 0;
+    totalPages = 1;
+    totalPagesArray: number[] = [];
     filters: {
         searchTerm: string;
         applicationId: string;
@@ -95,10 +99,12 @@ export class UserRequestsPage implements OnInit {
     async loadRequests(): Promise<void> {
         this.loading = true;
         try {
+            const userId = this.userMenuService.getUserIdFromToken() ?? '';
             const request: UserRequestPagedRequest = {
+                userId,
                 companyId: this.authStateService.profile?.companyId ?? '',
-                pageNumber: 1,
-                pageSize: UserRequestsPage.LIST_PAGE_SIZE,
+                pageNumber: this.currentPage,
+                pageSize: this.pageSize,
                 searchTerm: this.filters.searchTerm?.trim() || undefined,
                 applicationId: this.filters.applicationId || undefined,
                 categoryId: this.filters.categoryId || undefined,
@@ -110,6 +116,9 @@ export class UserRequestsPage implements OnInit {
             const paged = response?.data;
             this.requests = paged?.items ?? [];
             this.filteredRequests = [...this.requests];
+            this.totalCount = paged?.totalCount ?? this.requests.length;
+            this.totalPages = paged?.totalPages ?? Math.max(1, Math.ceil(this.totalCount / this.pageSize));
+            this.buildPagesArray();
         } catch (err) {
             console.error('UserRequests load error:', err);
         } finally {
@@ -118,6 +127,7 @@ export class UserRequestsPage implements OnInit {
     }
 
     async onFilterChange(): Promise<void> {
+        this.currentPage = 1;
         await this.loadRequests();
     }
 
@@ -129,7 +139,32 @@ export class UserRequestsPage implements OnInit {
             priorityId: '',
             statusId: '',
         };
+        this.currentPage = 1;
         await this.loadRequests();
+    }
+
+    setPage(page: number): void {
+        if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+        this.currentPage = page;
+        this.loadRequests();
+    }
+
+    private buildPagesArray(): void {
+        const maxVisible = 7;
+        if (this.totalPages <= maxVisible) {
+            this.totalPagesArray = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+            return;
+        }
+
+        const pages: number[] = [];
+        let start = Math.max(1, this.currentPage - 3);
+        let end = Math.min(this.totalPages, this.currentPage + 3);
+
+        if (start === 1) end = Math.min(this.totalPages, maxVisible);
+        if (end === this.totalPages) start = Math.max(1, this.totalPages - maxVisible + 1);
+
+        for (let i = start; i <= end; i++) pages.push(i);
+        this.totalPagesArray = pages;
     }
 
     async loadCategories(): Promise<void> {
@@ -207,6 +242,20 @@ export class UserRequestsPage implements OnInit {
 
     getStatusName(id: string): string {
         return this.statuses.find(s => s.id === id)?.name ?? '-';
+    }
+
+    getStatusColorCode(request: UserRequest): string | null {
+        const directColor = this.normalizeColorCode(request.statusColorCode ?? request.colorCode);
+        if (directColor) return directColor;
+
+        const statusColor = this.statuses.find(s => s.id === request.statusId)?.colorCode;
+        return this.normalizeColorCode(statusColor);
+    }
+
+    private normalizeColorCode(colorCode: string | null | undefined): string | null {
+        const trimmed = colorCode?.trim();
+        if (!trimmed) return null;
+        return trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
     }
 
     getUserFullName(id: string): string {

@@ -29,6 +29,8 @@
                                 <tr>
                                     <th>Kategori Adı</th>
                                     <th>Açıklama</th>
+                                    <th>Sıra</th>
+                                    <th>Renk Kodu</th>
                                     <th>Durum</th>
                                     <th class="text-end">İşlemler</th>
                                 </tr>
@@ -41,6 +43,14 @@
                                             <span class="text-truncate d-inline-block" style="max-width: 300px;" title="{{ item.description }}">
                                                 {{ item.description }}
                                             </span>
+                                        </td>
+                                        <td>{{ item.order }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="rounded-circle border" style="width: 14px; height: 14px; display: inline-block;"
+                                                      [style.background-color]="item.colorCode || '#64748b'"></span>
+                                                <span>{{ item.colorCode || '#64748b' }}</span>
+                                            </div>
                                         </td>
                                         <td>
                                             @if (item.isBlocked) {
@@ -55,7 +65,7 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="4" class="text-center text-muted">Kategori bulunamadı.</td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted">Kategori bulunamadı.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -112,6 +122,17 @@
                         <div class="mb-3">
                             <label class="form-label">Açıklama</label>
                             <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sıra</label>
+                            <input type="number" class="form-control" [(ngModel)]="form.order" name="order" min="0" step="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Renk Kodu</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="color" class="form-control form-control-color" [(ngModel)]="form.colorCode" name="colorCode" title="Renk seçin">
+                                <input type="text" class="form-control" [value]="form.colorCode" readonly>
+                            </div>
                         </div>
                         @if (editMode) {
                             <div class="mb-3">

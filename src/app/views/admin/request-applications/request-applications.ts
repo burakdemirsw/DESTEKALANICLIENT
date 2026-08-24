@@ -13,6 +13,7 @@ import {
 interface RequestApplicationForm {
   applicationName: string;
   description: string;
+  photoUrl: string;
   isBlocked: boolean;
 }
 
@@ -38,6 +39,7 @@ export class RequestApplicationsPage implements OnInit {
   form: RequestApplicationForm = {
     applicationName: '',
     description: '',
+    photoUrl: '',
     isBlocked: false,
   };
 
@@ -106,6 +108,7 @@ export class RequestApplicationsPage implements OnInit {
     this.form = {
       applicationName: '',
       description: '',
+      photoUrl: '',
       isBlocked: false,
     };
     this.showModal = true;
@@ -117,6 +120,7 @@ export class RequestApplicationsPage implements OnInit {
     this.form = {
       applicationName: item.applicationName ?? '',
       description: item.description ?? '',
+      photoUrl: item.photoUrl ?? '',
       isBlocked: item.isBlocked ?? false,
     };
     this.showModal = true;
@@ -128,6 +132,7 @@ export class RequestApplicationsPage implements OnInit {
         const requestBody: UpdateRequestApplicationRequest = {
           applicationName: this.form.applicationName,
           description: this.form.description,
+          photoUrl: this.form.photoUrl || null,
           isBlocked: this.form.isBlocked,
         };
         await this.requestApplicationsService.update(this.selectedItem.id, requestBody);
@@ -135,6 +140,7 @@ export class RequestApplicationsPage implements OnInit {
         const requestBody: CreateRequestApplicationRequest = {
           applicationName: this.form.applicationName,
           description: this.form.description,
+          photoUrl: this.form.photoUrl || null,
         };
         await this.requestApplicationsService.create(requestBody);
       }

@@ -29,6 +29,8 @@ export class RequestCategoriesPage implements OnInit {
     form: any = {
         name: '',
         description: '',
+        colorCode: '#64748b',
+        order: 0,
         isBlocked: false,
     };
 
@@ -43,7 +45,7 @@ export class RequestCategoriesPage implements OnInit {
         try {
             const response = await this.categoryService.getPaged({ companyId: this.authStateService.profile?.companyId ?? '', pageNumber: this.currentPage, pageSize: this.pageSize, searchTerm: this.searchTerm });
             const paged = response?.data;
-            this.categories = paged?.items ?? [];
+            this.categories = (paged?.items ?? []).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             this.totalCount = paged?.totalCount ?? this.categories.length;
             this.totalPages = paged?.totalPages ?? Math.max(1, Math.ceil(this.totalCount / this.pageSize));
             this.totalPagesArray = Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -77,7 +79,7 @@ export class RequestCategoriesPage implements OnInit {
     openCreate(): void {
         this.editMode = false;
         this.selectedCategory = null;
-        this.form = { name: '', description: '', isBlocked: false };
+        this.form = { name: '', description: '', colorCode: '#64748b', order: 0, isBlocked: false };
         this.showModal = true;
     }
 
@@ -87,6 +89,8 @@ export class RequestCategoriesPage implements OnInit {
         this.form = {
             name: category.name,
             description: category.description,
+            colorCode: category.colorCode ?? '#64748b',
+            order: category.order ?? 0,
             isBlocked: category.isBlocked ?? false,
         };
         this.showModal = true;
@@ -98,6 +102,8 @@ export class RequestCategoriesPage implements OnInit {
                 const req: UpdateRequestCategoryRequest = {
                     name: this.form.name,
                     description: this.form.description,
+                    colorCode: this.form.colorCode,
+                    order: Number(this.form.order) || 0,
                     isBlocked: this.form.isBlocked,
                 };
                 await this.categoryService.update(this.selectedCategory.id, req);
@@ -105,6 +111,8 @@ export class RequestCategoriesPage implements OnInit {
                 const req: CreateRequestCategoryRequest = {
                     name: this.form.name,
                     description: this.form.description,
+                    colorCode: this.form.colorCode,
+                    order: Number(this.form.order) || 0,
                 };
                 await this.categoryService.create(req);
             }
