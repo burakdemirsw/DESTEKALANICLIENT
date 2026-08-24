@@ -113,7 +113,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         if (this.requestId) {
             this.loadCurrentUserRoles();
             this.loadRequest();
-            this.loadMessages();
+            this.loadMessages();    
             this.loadCategories();
             this.loadPriorities();
             this.loadStatuses();
@@ -225,6 +225,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         if (response?.data) return Array.isArray(response.data) ? response.data : [response.data];
         if (response?.items) return response.items;
         if (response?.result) return Array.isArray(response.result) ? response.result : [response.result];
+        // If a single object is passed directly (not wrapped in ApiResponse), wrap it into an array
+        if (response && typeof response === 'object') return [response];
         return [];
     }
 
