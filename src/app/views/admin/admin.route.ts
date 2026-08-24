@@ -28,6 +28,7 @@ import { AiModelsPage } from './ai-assistants/ai-models/ai-models';
 import { AiProviderSettingsPage } from './ai-assistants/ai-provider-settings/ai-provider-settings';
 import { AiAssistantsPage } from './ai-assistants/ai-assistants-list/ai-assistants';
 import { RequestCategoriesPage } from './request-categories/request-categories';
+import { RequestApplicationsPage } from './request-applications/request-applications';
 import { RequestPrioritiesPage } from './request-priorities/request-priorities';
 import { RequestStatusesPage } from './request-statuses/request-statuses';
 import { UserRequestsPage } from './user-requests/user-requests';
@@ -227,6 +228,12 @@ export const ADMIN_ROUTES: Routes = [
         path: 'admin/ai-assistants',
         component: AiAssistantsPage,
         data: { title: 'AI Asistanlar' },
+        canActivate: [AuthGuard],
+    },
+    {
+        path: 'admin/request-applications',
+        component: RequestApplicationsPage,
+        data: { title: 'Talep Uygulamalari' },
         canActivate: [AuthGuard],
     },
     {

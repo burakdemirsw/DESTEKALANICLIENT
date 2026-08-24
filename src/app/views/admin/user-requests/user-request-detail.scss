@@ -202,7 +202,7 @@ $radius-md: 12px;
 .ticket-msg-layout {
     display: flex;
     gap: 0;
-    min-height: 120px;
+    min-height: 96px;
 }
 
 .ticket-msg-user-col {
@@ -212,7 +212,7 @@ $radius-md: 12px;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 20px 16px;
+    padding: 14px 12px;
     border-right: 1px solid #eef0f2;
     background: rgba(0, 0, 0, 0.01);
 }
@@ -238,6 +238,16 @@ $radius-md: 12px;
         background: linear-gradient(135deg, #3b82f6, #2563eb);
         box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
     }
+
+    &.avatar-owner {
+        background: linear-gradient(135deg, #7c3aed, #6366f1);
+        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.28);
+    }
+
+    &.avatar-replier {
+        background: linear-gradient(135deg, #0ea5a4, #14b8a6);
+        box-shadow: 0 2px 8px rgba(20, 184, 166, 0.28);
+    }
 }
 
 .user-name-label {
@@ -246,6 +256,14 @@ $radius-md: 12px;
     color: $accent-blue;
     text-align: center;
     word-break: break-word;
+
+    &.name-owner {
+        color: #4f46e5;
+    }
+
+    &.name-replier {
+        color: #0f766e;
+    }
 }
 
 .user-role-label {
@@ -257,14 +275,19 @@ $radius-md: 12px;
         color: #16a34a;
         font-weight: 600;
     }
+
+    &.role-owner {
+        color: #6366f1;
+        font-weight: 600;
+    }
 }
 
 .ticket-msg-content-col {
     flex: 1;
-    padding: 20px 24px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .ticket-msg-date {
@@ -278,10 +301,116 @@ $radius-md: 12px;
 
 .ticket-msg-body {
     font-size: 0.9rem;
-    line-height: 1.7;
+    line-height: 1.55;
     color: #374151;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+.ticket-attachment {
+    margin-top: 4px;
+}
+
+.ticket-attachment-section {
+    border-top: 1px solid #e8edf5;
+    padding: 10px 16px 12px;
+}
+
+.ticket-attachment-label {
+    color: #64748b;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.ticket-attachment-image-link {
+    display: inline-block;
+}
+
+.ticket-attachment-image {
+    border: 1px solid #dbe2ef;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(31, 41, 55, 0.12);
+    max-height: 200px;
+    max-width: 320px;
+    object-fit: cover;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ticket-attachment-image:hover {
+    box-shadow: 0 8px 20px rgba(31, 41, 55, 0.18);
+    transform: translateY(-1px);
+}
+
+.ticket-attachment-file {
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef4ff 100%);
+    border: 1px solid #d7e2f6;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    max-width: 360px;
+    padding: 8px 10px;
+}
+
+.attachment-file-main {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+}
+
+.attachment-file-icon {
+    align-items: center;
+    background: #dbeafe;
+    border-radius: 8px;
+    color: #1d4ed8;
+    display: inline-flex;
+    font-size: 0.9rem;
+    height: 30px;
+    justify-content: center;
+    width: 30px;
+}
+
+.attachment-file-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.attachment-file-name {
+    color: #1f2937;
+    font-size: 0.8rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-file-type {
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.ticket-attachment-link {
+    align-items: center;
+    background: #2563eb;
+    border-radius: 8px;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 5px 9px;
+    text-decoration: none;
+}
+
+.ticket-attachment-link:hover {
+    background: #1d4ed8;
 }
 
 /* ── Açıklama kartı (ilk mesaj) ── */
@@ -303,6 +432,25 @@ $radius-md: 12px;
     margin-bottom: 20px;
 }
 
+.ticket-date-separator {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin: 2px 0 0;
+
+    span {
+        background: #eef2ff;
+        border: 1px solid #d9e1ff;
+        border-radius: 999px;
+        color: #475569;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        padding: 5px 10px;
+        text-transform: capitalize;
+    }
+}
+
 .ticket-message-card {
     background: $bg-main;
     border-radius: $radius-md;
@@ -315,6 +463,43 @@ $radius-md: 12px;
         border-left: 3px solid $accent-blue;
         background: #fafbff;
     }
+
+    &.is-owner {
+        border-left: 3px solid #7c3aed;
+        background: #fcfbff;
+    }
+
+    &.is-replier {
+        border-left: 3px solid #0ea5a4;
+        background: #f8fffe;
+    }
+}
+
+.ticket-msg-group-content {
+    gap: 0;
+}
+
+.ticket-msg-item {
+    padding: 8px 0;
+}
+
+.ticket-msg-item + .ticket-msg-item {
+    border-top: 1px dashed #e5e7eb;
+}
+
+.ticket-msg-item.has-attachment {
+    padding-bottom: 2px;
+}
+
+.ticket-group-latest-date {
+    align-self: flex-end;
+    color: #6b7280;
+    font-size: 0.74rem;
+    font-weight: 600;
+    margin-top: auto;
+    padding-top: 10px;
+    padding-bottom: 2px;
+    text-align: right;
 }
 
 /* Loading dots */
@@ -394,6 +579,22 @@ $radius-md: 12px;
     padding: 20px;
 }
 
+.reply-attachment-row {
+    margin-top: 10px;
+}
+
+.selected-file-chip {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.selected-file-chip span {
+    color: #475569;
+    font-size: 0.8rem;
+}
+
 .reply-textarea {
     border-radius: 10px;
     border: 1px solid $border-color;
@@ -462,6 +663,18 @@ $radius-md: 12px;
     flex-direction: column;
     overflow: hidden;
     animation: fadeInUp 0.25s ease;
+}
+
+.reply-modal {
+    max-width: 760px;
+}
+
+.reply-modal-body {
+    background: $bg-main;
+
+    .reply-body {
+        padding: 0;
+    }
 }
 
 .modal-modern-header {

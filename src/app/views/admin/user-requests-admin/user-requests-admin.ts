@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { PageTitle } from '@app/components/page-title';
 import { UserRequestsService } from '@/app/core/services/user-requests.service';
 import { RequestCategoriesService } from '@/app/core/services/request-categories.service';
+import { RequestApplicationsService } from '@/app/core/services/request-applications.service';
 import { RequestPrioritiesService } from '@/app/core/services/request-priorities.service';
 import { RequestStatusesService } from '@/app/core/services/request-statuses.service';
 import { UsersService } from '@/app/core/services/users.service';
@@ -15,6 +16,7 @@ import {
     UpdateUserRequestRequest,
 } from '@/app/core/models/user-request/user-request.models';
 import { RequestCategoryResponse } from '@/app/core/models/request-category/request-category.models';
+import { RequestApplicationResponse } from '@/app/core/models/request-application/request-application.models';
 import { RequestPriorityResponse } from '@/app/core/models/request-priority/request-priority.models';
 import { RequestStatusResponse } from '@/app/core/models/request-status/request-status.models';
 import { User } from '@/app/core/models/user/user.models';
@@ -29,6 +31,7 @@ export class UserRequestsAdminPage implements OnInit {
     requests: UserRequestResponse[] = [];
     filteredItems: UserRequestResponse[] = [];
     pagedItems: UserRequestResponse[] = [];
+    applications: RequestApplicationResponse[] = [];
     categories: RequestCategoryResponse[] = [];
     priorities: RequestPriorityResponse[] = [];
     statuses: RequestStatusResponse[] = [];
@@ -47,6 +50,7 @@ export class UserRequestsAdminPage implements OnInit {
     form: any = {
         userId: '',
         assignedUserId: '',
+        applicationId: '',
         categoryId: '',
         statusId: '',
         priorityId: '',
@@ -57,6 +61,7 @@ export class UserRequestsAdminPage implements OnInit {
 
     constructor(
         private requestService: UserRequestsService,
+        private requestApplicationsService: RequestApplicationsService,
         private categoryService: RequestCategoriesService,
         private priorityService: RequestPrioritiesService,
         private statusService: RequestStatusesService,
@@ -67,6 +72,7 @@ export class UserRequestsAdminPage implements OnInit {
 
     ngOnInit(): void {
         this.loadRequests();
+        this.loadApplications();
         this.loadCategories();
         this.loadPriorities();
         this.loadStatuses();
@@ -101,6 +107,19 @@ export class UserRequestsAdminPage implements OnInit {
             this.categories = response?.data?.items ?? [];
         } catch (err) {
             console.error('Categories load error:', err);
+        }
+    }
+
+    async loadApplications(): Promise<void> {
+        try {
+            const response = await this.requestApplicationsService.getPaged({
+                companyId: this.authStateService.profile?.companyId ?? '',
+                pageNumber: 1,
+                pageSize: 1000,
+            });
+            this.applications = response?.data?.items ?? [];
+        } catch (err) {
+            console.error('Applications load error:', err);
         }
     }
 
@@ -175,6 +194,7 @@ export class UserRequestsAdminPage implements OnInit {
         this.form = {
             userId: userId ?? '',
             assignedUserId: '',
+            applicationId: '',
             categoryId: '',
             statusId: '',
             priorityId: '',
@@ -191,6 +211,7 @@ export class UserRequestsAdminPage implements OnInit {
         this.form = {
             userId: request.userId ?? '',
             assignedUserId: request.assignedUserId ?? '',
+            applicationId: request.applicationId ?? '',
             categoryId: request.categoryId ?? '',
             statusId: request.statusId ?? '',
             priorityId: request.priorityId ?? '',
@@ -206,6 +227,7 @@ export class UserRequestsAdminPage implements OnInit {
             if (this.editMode && this.selectedRequest) {
                 const requestBody: UpdateUserRequestRequest = {
                     assignedUserId: this.form.assignedUserId || null,
+                    applicationId: this.form.applicationId || null,
                     categoryId: this.form.categoryId,
                     statusId: this.form.statusId,
                     priorityId: this.form.priorityId,
@@ -217,6 +239,7 @@ export class UserRequestsAdminPage implements OnInit {
             } else {
                 const requestBody: CreateUserRequestRequest = {
                     userId: this.form.userId,
+                    applicationId: this.form.applicationId,
                     categoryId: this.form.categoryId,
                     subject: this.form.subject,
                     description: this.form.description,

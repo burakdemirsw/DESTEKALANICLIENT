@@ -1,4 +1,4 @@
-import {Routes} from '@angular/router';
+﻿import {Routes} from '@angular/router';
 import {MainLayout} from '@layouts/main-layout/main-layout';
 import {Landing} from './views/landing/landing';
 
@@ -11,7 +11,7 @@ export const routes: Routes = [
     {
         path: 'home',
         component: Landing,
-        data: {title: 'SellenticAI — AI Destekli Müşteri İletişim Platformu'}
+        data: {title: 'WMSSupport â€” AI Destekli MÃ¼ÅŸteri Ä°letiÅŸim Platformu'}
     },
     {
         path: '',
@@ -36,3 +36,4 @@ export const routes: Routes = [
         pathMatch: 'full'
     },
 ];
+

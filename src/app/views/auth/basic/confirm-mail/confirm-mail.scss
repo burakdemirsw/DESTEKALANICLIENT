@@ -1,0 +1,77 @@
+﻿<div class="auth-box overflow-hidden align-items-center d-flex">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xxl-4 col-md-6 col-sm-8">
+                <div class="card p-4 rounded-4">
+                    <div class="position-absolute top-0 end-0" style="width: 180px;">
+                        <svg style="opacity: 0.075; width: 100%; height: auto;" width="600" height="560" viewBox="0 0 600 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip_confirm)">
+                                <path d="M364.093 327.517L332.306 359.304C321.885 369.725 304.989 369.725 294.568 359.304L262.781 327.517C252.36 317.096 252.36 300.2 262.781 289.779L294.568 257.992C304.989 247.571 321.885 247.571 332.306 257.992L364.093 289.779C374.514 300.2 374.514 317.096 364.093 327.517Z" stroke="#089df1" stroke-width="2" stroke-miterlimit="10" />
+                                <path d="M403.998 311.555L372.211 343.342C361.79 353.763 344.894 353.763 334.473 343.342L302.686 311.555C292.265 301.134 292.265 284.238 302.686 273.817L334.473 242.03C344.894 231.609 361.79 231.609 372.211 242.03L403.998 273.817C414.419 284.238 414.419 301.134 403.998 311.555Z" fill="#089df1" />
+                                <path d="M619.299 318.084L563.736 373.647C548.147 389.236 522.872 389.236 507.283 373.647L451.72 318.084C436.131 302.495 436.131 277.22 451.72 261.631L507.283 206.068C522.872 190.479 548.147 190.479 563.736 206.068L619.299 261.631C634.888 277.221 634.888 302.495 619.299 318.084Z" fill="#089df1" />
+                                <path d="M417.828 85.0572L355.011 147.874C339.422 163.463 314.147 163.463 298.558 147.874L235.741 85.0572C220.152 69.4682 220.152 44.1931 235.741 28.6051L298.558 -34.2119C314.147 -49.8009 339.422 -49.8009 355.011 -34.2119L417.828 28.6051C433.417 44.1931 433.417 69.4682 417.828 85.0572Z" fill="#7b70ef" />
+                            </g>
+                            <defs>
+                                <clipPath id="clip_confirm">
+                                    <rect width="560" height="600" fill="white" transform="matrix(0 -1 1 0 0 560)" />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <div class="auth-brand text-center mb-3">
+                        <a routerLink="/" class="logo-dark">
+                            <img src="assets/images/logo-black.png" alt="dark logo" height="28">
+                        </a>
+                        <a routerLink="/" class="logo-light">
+                            <img src="assets/images/logos/logo.png" alt="logo" height="28">
+                        </a>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="avatar-xxl mx-auto mt-2">
+                            <div class="avatar-title bg-light-subtle border border-light border-dashed rounded-circle">
+                                @if (status === 'loading') {
+                                    <i class="fa-solid fa-spinner fa-spin fa-3x text-primary"></i>
+                                } @else if (status === 'success') {
+                                    <i class="fa-solid fa-circle-check fa-3x text-success"></i>
+                                } @else {
+                                    <i class="fa-solid fa-circle-xmark fa-3x text-danger"></i>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (status === 'loading') {
+                        <h4 class="fw-bold text-center mb-2">E-posta OnaylanÄ±yor...</h4>
+                        <p class="text-muted text-center mb-4">LÃ¼tfen bekleyin, e-posta adresiniz doÄŸrulanÄ±yor.</p>
+                    } @else if (status === 'success') {
+                        <h4 class="fw-bold text-center text-success mb-2">E-posta BaÅŸarÄ±yla OnaylandÄ±!</h4>
+                        <p class="text-muted text-center mb-4">E-posta adresiniz baÅŸarÄ±yla doÄŸrulandÄ±. YÃ¶nlendiriliyorsunuz...</p>
+                        <div class="d-grid">
+                            <a routerLink="/users/profile" class="btn btn-primary fw-semibold py-2">
+                                <i class="fa-solid fa-user me-1"></i> Profile Git
+                            </a>
+                        </div>
+                    } @else {
+                        <h4 class="fw-bold text-center text-danger mb-2">Onaylama BaÅŸarÄ±sÄ±z!</h4>
+                        <p class="text-muted text-center mb-4">{{ errorMessage }}</p>
+                        <div class="d-grid gap-2">
+                            <a routerLink="/auth/sign-in" class="btn btn-primary fw-semibold py-2">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i> GiriÅŸ Yap
+                            </a>
+                            <a routerLink="/" class="btn btn-outline-secondary fw-semibold py-2">
+                                <i class="fa-solid fa-house me-1"></i> Ana Sayfaya DÃ¶n
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <p class="text-center text-muted mt-4 mb-0">
+                    Â© {{ currentYear }} WMSSupport
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,31 +1,31 @@
----
+﻿---
 applyTo: '**'
 ---
 
-# SellenticAI — Angular Proje Kuralları
+# WMSSupport â€” Angular Proje KurallarÄ±
 
-## Mimari Genel Bakış
+## Mimari Genel BakÄ±ÅŸ
 
 - **Angular 20+** standalone component mimarisi (NgModule KULLANILMAZ)
-- Uygulama adı: **SellenticAI** (eski adı: YanıtSende / SellenticAI — bunları kullanma)
+- Uygulama adÄ±: **WMSSupport** (eski adÄ±: YanÄ±tSende / WMSSupport â€” bunlarÄ± kullanma)
 - API Base URL: `https://localhost:8991/api`
-- Tüm HTTP istekleri `HttpClientService` üzerinden `Promise` tabanlı yapılır (Observable değil)
+- TÃ¼m HTTP istekleri `HttpClientService` Ã¼zerinden `Promise` tabanlÄ± yapÄ±lÄ±r (Observable deÄŸil)
 
-## Component Kuralları
+## Component KurallarÄ±
 
-- Sınıf adı: `XxxPage` (ör: `MenusPage`, `TeamsPage`)
-- Dosya uzantısı: `.ts` (`.component.ts` değil), şablon: `.html`, stil: `.scss`
-- `@Component` dekoratöründe `imports: [...]` dizisi kullan (standalone)
-- Angular 17+ kontrol akışı: `@if`, `@else`, `@for`, `@empty` kullan (`*ngIf`/`*ngFor` değil)
-- İki yönlü bağlama: `[(ngModel)]` ile `FormsModule`
-- Modal: `showModal` flag ile göster/gizle (Bootstrap modal yapısı, kütüphane kullanma)
+- SÄ±nÄ±f adÄ±: `XxxPage` (Ã¶r: `MenusPage`, `TeamsPage`)
+- Dosya uzantÄ±sÄ±: `.ts` (`.component.ts` deÄŸil), ÅŸablon: `.html`, stil: `.scss`
+- `@Component` dekoratÃ¶rÃ¼nde `imports: [...]` dizisi kullan (standalone)
+- Angular 17+ kontrol akÄ±ÅŸÄ±: `@if`, `@else`, `@for`, `@empty` kullan (`*ngIf`/`*ngFor` deÄŸil)
+- Ä°ki yÃ¶nlÃ¼ baÄŸlama: `[(ngModel)]` ile `FormsModule`
+- Modal: `showModal` flag ile gÃ¶ster/gizle (Bootstrap modal yapÄ±sÄ±, kÃ¼tÃ¼phane kullanma)
 
-## ⚠️ ZORUNLU: Datatable Yapısı
+## âš ï¸ ZORUNLU: Datatable YapÄ±sÄ±
 
-**Tüm tablo sayfalarında aşağıdaki yapı zorunludur:**
+**TÃ¼m tablo sayfalarÄ±nda aÅŸaÄŸÄ±daki yapÄ± zorunludur:**
 
-1. **Arama filtresi** — Tablonun üstünde `filterText` input'u
-2. **Sayfalama (pagination)** — Tablonun altında `currentPage`, `pageSize=10`, ileri/geri butonlar
+1. **Arama filtresi** â€” Tablonun Ã¼stÃ¼nde `filterText` input'u
+2. **Sayfalama (pagination)** â€” Tablonun altÄ±nda `currentPage`, `pageSize=10`, ileri/geri butonlar
 3. **Gerekli property'ler:**
    ```
    filterText = '';
@@ -37,31 +37,31 @@ applyTo: '**'
    totalPagesArray: number[] = [];
    ```
 4. **Gerekli methodlar:** `onFilterChange()`, `setPage(page)`, `applyFilterAndPaging()`
-5. Veri yüklendikten sonra mutlaka `this.applyFilterAndPaging()` çağır
-6. HTML'de `@for` döngüsü `pagedItems` üzerinde döner, `filteredItems.length` toplam kayıt gösterir
+5. Veri yÃ¼klendikten sonra mutlaka `this.applyFilterAndPaging()` Ã§aÄŸÄ±r
+6. HTML'de `@for` dÃ¶ngÃ¼sÃ¼ `pagedItems` Ã¼zerinde dÃ¶ner, `filteredItems.length` toplam kayÄ±t gÃ¶sterir
 
-**Eğer datatable yapısı yoksa uyar ve ekle.**
+**EÄŸer datatable yapÄ±sÄ± yoksa uyar ve ekle.**
 
-## Servis Kuralları
+## Servis KurallarÄ±
 
 - `@Injectable({ providedIn: 'root' })`
-- `HttpClientService` inject edilir, `get()` ve `post()` kullanılır
-- URL yapısı: `{ controller: 'XxxController', action: 'yyy' }` → `{baseUrl}/XxxController/yyy`
+- `HttpClientService` inject edilir, `get()` ve `post()` kullanÄ±lÄ±r
+- URL yapÄ±sÄ±: `{ controller: 'XxxController', action: 'yyy' }` â†’ `{baseUrl}/XxxController/yyy`
 - Update: `post({ controller, action: 'update/{id}' }, body)`
 - Delete: `post({ controller, action: 'delete/{id}' }, {})`
-- Tüm methodlar `Promise<any>` döner
+- TÃ¼m methodlar `Promise<any>` dÃ¶ner
 
-## ⚠️ ZORUNLU: Tip Güvenliği (any Kullanma!)
+## âš ï¸ ZORUNLU: Tip GÃ¼venliÄŸi (any Kullanma!)
 
 - API isteklerinde ve response'larda **`any` yerine mutlaka typed interface/class** kullan
-- API'nin ne döndüğünü öğrenmek için **`src/assets/api/v1.yaml`** dosyasına bak
-- `v1.yaml` içinde ilgili endpoint'in request body ve response schema'sını bul, ona göre model oluştur
-- Eğer `v1.yaml`'de ilgili schema **bulunamazsa**, o zaman `any` kullanılabilir — ama bu son çare olmalı
-- Servis methodları: `Promise<any>` yerine `Promise<XxxResponse>` veya `Promise<XxxResponse[]>` kullan
-- Component'lerde değişken tipleri: `items: any[] = []` yerine `items: XxxResponse[] = []` kullan
-- `extractArray` helper'ın dönüş tipi de mümkünse typed olmalı: `private extractArray(response: any): XxxResponse[]`
+- API'nin ne dÃ¶ndÃ¼ÄŸÃ¼nÃ¼ Ã¶ÄŸrenmek iÃ§in **`src/assets/api/v1.yaml`** dosyasÄ±na bak
+- `v1.yaml` iÃ§inde ilgili endpoint'in request body ve response schema'sÄ±nÄ± bul, ona gÃ¶re model oluÅŸtur
+- EÄŸer `v1.yaml`'de ilgili schema **bulunamazsa**, o zaman `any` kullanÄ±labilir â€” ama bu son Ã§are olmalÄ±
+- Servis methodlarÄ±: `Promise<any>` yerine `Promise<XxxResponse>` veya `Promise<XxxResponse[]>` kullan
+- Component'lerde deÄŸiÅŸken tipleri: `items: any[] = []` yerine `items: XxxResponse[] = []` kullan
+- `extractArray` helper'Ä±n dÃ¶nÃ¼ÅŸ tipi de mÃ¼mkÃ¼nse typed olmalÄ±: `private extractArray(response: any): XxxResponse[]`
 
-**Örnek — Doğru kullanım:**
+**Ã–rnek â€” DoÄŸru kullanÄ±m:**
 ```typescript
 // Servis
 async getIntegrations(): Promise<IntegrationResponse[]> { ... }
@@ -72,22 +72,22 @@ filteredItems: IntegrationResponse[] = [];
 pagedItems: IntegrationResponse[] = [];
 ```
 
-**Örnek — YANLIŞ kullanım (YAPMA):**
+**Ã–rnek â€” YANLIÅ kullanÄ±m (YAPMA):**
 ```typescript
 async getIntegrations(): Promise<any> { ... }
 items: any[] = [];
 ```
 
-## Model Kuralları
+## Model KurallarÄ±
 
 - Konum: `src/app/core/models/{domain}/{domain}.models.ts`
-- Her model dosyası export eder: entity interface + `CreateXxxRequest` + `UpdateXxxRequest`
+- Her model dosyasÄ± export eder: entity interface + `CreateXxxRequest` + `UpdateXxxRequest`
 - `id: string`, `isBlocked?: boolean`, `createdDate?: string`, `updatedDate?: string` standart alanlar
-- **Model oluştururken `v1.yaml`'deki schema tanımlarını referans al** — property adları ve tipleri birebir eşleşmeli
+- **Model oluÅŸtururken `v1.yaml`'deki schema tanÄ±mlarÄ±nÄ± referans al** â€” property adlarÄ± ve tipleri birebir eÅŸleÅŸmeli
 
-## API Response İşleme
+## API Response Ä°ÅŸleme
 
-Her sayfada `extractArray` helper zorunludur (API farklı yapılarda dönebilir):
+Her sayfada `extractArray` helper zorunludur (API farklÄ± yapÄ±larda dÃ¶nebilir):
 ```typescript
 private extractArray(response: any): any[] {
     if (Array.isArray(response)) return response;
@@ -99,51 +99,51 @@ private extractArray(response: any): any[] {
 }
 ```
 
-## Routing Kuralları
+## Routing KurallarÄ±
 
-- Admin route'lar: `src/app/views/admin/admin.route.ts` → `ADMIN_ROUTES` dizisine ekle
-- Her route: `{ path: 'admin/xxx', component: XxxPage, data: { title: 'Başlık' }, canActivate: [AuthGuard] }`
-- Auth route'lar: `src/app/views/auth/` altında, guard yok
+- Admin route'lar: `src/app/views/admin/admin.route.ts` â†’ `ADMIN_ROUTES` dizisine ekle
+- Her route: `{ path: 'admin/xxx', component: XxxPage, data: { title: 'BaÅŸlÄ±k' }, canActivate: [AuthGuard] }`
+- Auth route'lar: `src/app/views/auth/` altÄ±nda, guard yok
 
-## Path Alias'ları
+## Path Alias'larÄ±
 
-- `@/*` → `src/*` (ör: `@/app/core/services/xxx.service`)
-- `@app/components/*` → `src/app/components/*`
-- `@core/*` → `src/app/core/*`
-- `@layouts/*` → `src/app/layouts/*`
+- `@/*` â†’ `src/*` (Ã¶r: `@/app/core/services/xxx.service`)
+- `@app/components/*` â†’ `src/app/components/*`
+- `@core/*` â†’ `src/app/core/*`
+- `@layouts/*` â†’ `src/app/layouts/*`
 
-## UI Kuralları
+## UI KurallarÄ±
 
-- **Arka plan rengi:** Beyaz alanları kırmak için `#f7f7f9` (off-white) kullan — içerik alanları, step paneller, form arka planları gibi yerlerde saf beyaz (`#fff`) yerine bu renk tercih edilir
-- Bootstrap 5 sınıfları kullan (`card`, `table`, `btn`, `badge`, `form-control` vb.)
-- Butonlar: `btn-soft-primary`, `btn-soft-danger` (düzenle/sil)
+- **Arka plan rengi:** Beyaz alanlarÄ± kÄ±rmak iÃ§in `#f7f7f9` (off-white) kullan â€” iÃ§erik alanlarÄ±, step paneller, form arka planlarÄ± gibi yerlerde saf beyaz (`#fff`) yerine bu renk tercih edilir
+- Bootstrap 5 sÄ±nÄ±flarÄ± kullan (`card`, `table`, `btn`, `badge`, `form-control` vb.)
+- Butonlar: `btn-soft-primary`, `btn-soft-danger` (dÃ¼zenle/sil)
 - Durum badge: `bg-success-subtle text-success` (Aktif) / `bg-danger-subtle text-danger` (Engelli/Pasif)
-- İkonlar: Font Awesome (`fa-solid`, `fa-regular`)
-- Tablo: `table table-centered table-hover mb-0` sınıfları, `table-responsive` wrapper
-- İnline CSS YAZMA — stil dosyasını (.scss) ayrı tut (budget limiti: 4kB)
-- ⚠️ **HTML'de ID gösterme yasağı:** Kullanıcıya görünen hiçbir `.html` template'te `id`, `userId`, `companyId`, `contactTypeId`, `platformAccountId` vb. teknik kimlik değerlerini metin olarak gösterme. ID'ler sadece teknik işlem/`track` amacıyla kullanılabilir, UI'de sunulmaz.
+- Ä°konlar: Font Awesome (`fa-solid`, `fa-regular`)
+- Tablo: `table table-centered table-hover mb-0` sÄ±nÄ±flarÄ±, `table-responsive` wrapper
+- Ä°nline CSS YAZMA â€” stil dosyasÄ±nÄ± (.scss) ayrÄ± tut (budget limiti: 4kB)
+- âš ï¸ **HTML'de ID gÃ¶sterme yasaÄŸÄ±:** KullanÄ±cÄ±ya gÃ¶rÃ¼nen hiÃ§bir `.html` template'te `id`, `userId`, `companyId`, `contactTypeId`, `platformAccountId` vb. teknik kimlik deÄŸerlerini metin olarak gÃ¶sterme. ID'ler sadece teknik iÅŸlem/`track` amacÄ±yla kullanÄ±labilir, UI'de sunulmaz.
 
-## ⚠️ ZORUNLU: Formlarda companyId / userId Kullanma!
+## âš ï¸ ZORUNLU: Formlarda companyId / userId Kullanma!
 
-- Formlarda (create/update request body, form model, hidden input vb.) **asla `companyId` veya `userId` alanı bulundurma**
-- Bu değerler backend tarafından token'dan alınır veya frontend'de sadece `AuthStateService` üzerinden okunur
-- Form modeline `companyId` / `userId` ekleme — API'ye gönderilen request body'de de olmamalı
-- Eğer bir yerde `companyId` veya `userId` gerekiyorsa, `AuthStateService`'den al:
+- Formlarda (create/update request body, form model, hidden input vb.) **asla `companyId` veya `userId` alanÄ± bulundurma**
+- Bu deÄŸerler backend tarafÄ±ndan token'dan alÄ±nÄ±r veya frontend'de sadece `AuthStateService` Ã¼zerinden okunur
+- Form modeline `companyId` / `userId` ekleme â€” API'ye gÃ¶nderilen request body'de de olmamalÄ±
+- EÄŸer bir yerde `companyId` veya `userId` gerekiyorsa, `AuthStateService`'den al:
   ```typescript
   this.authStateService.profile?.companyId
   this.authStateService.profile?.userId
   ```
-- HTML template'te `companyId` / `userId` için `<input>` veya `[(ngModel)]` bağlaması YAPMA
+- HTML template'te `companyId` / `userId` iÃ§in `<input>` veya `[(ngModel)]` baÄŸlamasÄ± YAPMA
 
-## Auth Yapısı
+## Auth YapÄ±sÄ±
 
-- JWT token `localStorage.getItem('accessToken')` ile alınır
+- JWT token `localStorage.getItem('accessToken')` ile alÄ±nÄ±r
 - `authInterceptor` otomatik `Bearer` header ekler
-- 401 hatası → token sil, `/auth/sign-in`'e yönlendir
+- 401 hatasÄ± â†’ token sil, `/auth/sign-in`'e yÃ¶nlendir
 
-## LocalStorage Kullanıcı Bilgileri
+## LocalStorage KullanÄ±cÄ± Bilgileri
 
-**`localStorage.getItem('userProfile')`** içinde JSON olarak saklanır:
+**`localStorage.getItem('userProfile')`** iÃ§inde JSON olarak saklanÄ±r:
 ```typescript
 interface UserProfile {
     userId: string;      // "0fec2e64-a8fe-430f-bddc-033885489d4f"
@@ -154,9 +154,9 @@ interface UserProfile {
 }
 ```
 
-**Kullanım:**
+**KullanÄ±m:**
 ```typescript
-// companyId almak için:
+// companyId almak iÃ§in:
 const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
 const companyId = profile.companyId || '';
 
@@ -164,10 +164,10 @@ const companyId = profile.companyId || '';
 this.authStateService.profile?.companyId
 this.authStateService.profile?.userId
 ```
-- `AuthGuard` JWT expiry + menü bazlı yetki kontrolü yapar
+- `AuthGuard` JWT expiry + menÃ¼ bazlÄ± yetki kontrolÃ¼ yapar
 
 ## Build & Deploy
 
-- Build: `ng build --configuration production` → çıktı: `dist/ubold-ng/`
-- `Web.config` (IIS SPA fallback) otomatik kopyalanır
-- Component style budget: 4kB warning, 8MB error — büyük stiller ayrı `.scss` dosyasında olmalı
+- Build: `ng build --configuration production` â†’ Ã§Ä±ktÄ±: `dist/ubold-ng/`
+- `Web.config` (IIS SPA fallback) otomatik kopyalanÄ±r
+- Component style budget: 4kB warning, 8MB error â€” bÃ¼yÃ¼k stiller ayrÄ± `.scss` dosyasÄ±nda olmalÄ±

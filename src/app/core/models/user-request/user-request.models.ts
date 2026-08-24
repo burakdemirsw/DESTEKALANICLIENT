@@ -1,51 +1,58 @@
 export interface UserRequest {
     id: string;
+    requestNo?: string | null;
     userId: string;
-    assignedUserId?: string;
+    assignedUserId?: string | null;
+    applicationId?: string | null;
     categoryId: string;
     statusId: string;
     priorityId: string;
-    subject: string;
-    description: string;
+    subject?: string | null;
+    description?: string | null;
     isBlocked: boolean;
     createdDate?: string;
     updatedDate?: string;
-    closedDate?: string;
+    closedDate?: string | null;
     // Expanded
-    userName?: string;
-    userLastName?: string;
-    userEmail?: string;
-    assignedUserName?: string;
-    assignedUserLastName?: string;
-    categoryName?: string;
-    statusName?: string;
-    priorityName?: string;
-    priorityColorCode?: string;
+    userName?: string | null;
+    userLastName?: string | null;
+    userEmail?: string | null;
+    assignedUserName?: string | null;
+    assignedUserLastName?: string | null;
+    categoryName?: string | null;
+    applicationName?: string | null;
+    statusName?: string | null;
+    priorityName?: string | null;
+    priorityColorCode?: string | null;
 }
 
 export interface UserRequestResponse {
     id: string;
     userId: string;
     assignedUserId?: string | null;
+    applicationId?: string | null;
     categoryId: string;
     statusId: string;
     priorityId: string;
-    requestNo?: string | null;
-    subject?: string | null;
-    description?: string | null;
+    requestNo: string;
+    subject: string;
+    description: string;
     closedDate?: string | null;
+    isClosed: boolean;
     isBlocked: boolean;
     createdDate: string;
     updatedDate: string;
-    categoryName?: string | null;
-    statusName?: string | null;
-    priorityName?: string | null;
-    userName?: string | null;
-    assignedUserName?: string | null;
+    applicationName: string;
+    categoryName: string;
+    statusName: string;
+    priorityName: string;
+    userName: string;
+    assignedUserName: string;
 }
 
 export interface CreateUserRequestRequest {
     userId: string;
+    applicationId: string;
     categoryId: string;
     subject: string;
     description: string;
@@ -53,6 +60,7 @@ export interface CreateUserRequestRequest {
 
 export interface UpdateUserRequestRequest {
     assignedUserId: string | null;
+    applicationId: string | null;
     categoryId: string;
     statusId: string;
     priorityId: string;
@@ -66,6 +74,8 @@ export interface UserRequestMessage {
     requestId: string;
     senderUserId: string;
     message: string;
+    fileUrl?: string | null;
+    fileType?: string | null;
     from?: string;
     createdDate?: string;
     // Expanded
@@ -79,6 +89,8 @@ export interface UserRequestMessageResponse {
     requestId: string;
     senderUserId: string;
     message: string;
+    fileUrl?: string | null;
+    fileType?: string | null;
     isBlocked: boolean;
     createdDate: string;
     updatedDate: string;
@@ -90,4 +102,37 @@ export interface CreateUserRequestMessageRequest {
     requestId: string;
     senderUserId: string;
     message: string;
+    fileUrl?: string | null;
+    fileType?: string | null;
+}
+
+export interface UserRequestStatusSummaryReportRequest {
+    userId: string;
+    dayCount: number;
+}
+
+export interface UserRequestStatusSummaryItemResponse {
+    statusName: string;
+    count: number;
+}
+
+export interface UserRequestStatusSummaryReportResponse {
+    startDate: string;
+    endDate: string;
+    dayCount: number;
+    totalCount: number;
+    items: UserRequestStatusSummaryItemResponse[];
+}
+
+export interface UserRequestPagedRequest {
+    companyId: string;
+    pageNumber?: number;
+    pageSize?: number;
+    searchTerm?: string;
+    sortBy?: string;
+    sortDescending?: boolean;
+    applicationId?: string;
+    categoryId?: string;
+    statusId?: string;
+    priorityId?: string;
 }

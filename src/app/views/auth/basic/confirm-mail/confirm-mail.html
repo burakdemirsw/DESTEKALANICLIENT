@@ -1,4 +1,4 @@
-<div class="auth-box overflow-hidden align-items-center d-flex">
+﻿<div class="auth-box overflow-hidden align-items-center d-flex">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xxl-4 col-md-6 col-sm-8">
@@ -43,34 +43,35 @@
                     </div>
 
                     @if (status === 'loading') {
-                        <h4 class="fw-bold text-center mb-2">E-posta Onaylanıyor...</h4>
-                        <p class="text-muted text-center mb-4">Lütfen bekleyin, e-posta adresiniz doğrulanıyor.</p>
+                        <h4 class="fw-bold text-center mb-2">E-posta OnaylanÄ±yor...</h4>
+                        <p class="text-muted text-center mb-4">LÃ¼tfen bekleyin, e-posta adresiniz doÄŸrulanÄ±yor.</p>
                     } @else if (status === 'success') {
-                        <h4 class="fw-bold text-center text-success mb-2">E-posta Başarıyla Onaylandı!</h4>
-                        <p class="text-muted text-center mb-4">E-posta adresiniz başarıyla doğrulandı. Yönlendiriliyorsunuz...</p>
+                        <h4 class="fw-bold text-center text-success mb-2">E-posta BaÅŸarÄ±yla OnaylandÄ±!</h4>
+                        <p class="text-muted text-center mb-4">E-posta adresiniz baÅŸarÄ±yla doÄŸrulandÄ±. YÃ¶nlendiriliyorsunuz...</p>
                         <div class="d-grid">
                             <a routerLink="/users/profile" class="btn btn-primary fw-semibold py-2">
                                 <i class="fa-solid fa-user me-1"></i> Profile Git
                             </a>
                         </div>
                     } @else {
-                        <h4 class="fw-bold text-center text-danger mb-2">Onaylama Başarısız!</h4>
+                        <h4 class="fw-bold text-center text-danger mb-2">Onaylama BaÅŸarÄ±sÄ±z!</h4>
                         <p class="text-muted text-center mb-4">{{ errorMessage }}</p>
                         <div class="d-grid gap-2">
                             <a routerLink="/auth/sign-in" class="btn btn-primary fw-semibold py-2">
-                                <i class="fa-solid fa-right-to-bracket me-1"></i> Giriş Yap
+                                <i class="fa-solid fa-right-to-bracket me-1"></i> GiriÅŸ Yap
                             </a>
                             <a routerLink="/" class="btn btn-outline-secondary fw-semibold py-2">
-                                <i class="fa-solid fa-house me-1"></i> Ana Sayfaya Dön
+                                <i class="fa-solid fa-house me-1"></i> Ana Sayfaya DÃ¶n
                             </a>
                         </div>
                     }
                 </div>
 
                 <p class="text-center text-muted mt-4 mb-0">
-                    © {{ currentYear }} SellenticAI
+                    Â© {{ currentYear }} WMSSupport
                 </p>
             </div>
         </div>
     </div>
 </div>
+

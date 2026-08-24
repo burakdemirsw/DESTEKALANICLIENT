@@ -99,6 +99,11 @@ export const menuItems: MenuItemType[] = [
         url: '/admin/role-menus',
     },
     {
+        label: 'Talep Uygulamalari',
+        icon: LucideFileInput,
+        url: '/admin/request-applications',
+    },
+    {
         label: 'Mail Ayarları',
         icon: LucideMail,
         url: '/admin/mail-settings',

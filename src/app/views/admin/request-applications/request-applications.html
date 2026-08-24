@@ -1,0 +1,136 @@
+<app-page-title title="Talep Uygulamalari" subtitle="Yonetim" />
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="card-title mb-0">Talep Uygulamalari</h4>
+        <button class="btn btn-primary btn-sm" (click)="openCreate()">+ Yeni Uygulama</button>
+      </div>
+
+      <div class="card-body">
+        @if (loading) {
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Yukleniyor...</p>
+          </div>
+        } @else {
+          <div class="d-flex mb-3 gap-2">
+            <input
+              type="text"
+              class="form-control form-control-sm w-auto"
+              placeholder="Uygulama ara..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()"
+            >
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-centered table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Uygulama Adi</th>
+                  <th>Aciklama</th>
+                  <th>Durum</th>
+                  <th class="text-end">Islemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items; track item.id) {
+                  <tr>
+                    <td>{{ item.applicationName }}</td>
+                    <td>
+                      <span class="text-truncate d-inline-block" style="max-width: 320px;" [title]="item.description ?? ''">
+                        {{ item.description }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (item.isBlocked) {
+                        <span class="badge bg-danger-subtle text-danger">Pasif</span>
+                      } @else {
+                        <span class="badge bg-success-subtle text-success">Aktif</span>
+                      }
+                    </td>
+                    <td class="text-end">
+                      <button class="btn btn-soft-primary btn-sm me-1" (click)="openEdit(item)">Duzenle</button>
+                      <button class="btn btn-soft-danger btn-sm" (click)="deleteItem(item)">Sil</button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">Kayit bulunamadi.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="small text-muted">
+              Toplam: {{ totalCount }} kayit | Sayfa {{ currentPage }} / {{ totalPages }}
+            </div>
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="setPage(1)" [disabled]="currentPage === 1" title="Ilk Sayfa">&laquo;&laquo;</button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">&laquo;</button>
+                </li>
+                @for (p of totalPagesArray; track p) {
+                  <li class="page-item" [class.active]="p === currentPage">
+                    <button class="page-link" (click)="setPage(p)">{{ p }}</button>
+                  </li>
+                }
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages">&raquo;</button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="setPage(totalPages)" [disabled]="currentPage === totalPages" title="Son Sayfa">&raquo;&raquo;</button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editMode ? 'Uygulama Duzenle' : 'Yeni Uygulama' }}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label class="form-label">Uygulama Adi</label>
+              <input type="text" class="form-control" [(ngModel)]="form.applicationName" name="applicationName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Aciklama</label>
+              <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3" required></textarea>
+            </div>
+
+            @if (editMode) {
+              <div class="mb-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="form.isBlocked" name="isBlocked" id="isBlockedSwitch">
+                  <label class="form-check-label" for="isBlockedSwitch">Pasif (Engelli)</label>
+                </div>
+              </div>
+            }
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" (click)="closeModal()">Iptal</button>
+          <button type="button" class="btn btn-primary" (click)="save()">{{ editMode ? 'Guncelle' : 'Kaydet' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

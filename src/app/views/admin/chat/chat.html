@@ -1,4 +1,4 @@
-<div class="chat-dashboard">
+﻿<div class="chat-dashboard">
     <!-- Mobile Header -->
     <div class="mobile-chat-header">
         <button class="mobile-menu-btn" (click)="toggleMobileSidebar()">
@@ -33,7 +33,7 @@
         <div class="sidebar-header">
             <div class="sidebar-brand">
                 <i class="fa-solid fa-message-dots me-2"></i>
-                <span class="fw-semibold">SellenticAI</span>
+                <span class="fw-semibold">WMSSupport</span>
             </div>
             <div class="sidebar-actions">
                 <button class="sidebar-icon-btn" (click)="searchOpen = !searchOpen" title="Search">
@@ -64,16 +64,16 @@
                 </a>
             }
 
-            <!-- Takım Arkadaşları -->
+            <!-- TakÄ±m ArkadaÅŸlarÄ± -->
             <div class="sidebar-section-header" (click)="toggleSidebarSection('teammates')">
-                <span>Takım Arkadaşları</span>
+                <span>TakÄ±m ArkadaÅŸlarÄ±</span>
                 <div class="d-flex align-items-center gap-2">
                     @if (hubConnectionState === 'connected') {
-                        <span class="presence-status-dot connected" title="Bağlı"></span>
+                        <span class="presence-status-dot connected" title="BaÄŸlÄ±"></span>
                     } @else if (hubConnectionState === 'reconnecting') {
-                        <span class="presence-status-dot reconnecting" title="Yeniden bağlanıyor..."></span>
+                        <span class="presence-status-dot reconnecting" title="Yeniden baÄŸlanÄ±yor..."></span>
                     } @else {
-                        <span class="presence-status-dot disconnected" title="Bağlantı kesildi"></span>
+                        <span class="presence-status-dot disconnected" title="BaÄŸlantÄ± kesildi"></span>
                     }
                     @if (onlineTeammateCount > 0) {
                         <span class="teammate-online-count">{{ onlineTeammateCount }}</span>
@@ -96,18 +96,18 @@
                         </div>
                         <span class="sidebar-nav-label">{{ mate.name }}</span>
                         @if (mate.online) {
-                            <span class="live-badge">Çevrimiçi</span>
+                            <span class="live-badge">Ã‡evrimiÃ§i</span>
                         } @else {
-                            <span class="offline-badge">Çevrimdışı</span>
+                            <span class="offline-badge">Ã‡evrimdÄ±ÅŸÄ±</span>
                         }
                     </a>
                 }
                 @empty {
                     <div class="text-muted small px-3 py-2">
                         @if (hubConnectionState === 'disconnected') {
-                            <i class="fa-solid fa-plug-circle-xmark me-1"></i> Hub bağlantısı yok
+                            <i class="fa-solid fa-plug-circle-xmark me-1"></i> Hub baÄŸlantÄ±sÄ± yok
                         } @else {
-                            Aktif kullanıcı yok
+                            Aktif kullanÄ±cÄ± yok
                         }
                     </div>
                 }
@@ -160,15 +160,15 @@
                                     <i class="fa-solid fa-ban text-danger ms-1 small" title="Engelli"></i>
                                 }
                                 @if (conv.isArchived) {
-                                    <i class="fa-solid fa-box-archive text-secondary ms-1 small" title="Arşivlendi"></i>
+                                    <i class="fa-solid fa-box-archive text-secondary ms-1 small" title="ArÅŸivlendi"></i>
                                 }
                                 @if (conv.isEscalateToHuman) {
-                                    <i class="fa-solid fa-headset text-success ms-1 small" title="İnsan temsilciye aktarıldı"></i>
+                                    <i class="fa-solid fa-headset text-success ms-1 small" title="Ä°nsan temsilciye aktarÄ±ldÄ±"></i>
                                 }
                             </span>
                             <div class="conversation-header-right">
                                 <span class="conversation-time">{{ conv.lastMessageDate }}</span>
-                                <button class="conv-more-btn" (click)="openContextMenu($event, conv)" title="Seçenekler">
+                                <button class="conv-more-btn" (click)="openContextMenu($event, conv)" title="SeÃ§enekler">
                                     <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
                             </div>
@@ -177,7 +177,7 @@
                         @if (conv.isEscalateToHuman) {
                             <div class="mt-1">
                                 <span class="badge bg-success-subtle text-success" style="font-size: 0.65rem;">
-                                    <i class="fa-solid fa-headset me-1"></i>Temsilciye Aktarıldı
+                                    <i class="fa-solid fa-headset me-1"></i>Temsilciye AktarÄ±ldÄ±
                                 </span>
                             </div>
                         }
@@ -195,15 +195,15 @@
                  (click)="$event.stopPropagation()">
                 <button class="ctx-menu-item" (click)="toggleFavorite(contextMenuConv!)">
                     <i class="fa-solid" [class.fa-star]="!contextMenuConv!.isFavorite" [class.fa-star-half-stroke]="contextMenuConv!.isFavorite"></i>
-                    {{ contextMenuConv!.isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle' }}
+                    {{ contextMenuConv!.isFavorite ? 'Favorilerden Ã‡Ä±kar' : 'Favorilere Ekle' }}
                 </button>
                 <button class="ctx-menu-item" (click)="toggleBlock(contextMenuConv!)">
                     <i class="fa-solid" [class.fa-ban]="!contextMenuConv!.isBlocked" [class.fa-check-circle]="contextMenuConv!.isBlocked"></i>
-                    {{ contextMenuConv!.isBlocked ? 'Engeli Kaldır' : 'Engelle' }}
+                    {{ contextMenuConv!.isBlocked ? 'Engeli KaldÄ±r' : 'Engelle' }}
                 </button>
                 <button class="ctx-menu-item" (click)="toggleArchive(contextMenuConv!)">
                     <i class="fa-solid" [class.fa-box-archive]="!contextMenuConv!.isArchived" [class.fa-box-open]="contextMenuConv!.isArchived"></i>
-                    {{ contextMenuConv!.isArchived ? 'Arşivden Çıkar' : 'Arşivle' }}
+                    {{ contextMenuConv!.isArchived ? 'ArÅŸivden Ã‡Ä±kar' : 'ArÅŸivle' }}
                 </button>
             </div>
         }
@@ -225,16 +225,16 @@
                                 <span class="badge bg-danger-subtle text-danger ms-2" style="font-size: 0.7rem;">Engelli</span>
                             }
                             @if (selectedConversation.isEscalateToHuman) {
-                                <span class="badge bg-success-subtle text-success ms-2" style="font-size: 0.7rem;"><i class="fa-solid fa-headset me-1"></i>Temsilciye Aktarıldı</span>
+                                <span class="badge bg-success-subtle text-success ms-2" style="font-size: 0.7rem;"><i class="fa-solid fa-headset me-1"></i>Temsilciye AktarÄ±ldÄ±</span>
                             }
                         </h6>
                         <span class="chat-hub-status">
                             @if (chatHubState === 'connected') {
-                                <span class="chat-hub-dot connected"></span> Canlı bağlantı
+                                <span class="chat-hub-dot connected"></span> CanlÄ± baÄŸlantÄ±
                             } @else if (chatHubState === 'reconnecting') {
-                                <span class="chat-hub-dot reconnecting"></span> Yeniden bağlanıyor…
+                                <span class="chat-hub-dot reconnecting"></span> Yeniden baÄŸlanÄ±yorâ€¦
                             } @else {
-                                <span class="chat-hub-dot disconnected"></span> Bağlantı yok
+                                <span class="chat-hub-dot disconnected"></span> BaÄŸlantÄ± yok
                             }
                         </span>
                     </div>
@@ -300,7 +300,7 @@
                         </div>
                     }
 
-                    <!-- Assistant message (sağ taraf) -->
+                    <!-- Assistant message (saÄŸ taraf) -->
                     @if (msg.source === 'assistant') {
                         <div class="message-row agent" @messageAnim>
                             <div class="message-group agent-group">
@@ -314,7 +314,7 @@
                                         <img [src]="msg.imageUrl" alt="Attached image" loading="lazy">
                                     </div>
                                 }
-                                <span class="message-time">Seen · {{ msg.createdDate }}</span>
+                                <span class="message-time">Seen Â· {{ msg.createdDate }}</span>
                             </div>
                             <div class="message-avatar agent-avatar">
                                 <i class="fa-solid fa-headset"></i>
@@ -335,7 +335,7 @@
                                 <span class="typing-dot"></span>
                                 <span class="typing-dot"></span>
                             </div>
-                            <span class="message-time text-muted fst-italic">{{ typingUser }} yazıyor…</span>
+                            <span class="message-time text-muted fst-italic">{{ typingUser }} yazÄ±yorâ€¦</span>
                         </div>
                     </div>
                 }
@@ -345,7 +345,7 @@
                     <div class="reply-type">
                         <button class="reply-type-btn" [class.active]="replyType === 'reply'"
                             (click)="replyType = 'reply'">
-                            <i class="fa-solid fa-reply me-1"></i> Yanıtla
+                            <i class="fa-solid fa-reply me-1"></i> YanÄ±tla
                         </button>
                         <button class="reply-type-btn" [class.active]="replyType === 'note'"
                             (click)="replyType = 'note'">
@@ -354,11 +354,11 @@
                     </div>
                 </div>
                 <div class="chat-input-body">
-                    <!-- Kısayol popup -->
+                    <!-- KÄ±sayol popup -->
                     @if (showShortcutPopup) {
                         <div class="shortcut-popup">
                             <div class="shortcut-popup-header">
-                                <i class="fa-solid fa-bolt me-1"></i> Kısayollar
+                                <i class="fa-solid fa-bolt me-1"></i> KÄ±sayollar
                                 <span class="text-muted ms-auto" style="font-size: 11px;">ESC kapat</span>
                             </div>
                             <div class="shortcut-popup-list">
@@ -379,7 +379,7 @@
                             </div>
                         </div>
                     }
-                    <textarea class="chat-textarea" rows="3" placeholder="Mesajınızı yazın... ( / ile kısayol kullanın)"
+                    <textarea class="chat-textarea" rows="3" placeholder="MesajÄ±nÄ±zÄ± yazÄ±n... ( / ile kÄ±sayol kullanÄ±n)"
                         [(ngModel)]="newMessage" (keydown)="onKeyDown($event)" (input)="onMessageInput()"></textarea>
 
                     <!-- Pending file preview -->
@@ -396,7 +396,7 @@
                                 <span class="pending-file-name">{{ pendingFile.name }}</span>
                                 <span class="pending-file-size">{{ formatFileSize(pendingFile.size) }}</span>
                             </div>
-                            <button class="pending-file-remove" (click)="removePendingFile()" title="Kaldır">
+                            <button class="pending-file-remove" (click)="removePendingFile()" title="KaldÄ±r">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
@@ -404,10 +404,10 @@
                 </div>
                 <div class="chat-input-footer">
                     <div class="chat-input-tools">
-                        <button class="input-tool-btn" title="Şablon ekle">
+                        <button class="input-tool-btn" title="Åablon ekle">
                             <i class="fa-solid fa-bolt"></i>
                         </button>
-                        <button class="input-tool-btn" title="Bilgi bankası">
+                        <button class="input-tool-btn" title="Bilgi bankasÄ±">
                             <i class="fa-solid fa-book"></i>
                         </button>
                         <div style="position: relative;">
@@ -417,7 +417,7 @@
                             @if (showEmojiPicker) {
                                 <div class="emoji-picker" (click)="$event.stopPropagation()">
                                     <div class="emoji-picker-header">
-                                        <span>Emoji Seç</span>
+                                        <span>Emoji SeÃ§</span>
                                         <button class="emoji-picker-close" (click)="showEmojiPicker = false" title="Kapat">
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
@@ -435,7 +435,7 @@
                         <button class="input-tool-btn" title="Dosya ekle" (click)="openFileInput()">
                             <i class="fa-solid fa-paperclip"></i>
                         </button>
-                        <button class="input-tool-btn" title="Görsel" (click)="openImageInput()">
+                        <button class="input-tool-btn" title="GÃ¶rsel" (click)="openImageInput()">
                             <i class="fa-solid fa-image"></i>
                         </button>
                         <!-- Hidden file inputs -->
@@ -443,34 +443,34 @@
                         <input type="file" #imageInput hidden accept="image/*" (change)="onFileSelected($event, true)">
                     </div>
                     <div class="chat-input-send">
-                        <span class="shortcut-hint">/ ile kısayol kullanın</span>
+                        <span class="shortcut-hint">/ ile kÄ±sayol kullanÄ±n</span>
                         <button class="btn btn-sm me-2"
                                 [class]="autoAiMode ? 'btn-success' : 'btn-outline-secondary'"
                                 (click)="autoAiMode = !autoAiMode"
-                                title="Otomatik AI Yanıt Modu">
+                                title="Otomatik AI YanÄ±t Modu">
                             <i class="fa-solid fa-wand-magic-sparkles me-1"></i>
                             @if (autoAiMode) {
-                                Oto AI: Açık
+                                Oto AI: AÃ§Ä±k
                             } @else {
-                                Oto AI: Kapalı
+                                Oto AI: KapalÄ±
                             }
                         </button>
                         <button class="btn btn-sm me-2"
                                 [class]="isLastMessageFromCustomer ? 'btn-soft-primary' : 'btn-outline-secondary'"
                                 (click)="sendAiChat()"
                       
-                                title="Son müşteri mesajını AI ile yanıtla">
+                                title="Son mÃ¼ÅŸteri mesajÄ±nÄ± AI ile yanÄ±tla">
                             @if (isAiSending) {
-                                <i class="fa-solid fa-spinner fa-spin me-1"></i>AI düşünüyor...
+                                <i class="fa-solid fa-spinner fa-spin me-1"></i>AI dÃ¼ÅŸÃ¼nÃ¼yor...
                             } @else {
-                                <i class="fa-solid fa-robot me-1"></i>AI Yanıt
+                                <i class="fa-solid fa-robot me-1"></i>AI YanÄ±t
                             }
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary me-2" (click)="sendMessage('user')" [disabled]="!newMessage.trim() && !pendingFile" title="Customer olarak gönder">
-                            <i class="fa-solid fa-user me-1"></i>Customer Gönder
+                        <button class="btn btn-sm btn-outline-secondary me-2" (click)="sendMessage('user')" [disabled]="!newMessage.trim() && !pendingFile" title="Customer olarak gÃ¶nder">
+                            <i class="fa-solid fa-user me-1"></i>Customer GÃ¶nder
                         </button>
                         <button class="btn-send" (click)="sendMessage('assistant')" [disabled]="!newMessage.trim() && !pendingFile">
-                            Gönder
+                            GÃ¶nder
                             <i class="fa-solid fa-chevron-down ms-1 small"></i>
                         </button>
                     </div>
@@ -479,8 +479,8 @@
         } @else {
             <div class="chat-empty-state">
                 <i class="fa-solid fa-comments fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Bir konuşma seçin</h5>
-                <p class="text-muted small">Sohbet başlatmak için listeden bir konuşma seçin.</p>
+                <h5 class="text-muted">Bir konuÅŸma seÃ§in</h5>
+                <p class="text-muted small">Sohbet baÅŸlatmak iÃ§in listeden bir konuÅŸma seÃ§in.</p>
             </div>
         }
     </div>
@@ -507,7 +507,7 @@
                 <div class="details-customer-bubble">
                     <p class="mb-1"><strong>{{ selectedConversation.customerName }}</strong></p>
                     @if (customerDetail) {
-                        <p class="mb-0 text-muted small">{{ customerDetail.platformUsername }} · {{ customerDetail.platformName }}</p>
+                        <p class="mb-0 text-muted small">{{ customerDetail.platformUsername }} Â· {{ customerDetail.platformName }}</p>
                         @if (customerDetail.isBlocked) {
                             <span class="badge bg-danger-subtle text-danger mt-1" style="font-size: 0.65rem;">Engelli</span>
                         }
@@ -515,13 +515,13 @@
                 </div>
             </div>
 
-            <!-- ═══ MÜŞTERİ DETAYLARI SECTION ═══ -->
+            <!-- â•â•â• MÃœÅTERÄ° DETAYLARI SECTION â•â•â• -->
             @if (customerDetail) {
                 <div class="details-panel-section">
                     <div class="panel-section-header">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-user text-muted" style="font-size: 13px;"></i>
-                            <span class="panel-section-title">Müşteri Bilgileri</span>
+                            <span class="panel-section-title">MÃ¼ÅŸteri Bilgileri</span>
                         </div>
                     </div>
                     <div class="panel-section-body">
@@ -536,7 +536,7 @@
                             <span class="detail-value">{{ customerDetail.platformName }}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Kullanıcı Adı</span>
+                            <span class="detail-label">KullanÄ±cÄ± AdÄ±</span>
                             <span class="detail-value">{{ customerDetail.platformUsername }}</span>
                         </div>
                         <div class="detail-row">
@@ -545,13 +545,13 @@
                         </div>
                         @if (customerDetail.contacts.length > 0) {
                             <div class="mt-2">
-                                <span class="detail-label d-block mb-1">İletişim</span>
+                                <span class="detail-label d-block mb-1">Ä°letiÅŸim</span>
                                 @for (contact of customerDetail.contacts; track contact.id) {
                                     <div class="d-flex align-items-center gap-1 mb-1">
                                         <span class="badge bg-light text-muted" style="font-size: 10px;">{{ contact.contactTypeName }}</span>
                                         <span class="small">{{ contact.value }}</span>
                                         @if (contact.isDefault) {
-                                            <i class="fa-solid fa-circle-check text-success" style="font-size: 10px;" title="Varsayılan"></i>
+                                            <i class="fa-solid fa-circle-check text-success" style="font-size: 10px;" title="VarsayÄ±lan"></i>
                                         }
                                     </div>
                                 }
@@ -563,11 +563,11 @@
                                 @for (addr of customerDetail.addresses; track addr.id) {
                                     <div class="mb-1 small">
                                         @if (addr.cityName || addr.districtName) {
-                                            <span class="text-muted">{{ addr.cityName }}{{ addr.districtName ? ' / ' + addr.districtName : '' }} — </span>
+                                            <span class="text-muted">{{ addr.cityName }}{{ addr.districtName ? ' / ' + addr.districtName : '' }} â€” </span>
                                         }
                                         {{ addr.addressLine }}
                                         @if (addr.isDefault) {
-                                            <i class="fa-solid fa-circle-check text-success ms-1" style="font-size: 10px;" title="Varsayılan"></i>
+                                            <i class="fa-solid fa-circle-check text-success ms-1" style="font-size: 10px;" title="VarsayÄ±lan"></i>
                                         }
                                     </div>
                                 }
@@ -577,7 +577,7 @@
                 </div>
             }
 
-            <!-- ═══ TAGS SECTION ═══ -->
+            <!-- â•â•â• TAGS SECTION â•â•â• -->
             <div class="details-panel-section">
                 <div class="panel-section-header" (click)="showTagDropdown = false">
                     <div class="d-flex align-items-center gap-2">
@@ -590,7 +590,7 @@
                     </button>
                 </div>
 
-                <!-- Atanmış tag'ler -->
+                <!-- AtanmÄ±ÅŸ tag'ler -->
                 <div class="panel-section-body">
                     @if (conversationTags.length > 0) {
                         <div class="tag-chips">
@@ -600,14 +600,14 @@
                                       [style.border-color]="ct.tagColor || ct.color || '#6c757d'">
                                     <span class="tag-dot" [style.background-color]="ct.tagColor || ct.color || '#6c757d'"></span>
                                     {{ ct.tagName || ct.name || 'Etiket' }}
-                                    <button class="tag-remove" (click)="removeTag(ct)" title="Kaldır">
+                                    <button class="tag-remove" (click)="removeTag(ct)" title="KaldÄ±r">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
                                 </span>
                             }
                         </div>
                     } @else {
-                        <p class="text-muted small mb-0">Henüz etiket eklenmemiş.</p>
+                        <p class="text-muted small mb-0">HenÃ¼z etiket eklenmemiÅŸ.</p>
                     }
 
                     <!-- Tag dropdown -->
@@ -623,7 +623,7 @@
                                         {{ tag.name }}
                                     </div>
                                 } @empty {
-                                    <p class="text-muted small mb-0 px-2 py-1">Eklenecek etiket bulunamadı.</p>
+                                    <p class="text-muted small mb-0 px-2 py-1">Eklenecek etiket bulunamadÄ±.</p>
                                 }
                             </div>
                         </div>
@@ -631,7 +631,7 @@
                 </div>
             </div>
 
-            <!-- ═══ SEGMENTS SECTION ═══ -->
+            <!-- â•â•â• SEGMENTS SECTION â•â•â• -->
             <div class="details-panel-section">
                 <div class="panel-section-header" (click)="showSegmentDropdown = false">
                     <div class="d-flex align-items-center gap-2">
@@ -654,14 +654,14 @@
                                       [style.border-color]="(cs.segmentColorCode || cs.colorCode || '#6366f1') + '50'">
                                     <i class="fa-solid fa-layer-group me-1" style="font-size: 10px;"></i>
                                     {{ cs.segmentName || cs.name || 'Segment' }}
-                                    <button class="tag-remove" (click)="removeSegment(cs)" title="Kaldır">
+                                    <button class="tag-remove" (click)="removeSegment(cs)" title="KaldÄ±r">
                                         <i class="fa-solid fa-xmark"></i>
                                     </button>
                                 </span>
                             }
                         </div>
                     } @else {
-                        <p class="text-muted small mb-0">Henüz segment eklenmemiş.</p>
+                        <p class="text-muted small mb-0">HenÃ¼z segment eklenmemiÅŸ.</p>
                     }
 
                     <!-- Segment dropdown -->
@@ -676,11 +676,11 @@
                                         <span class="tag-dot" [style.background-color]="seg.colorCode || '#6366f1'"></span>
                                         {{ seg.name }}
                                         @if (seg.description) {
-                                            <span class="text-muted ms-1" style="font-size: 11px;">— {{ seg.description }}</span>
+                                            <span class="text-muted ms-1" style="font-size: 11px;">â€” {{ seg.description }}</span>
                                         }
                                     </div>
                                 } @empty {
-                                    <p class="text-muted small mb-0 px-2 py-1">Eklenecek segment bulunamadı.</p>
+                                    <p class="text-muted small mb-0 px-2 py-1">Eklenecek segment bulunamadÄ±.</p>
                                 }
                             </div>
                         </div>
@@ -688,7 +688,7 @@
                 </div>
             </div>
 
-            <!-- ═══ NOTES SECTION ═══ -->
+            <!-- â•â•â• NOTES SECTION â•â•â• -->
             <div class="details-panel-section">
                 <div class="panel-section-header">
                     <div class="d-flex align-items-center gap-2">
@@ -706,10 +706,10 @@
                     @if (showNoteForm) {
                         <div class="note-form">
                             <textarea class="form-control form-control-sm mb-2" rows="3"
-                                      placeholder="Not içeriğini yazın..."
+                                      placeholder="Not iÃ§eriÄŸini yazÄ±n..."
                                       [(ngModel)]="newNoteContent"></textarea>
                             <div class="d-flex gap-2 justify-content-end">
-                                <button class="btn btn-sm btn-light" (click)="showNoteForm = false; newNoteContent = ''">İptal</button>
+                                <button class="btn btn-sm btn-light" (click)="showNoteForm = false; newNoteContent = ''">Ä°ptal</button>
                                 <button class="btn btn-sm btn-primary" (click)="addNote()" [disabled]="!newNoteContent.trim()">
                                     <i class="fa-solid fa-check me-1"></i> Kaydet
                                 </button>
@@ -724,7 +724,7 @@
                                 <div class="note-card">
                                     <div class="note-card-header">
                                         <span class="note-card-title">Not</span>
-                                        <button class="note-remove-btn" (click)="removeNote(cn)" title="Notu kaldır">
+                                        <button class="note-remove-btn" (click)="removeNote(cn)" title="Notu kaldÄ±r">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </div>
@@ -736,18 +736,18 @@
                             }
                         </div>
                     } @else if (!showNoteForm) {
-                        <p class="text-muted small mb-0">Henüz not eklenmemiş.</p>
+                        <p class="text-muted small mb-0">HenÃ¼z not eklenmemiÅŸ.</p>
                     }
                 </div>
             </div>
 
-            <!-- ═══ SİPARİŞLER SECTION ═══ -->
+            <!-- â•â•â• SÄ°PARÄ°ÅLER SECTION â•â•â• -->
             @if (conversationOrders.length > 0) {
                 <div class="details-panel-section">
                     <div class="panel-section-header">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-bag-shopping text-muted" style="font-size: 13px;"></i>
-                            <span class="panel-section-title">Siparişler</span>
+                            <span class="panel-section-title">SipariÅŸler</span>
                             <span class="badge bg-light text-muted" style="font-size: 10px;">{{ conversationOrders.length }}</span>
                         </div>
                     </div>
@@ -757,9 +757,9 @@
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span class="fw-semibold small">#{{ order.integrationOrderNo || order.orderId }}</span>
                                     @if (order.isCancel) {
-                                        <span class="badge bg-danger-subtle text-danger" style="font-size: 10px;">İptal</span>
+                                        <span class="badge bg-danger-subtle text-danger" style="font-size: 10px;">Ä°ptal</span>
                                     } @else if (order.isCompleted) {
-                                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">Tamamlandı</span>
+                                        <span class="badge bg-success-subtle text-success" style="font-size: 10px;">TamamlandÄ±</span>
                                     } @else {
                                         <span class="badge bg-warning-subtle text-warning" style="font-size: 10px;">{{ order.orderStatusName || 'Bekliyor' }}</span>
                                     }
@@ -769,12 +769,12 @@
                                     <span class="detail-value fw-semibold">{{ order.totalAmount | number:'1.2-2' }} {{ order.currencyCode }}</span>
                                 </div>
                                 <div class="detail-row">
-                                    <span class="detail-label">Ürün Sayısı</span>
+                                    <span class="detail-label">ÃœrÃ¼n SayÄ±sÄ±</span>
                                     <span class="detail-value">{{ order.itemCount }}</span>
                                 </div>
                                 @if (order.paymentTypeName) {
                                     <div class="detail-row">
-                                        <span class="detail-label">Ödeme</span>
+                                        <span class="detail-label">Ã–deme</span>
                                         <span class="detail-value">{{ order.paymentTypeName }}</span>
                                     </div>
                                 }
@@ -828,3 +828,4 @@
         </aside>
     }
 </div>
+

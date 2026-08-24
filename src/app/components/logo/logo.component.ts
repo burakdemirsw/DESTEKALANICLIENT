@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LayoutStoreService } from '@core/services/layout-store.service';
 import { AuthStateService } from '@core/services/auth-state.service';
+import { appName } from '@/app/constants';
 
 @Component({
   selector: 'app-logo',
@@ -11,6 +12,7 @@ import { AuthStateService } from '@core/services/auth-state.service';
 })
 export class LogoComponent {
   @Input() logoHeight: number = 28;
+  readonly brandName = appName;
 
   constructor(
     public layout: LayoutStoreService,

@@ -12,6 +12,9 @@
                 <h5 class="ticket-title">
                     <span class="ticket-hash">#</span> {{ request.subject }}
                 </h5>
+                <span class="ticket-id-badge">
+                    Talep No: {{ request.requestNo || '-' }}
+                </span>
                 @if (request.statusName || getStatusName(request.statusId) !== '-') {
                     <span class="ticket-id-badge">
                         {{ request.statusName || getStatusName(request.statusId) }}
@@ -33,7 +36,7 @@
                     </button>
                 }
                 @if (canComposeMessage()) {
-                    <button class="btn btn-sm btn-success" (click)="scrollToReply()">
+                    <button class="btn btn-sm btn-success" (click)="openReplyModal()">
                         <i class="fa-solid fa-reply me-1"></i> Yanıtla
                     </button>
                 }
@@ -70,27 +73,6 @@
             </div>
         </div>
 
-        <!-- ═══ Ticket Description (İlk Mesaj) ═══ -->
-        <div class="ticket-description-card">
-            <div class="ticket-msg-layout">
-                <div class="ticket-msg-user-col">
-                    <div class="user-avatar-lg">
-                        <span>{{ (request.userName || getUserFullName(request.userId)).charAt(0).toUpperCase() }}</span>
-                    </div>
-                    <div class="user-name-label">{{ request.userName || getUserFullName(request.userId) }}</div>
-                    <div class="user-role-label">Talep Sahibi</div>
-                </div>
-                <div class="ticket-msg-content-col">
-                    <div class="ticket-msg-date">
-                        <strong>Tarih / Saat:</strong> {{ formatDate(request.createdDate) }}
-                    </div>
-                    <div class="ticket-msg-body">
-                        {{ request.description || 'Açıklama girilmemiş.' }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- ═══ Messages (Yanıtlar) ═══ -->
         <div class="ticket-messages-area" #chatBody>
             @if (messagesLoading) {
@@ -101,35 +83,87 @@
                     <span class="loading-label">Mesajlar yükleniyor...</span>
                 </div>
             } @else {
-                @if (messages.length > 0) {
-                    @for (msg of messages; track $index) {
-                        <div class="ticket-message-card" [class.is-admin]="(msg.from || '').toLowerCase() === 'admin'">
-                            <div class="ticket-msg-layout">
-                                <div class="ticket-msg-user-col">
-                                    <div class="user-avatar-lg" [class.avatar-admin]="(msg.from || '').toLowerCase() === 'admin'">
-                                        <span>{{ getMessageSenderLabel(msg).charAt(0).toUpperCase() }}</span>
-                                    </div>
-                                    <div class="user-name-label">{{ getMessageSenderLabel(msg) }}</div>
-                                    @if (msg.from) {
-                                        <div class="user-role-label" [class.role-admin]="(msg.from || '').toLowerCase() === 'admin'">
-                                            @if ((msg.from || '').toLowerCase() === 'admin') {
-                                                Müşteri Temsilcisi
-                                            } @else {
-                                                Kullanıcı
-                                            }
+                @if (groupedMessageSections.length > 0) {
+                    @for (section of groupedMessageSections; track section.dateKey) {
+                        <div class="ticket-date-separator">
+                            <span>{{ section.dateLabel }}</span>
+                        </div>
+
+                        @for (group of section.groups; track $index) {
+                            <div class="ticket-message-card" [ngClass]="getMessageGroupClass(group)">
+                                <div class="ticket-msg-layout">
+                                    <div class="ticket-msg-user-col">
+                                        <div class="user-avatar-lg"
+                                             [class.avatar-admin]="(group.messages[0].from || '').toLowerCase() === 'admin'"
+                                             [class.avatar-owner]="isRequestOwnerMessage(group.messages[0])"
+                                             [class.avatar-replier]="!isRequestOwnerMessage(group.messages[0]) && (group.messages[0].from || '').toLowerCase() !== 'admin'">
+                                            <span>{{ getMessageSenderLabel(group.messages[0]).charAt(0).toUpperCase() }}</span>
                                         </div>
-                                    }
-                                </div>
-                                <div class="ticket-msg-content-col">
-                                    <div class="ticket-msg-date">
-                                        <strong>Tarih / Saat:</strong> {{ formatDate(msg.createdDate) }}
+                                        <div class="user-name-label"
+                                             [class.name-owner]="isRequestOwnerMessage(group.messages[0])"
+                                             [class.name-replier]="!isRequestOwnerMessage(group.messages[0]) && (group.messages[0].from || '').toLowerCase() !== 'admin'">
+                                            {{ getMessageSenderLabel(group.messages[0]) }}
+                                        </div>
+                                        @if (group.messages[0].from) {
+                                            <div class="user-role-label"
+                                                 [class.role-admin]="(group.messages[0].from || '').toLowerCase() === 'admin'"
+                                                 [class.role-owner]="isRequestOwnerMessage(group.messages[0])">
+                                                @if ((group.messages[0].from || '').toLowerCase() === 'admin') {
+                                                    Müşteri Temsilcisi
+                                                } @else if (isRequestOwnerMessage(group.messages[0])) {
+                                                    Talep Sahibi
+                                                } @else {
+                                                    Kullanıcı
+                                                }
+                                            </div>
+                                        }
                                     </div>
-                                    <div class="ticket-msg-body">
-                                        {{ msg.message }}
+
+                                    <div class="ticket-msg-content-col ticket-msg-group-content">
+                                        @for (msg of group.messages; track msg.id) {
+                                            <div class="ticket-msg-item" [class.has-attachment]="hasMessageAttachment(msg)">
+                                                <div class="ticket-msg-body">
+                                                    {{ msg.message }}
+                                                </div>
+
+                                                @if (hasMessageAttachment(msg)) {
+                                                    <div class="ticket-attachment-section">
+                                                        <div class="ticket-attachment-label">
+                                                            <i class="fa-solid fa-paperclip me-1"></i>Ek Dosya
+                                                        </div>
+                                                        <div class="ticket-attachment">
+                                                            @if (isImageAttachment(msg)) {
+                                                                <a class="ticket-attachment-image-link" [href]="msg.fileUrl" target="_blank" rel="noopener noreferrer">
+                                                                    <img [src]="msg.fileUrl" alt="Mesaj eki" class="ticket-attachment-image" />
+                                                                </a>
+                                                            } @else {
+                                                                <div class="ticket-attachment-file">
+                                                                    <div class="attachment-file-main">
+                                                                        <div class="attachment-file-icon">
+                                                                            <i class="fa-regular fa-file"></i>
+                                                                        </div>
+                                                                        <div class="attachment-file-info">
+                                                                            <span class="attachment-file-name">{{ getAttachmentFileName(msg) }}</span>
+                                                                            <span class="attachment-file-type">{{ getAttachmentTypeLabel(msg) }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <a class="ticket-attachment-link" [href]="msg.fileUrl" target="_blank" rel="noopener noreferrer">
+                                                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Aç
+                                                                    </a>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        <div class="ticket-group-latest-date">
+                                            {{ getGroupLatestDate(group) }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
                 } @else {
                     <div class="no-messages-state">
@@ -140,37 +174,13 @@
             }
         </div>
 
-        <!-- ═══ Reply Area ═══ -->
-        @if (canComposeMessage()) {
-            <div class="ticket-reply-area" id="replyArea">
-                <div class="reply-header">
-                    <i class="fa-solid fa-reply me-2"></i> Yanıtla
-                </div>
-                <div class="reply-body">
-                    <textarea class="form-control reply-textarea"
-                              [(ngModel)]="newMessage" name="newMessage"
-                              rows="4" placeholder="Yanıtınızı yazın..."
-                              (keydown.enter)="onMessageKeydown($any($event))"></textarea>
-                    <div class="reply-footer">
-                        <span class="reply-hint">
-                            <i class="fa-regular fa-keyboard me-1"></i> Ctrl+Enter ile gönderin
-                        </span>
-                        <button class="btn btn-success" (click)="sendMessage()" [disabled]="!newMessage.trim()">
-                            <i class="fa-solid fa-reply me-1"></i> Yanıtla
-                        </button>
-                    </div>
-                </div>
-            </div>
-        } @else {
-            <div class="ticket-closed-notice">
-                @if (isRequestCompleted()) {
+        @if (!canComposeMessage()) {
+            @if (isRequestCompleted()) {
+                <div class="ticket-closed-notice">
                     <i class="fa-solid fa-circle-check me-2"></i>
                     Bu talep tamamlandığı için yanıt gönderilemez.
-                } @else {
-                    <i class="fa-solid fa-circle-info me-2"></i>
-                    Bu talep için şu anda yanıt gönderilemez.
-                }
-            </div>
+                </div>
+            }
         }
     </div>
 } @else {
@@ -182,6 +192,52 @@
         <button class="btn btn-primary btn-sm btn-back" (click)="goBack()">
             <i class="fa-solid fa-arrow-left me-1"></i> Listeye Dön
         </button>
+    </div>
+}
+
+<!-- ═══ Reply Modal ═══ -->
+@if (showReplyModal && canComposeMessage()) {
+    <div class="modal-backdrop-modern" (click)="closeReplyModal()">
+        <div class="modal-modern reply-modal" (click)="$event.stopPropagation()">
+            <div class="modal-modern-header">
+                <h5><i class="fa-solid fa-reply"></i> Yanıtla</h5>
+                <button class="modal-close-btn" (click)="closeReplyModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-modern-body reply-modal-body">
+                <div class="reply-body">
+                    <textarea class="form-control reply-textarea"
+                              #replyTextarea
+                              [class.is-invalid]="shouldShowReplyLengthWarning()"
+                              [(ngModel)]="newMessage"
+                              name="newMessageModal"
+                              rows="5"
+                              placeholder="Yanıtınızı yazın..."
+                              (keydown.enter)="onMessageKeydown($any($event))"></textarea>
+                    @if (shouldShowReplyLengthWarning()) {
+                        <div class="invalid-feedback d-block mt-1">Mesaj içeriği en az 10 karakter olmalıdır.</div>
+                    }
+                    <div class="reply-attachment-row">
+                        <input #messageFileInput type="file" class="form-control" (change)="onAttachmentSelected($event)" />
+                        @if (attachmentFileName) {
+                            <div class="selected-file-chip">
+                                <span>{{ attachmentFileName }}</span>
+                                <button type="button" class="btn btn-sm btn-light" (click)="clearAttachment()">Kaldır</button>
+                            </div>
+                        }
+                    </div>
+                    <div class="reply-footer">
+                        <span class="reply-hint">
+                            <i class="fa-regular fa-keyboard me-1"></i> Enter ile gönderin, Shift+Enter ile yeni satır
+                        </span>
+                        <button class="btn btn-success" (click)="sendMessage()" [disabled]="!canSendReply()">
+                            <i class="fa-solid fa-reply me-1"></i> Yanıtla
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 }
 

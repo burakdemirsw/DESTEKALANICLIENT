@@ -40,6 +40,7 @@
                                     <th>Konu</th>
                                     <th>Kullanıcı</th>
                                     <th>Atanan Kişi</th>
+                                    <th>Uygulama</th>
                                     <th>Kategori</th>
                                     <th>Öncelik</th>
                                     <th>Durum</th>
@@ -65,6 +66,7 @@
                                                 <span class="text-muted fst-italic">Atanmadı</span>
                                             }
                                         </td>
+                                        <td>{{ item.applicationName || '-' }}</td>
                                         <td>{{ item.categoryName || getCategoryName(item.categoryId) }}</td>
                                         <td>
                                             <span class="badge bg-warning-subtle text-warning">
@@ -96,7 +98,7 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="10" class="text-center text-muted">Talep bulunamadı.</td></tr>
+                                    <tr><td colspan="11" class="text-center text-muted">Talep bulunamadı.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -157,6 +159,15 @@
                             </div>
                         </div>
                         <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Uygulama</label>
+                                <select class="form-select" [(ngModel)]="form.applicationId" name="applicationId" required>
+                                    <option value="">Seçiniz...</option>
+                                    @for (application of applications; track $index) {
+                                        <option [value]="application.id">{{ application.applicationName }}</option>
+                                    }
+                                </select>
+                            </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Kategori</label>
                                 <select class="form-select" [(ngModel)]="form.categoryId" name="categoryId" required>

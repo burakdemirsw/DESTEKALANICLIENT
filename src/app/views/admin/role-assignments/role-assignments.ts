@@ -6,6 +6,7 @@ import { UsersService } from '@/app/core/services/users.service';
 import { User } from '@/app/core/models/user/user.models';
 import { Role } from '@/app/core/models/role/role.models';
 import { RoleUser } from '@/app/core/models/role/role.models';
+import { AuthStateService } from '@/app/core/services/auth-state.service';
 
 @Component({
     selector: 'app-role-assignments-page',
@@ -35,7 +36,8 @@ export class RoleAssignmentsPage implements OnInit {
 
     constructor(
         private rolesService: RolesService,
-        private usersService: UsersService
+        private usersService: UsersService,
+        private authStateService: AuthStateService,
     ) {}
 
     ngOnInit(): void {
@@ -45,8 +47,12 @@ export class RoleAssignmentsPage implements OnInit {
     async loadData(): Promise<void> {
         this.loading = true;
         try {
-            const usersResp = await this.usersService.getAll();
-            this.users = this.extractArray(usersResp);
+            const usersResp = await this.usersService.getAll({
+                pageNumber: 1,   
+                pageSize: 1000,
+                companyId: this.authStateService.profile?.companyId ?? '',
+            });
+            this.users = usersResp?.data?.items ?? [];
 
             const rolesResp = await this.rolesService.getAll();
             this.roles = this.extractArray(rolesResp);

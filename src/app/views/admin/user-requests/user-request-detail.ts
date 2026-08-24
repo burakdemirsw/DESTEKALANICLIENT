@@ -22,6 +22,18 @@ import { User } from '@/app/core/models/user/user.models';
 import { RoleUserResponse } from '@/app/core/models/role/role.models';
 import { AuthStateService } from '@core/services/auth-state.service';
 
+interface MessageGroup {
+    senderKey: string;
+    dateKey: string;
+    messages: UserRequestMessageResponse[];
+}
+
+interface GroupedMessageSection {
+    dateKey: string;
+    dateLabel: string;
+    groups: MessageGroup[];
+}
+
 @Component({
     selector: 'app-user-request-detail-page',
     imports: [CommonModule, FormsModule, RouterModule],
@@ -29,11 +41,17 @@ import { AuthStateService } from '@core/services/auth-state.service';
     styleUrl: './user-request-detail.scss',
 })
 export class UserRequestDetailPage implements OnInit, AfterViewChecked {
+    private static readonly MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
+    private static readonly MIN_REPLY_MESSAGE_LENGTH = 10;
+
     @ViewChild('chatBody') private chatBodyRef!: ElementRef<HTMLDivElement>;
+    @ViewChild('messageFileInput') private messageFileInputRef?: ElementRef<HTMLInputElement>;
+    @ViewChild('replyTextarea') private replyTextareaRef?: ElementRef<HTMLTextAreaElement>;
     private shouldScrollToBottom = false;
     requestId = '';
     request: UserRequest | null = null;
     messages: UserRequestMessageResponse[] = [];
+    groupedMessageSections: GroupedMessageSection[] = [];
     categories: RequestCategoryResponse[] = [];
     priorities: RequestPriorityResponse[] = [];
     statuses: RequestStatusResponse[] = [];
@@ -44,7 +62,11 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
     loading = false;
     messagesLoading = false;
     newMessage = '';
+    attachmentFile: File | null = null;
+    attachmentFileName: string | null = null;
+    replyAttempted = false;
     showEditModal = false;
+    showReplyModal = false;
     showDetailsSidebar = true;
     collapsedSections: Record<string, boolean> = {};
     editForm: any = {
@@ -115,7 +137,13 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         this.messagesLoading = true;
         try {
             const response = await this.requestService.getMessages(this.requestId);
-            this.messages = this.extractArray(response?.data) as UserRequestMessageResponse[];
+            this.messages = (this.extractArray(response?.data) as UserRequestMessageResponse[])
+                .sort((left, right) => {
+                    const leftTime = left.createdDate ? new Date(left.createdDate).getTime() : 0;
+                    const rightTime = right.createdDate ? new Date(right.createdDate).getTime() : 0;
+                    return rightTime - leftTime;
+                });
+            this.groupedMessageSections = this.buildGroupedMessageSections(this.messages);
             this.shouldScrollToBottom = true;
         } catch (err) {
             console.error('Messages load error:', err);
@@ -175,8 +203,14 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
 
             const response = await this.rolesService.getRolesByUser(userId);
             this.userRoles = this.extractArray(response?.data) as RoleUserResponse[];
-            this.hasAdminRole = this.userRoles.some(role => (role.roleDescription || '').toLowerCase() === 'admin');
-            this.isCustomerRole = this.userRoles.some(role => (role.roleDescription || '').toLowerCase() === 'customer');
+            this.hasAdminRole = this.userRoles.some(role => {
+                const roleName = (role.roleDescription || '').toLowerCase();
+                return roleName === 'admin' || roleName === 'destek alanı yönetici';
+            });
+            this.isCustomerRole = this.userRoles.some(role => {
+                const roleName = (role.roleDescription || '').toLowerCase();
+                return roleName === 'customer' || roleName === 'destek alanı';
+            });
         } catch (err) {
             console.error('User roles load error:', err);
             this.userRoles = [];
@@ -250,18 +284,15 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
 
     canComposeMessage(): boolean {
         if (this.isRequestCompleted()) return false;
-  
+
         const currentRole = this.getCurrentUserRoleName();
-        const latestMessage = this.getLatestMessage();
-        const latestMessageRole = (latestMessage?.from || '').toLowerCase();
 
         if (currentRole === 'admin') {
             return true;
         }
 
         if (currentRole === 'customer') {
-            if (!latestMessage) return false;
-            return latestMessageRole !== 'customer';
+            return true;
         }
 
         return false;
@@ -293,6 +324,11 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return false;
     }
 
+    isRequestOwnerMessage(message: UserRequestMessageResponse): boolean {
+        if (!this.request?.userId || !message?.senderUserId) return false;
+        return this.request.userId === message.senderUserId;
+    }
+
     getMessageAlignment(message: UserRequestMessageResponse): string {
         return this.isOutgoingMessage(message) ? 'justify-content-end' : 'justify-content-start';
     }
@@ -305,6 +341,177 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
 
     getMessageSenderLabel(message: UserRequestMessageResponse): string {
         return message.senderUserName || this.getUserFullName(message.senderUserId);
+    }
+
+    getMessageGroupClass(group: MessageGroup): string {
+        const firstMessage = group.messages[0];
+        if (!firstMessage) return '';
+
+        if ((firstMessage.from || '').toLowerCase() === 'admin') {
+            return 'is-admin';
+        }
+
+        if (this.isRequestOwnerMessage(firstMessage)) {
+            return 'is-owner';
+        }
+
+        return 'is-replier';
+    }
+
+    getGroupLatestDate(group: MessageGroup): string {
+        if (!group.messages.length) return '-';
+
+        const latestMessage = group.messages.reduce((latest, current) => {
+            const latestTime = latest.createdDate ? new Date(latest.createdDate).getTime() : 0;
+            const currentTime = current.createdDate ? new Date(current.createdDate).getTime() : 0;
+            return currentTime > latestTime ? current : latest;
+        });
+
+        return this.formatDate(latestMessage.createdDate);
+    }
+
+    private buildGroupedMessageSections(messages: UserRequestMessageResponse[]): GroupedMessageSection[] {
+        const sections: GroupedMessageSection[] = [];
+
+        for (const message of messages) {
+            const dateKey = this.getMessageDateKey(message.createdDate);
+            const senderKey = this.getMessageSenderKey(message);
+
+            const lastSection = sections.at(-1);
+            if (!lastSection || lastSection.dateKey !== dateKey) {
+                sections.push({
+                    dateKey,
+                    dateLabel: this.getMessageDateLabel(message.createdDate),
+                    groups: [{ senderKey, dateKey, messages: [message] }],
+                });
+                continue;
+            }
+
+            const lastGroup = lastSection.groups.at(-1);
+            if (lastGroup && lastGroup.senderKey === senderKey) {
+                lastGroup.messages.push(message);
+            } else {
+                lastSection.groups.push({ senderKey, dateKey, messages: [message] });
+            }
+        }
+
+        return sections;
+    }
+
+    private getMessageDateKey(dateStr?: string): string {
+        if (!dateStr) return 'unknown';
+        const date = new Date(dateStr);
+        if (Number.isNaN(date.getTime())) return 'unknown';
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    private getMessageDateLabel(dateStr?: string): string {
+        if (!dateStr) return 'Tarih bilinmiyor';
+
+        const date = new Date(dateStr);
+        if (Number.isNaN(date.getTime())) return 'Tarih bilinmiyor';
+
+        return date.toLocaleDateString('tr-TR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+        });
+    }
+
+    private getMessageSenderKey(message: UserRequestMessageResponse): string {
+        return `${message.senderUserId || ''}|${(message.from || '').toLowerCase()}`;
+    }
+
+    canSendReply(): boolean {
+        return this.hasMinReplyMessageLength();
+    }
+
+    getReplyMessageLength(): number {
+        return this.newMessage.trim().length;
+    }
+
+    hasMinReplyMessageLength(): boolean {
+        return this.getReplyMessageLength() >= UserRequestDetailPage.MIN_REPLY_MESSAGE_LENGTH;
+    }
+
+    shouldShowReplyLengthWarning(): boolean {
+        return this.replyAttempted && !this.hasMinReplyMessageLength();
+    }
+
+    openReplyModal(): void {
+        if (!this.canComposeMessage()) return;
+        this.replyAttempted = false;
+        this.showReplyModal = true;
+
+        setTimeout(() => {
+            this.replyTextareaRef?.nativeElement.focus();
+        });
+    }
+
+    closeReplyModal(): void {
+        this.replyAttempted = false;
+        this.showReplyModal = false;
+    }
+
+    onAttachmentSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+
+        if (!file) {
+            this.clearAttachment();
+            return;
+        }
+
+        if (file.size > UserRequestDetailPage.MAX_ATTACHMENT_SIZE_BYTES) {
+            this.clearAttachment();
+            alert('Dosya boyutu 5 MB\'ı geçemez.');
+            return;
+        }
+
+        this.attachmentFile = file;
+        this.attachmentFileName = file.name;
+    }
+
+    clearAttachment(): void {
+        this.attachmentFile = null;
+        this.attachmentFileName = null;
+
+        if (this.messageFileInputRef?.nativeElement) {
+            this.messageFileInputRef.nativeElement.value = '';
+        }
+    }
+
+    hasMessageAttachment(message: UserRequestMessageResponse): boolean {
+        return !!message.fileUrl;
+    }
+
+    isImageAttachment(message: UserRequestMessageResponse): boolean {
+        const fileType = (message.fileType || '').toLowerCase();
+        return fileType.startsWith('image/');
+    }
+
+    getAttachmentFileName(message: UserRequestMessageResponse): string {
+        const fileUrl = message.fileUrl || '';
+        if (!fileUrl) return 'Ek dosya';
+
+        const normalized = fileUrl.replace(/\\/g, '/');
+        const lastSlashIndex = normalized.lastIndexOf('/');
+        const name = lastSlashIndex >= 0 ? normalized.slice(lastSlashIndex + 1) : normalized;
+        return name || 'Ek dosya';
+    }
+
+    getAttachmentTypeLabel(message: UserRequestMessageResponse): string {
+        const fileType = (message.fileType || '').toLowerCase();
+        if (fileType.startsWith('image/')) return 'Gorsel';
+        if (fileType.includes('pdf')) return 'PDF';
+        if (fileType.includes('word') || fileType.includes('officedocument.word')) return 'Word';
+        if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'Excel';
+        if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return 'Arsiv';
+        return 'Dosya';
     }
 
     openEditModal(): void {
@@ -332,6 +539,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         try {
             const requestBody = {
                 assignedUserId: this.editForm.assignedUserId || null,
+                applicationId: this.request.applicationId || null,
                 categoryId: this.editForm.categoryId,
                 statusId: this.editForm.statusId,
                 priorityId: this.editForm.priorityId,
@@ -366,7 +574,11 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
 
     // ── Mesaj Gönderme ──
     async sendMessage(): Promise<void> {
-        if (!this.newMessage.trim()) return;
+        this.replyAttempted = true;
+
+        if (!this.canSendReply()) {
+            return;
+        }
 
         const userId = this.userMenuService.getUserIdFromToken();
         if (!userId) {
@@ -374,14 +586,33 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
             return;
         }
 
+        const confirmed = confirm('Mesajı iletmek istediğinize emin misiniz?');
+        if (!confirmed) {
+            return;
+        }
+
         try {
-            const req: CreateUserRequestMessageRequest = {
-                requestId: this.requestId,
-                senderUserId: userId,
-                message: this.newMessage.trim(),
-            };
-            await this.requestService.createMessage(req);
+            if (this.attachmentFile) {
+                await this.requestService.createMessageWithFile({
+                    requestId: this.requestId,
+                    senderUserId: userId,
+                    message: this.newMessage.trim(),
+                    file: this.attachmentFile,
+                });
+            } else {
+                const req: CreateUserRequestMessageRequest = {
+                    requestId: this.requestId,
+                    senderUserId: userId,
+                    message: this.newMessage.trim(),
+                };
+                await this.requestService.createMessage(req);
+            }
+
             this.newMessage = '';
+            this.clearAttachment();
+            this.replyAttempted = false;
+            this.showReplyModal = false;
+            await this.loadRequest();
             await this.loadMessages();
             this.shouldScrollToBottom = true;
         } catch (err: any) {
@@ -394,7 +625,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
     }
 
     onMessageKeydown(event: KeyboardEvent): void {
-        if (event.ctrlKey) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
             this.sendMessage();
         }
     }
@@ -411,15 +643,6 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
             } catch (err) {
                 console.error('Close error:', err);
             }
-        }
-    }
-
-    scrollToReply(): void {
-        const el = document.getElementById('replyArea');
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            const textarea = el.querySelector('textarea');
-            if (textarea) textarea.focus();
         }
     }
 

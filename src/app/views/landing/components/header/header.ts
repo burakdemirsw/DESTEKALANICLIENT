@@ -1,4 +1,4 @@
-import {Component, HostListener, inject} from '@angular/core';
+﻿import {Component, HostListener, inject} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {LayoutStoreService} from '@core/services/layout-store.service';
 import {ScrollService} from '@core/services/scroll.service';
@@ -20,12 +20,12 @@ export class Header {
     navItems = [
         { label: 'Ana Sayfa', id: 'home' },
         { label: 'Hizmetler', id: 'services' },
-        { label: 'Özellikler', id: 'features' },
+        { label: 'Ã–zellikler', id: 'features' },
         { label: 'Planlar', id: 'plans' },
         { label: 'Yorumlar', id: 'reviews' },
-        { label: 'İletişim', id: 'contact' },
+        { label: 'Ä°letiÅŸim', id: 'contact' },
     ];
-    appName = 'SellenticAI';
+    appName = 'WMSSupport';
 
     @HostListener('window:scroll', [])
     onWindowScroll() {
@@ -33,3 +33,4 @@ export class Header {
         this.isSticky = scroll > 100;
     }
 }
+

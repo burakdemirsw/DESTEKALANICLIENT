@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+﻿import {Component} from '@angular/core';
 import {TestimonialCard} from "../testimonial-card/testimonial-card";
 
 @Component({
@@ -11,23 +11,23 @@ export class Testimonials {
     testimonials = [
         {
             avatar: 'assets/images/users/user-1.jpg',
-            name: 'Ahmet Yılmaz',
-            title: 'Müşteri iletişimimiz tamamen değişti!',
-            description: 'SellenticAI sayesinde müşteri yanıt süremiz %80 düştü. AI chatbot gerçekten insan gibi konuşuyor!',
+            name: 'Ahmet YÄ±lmaz',
+            title: 'MÃ¼ÅŸteri iletiÅŸimimiz tamamen deÄŸiÅŸti!',
+            description: 'WMSSupport sayesinde mÃ¼ÅŸteri yanÄ±t sÃ¼remiz %80 dÃ¼ÅŸtÃ¼. AI chatbot gerÃ§ekten insan gibi konuÅŸuyor!',
             rating: 5
         },
         {
             avatar: 'assets/images/users/user-2.jpg',
             name: 'Elif Kara',
-            title: 'Harika otomasyon araçları',
-            description: 'Tüm kanalları tek panelden yönetmek inanılmaz kolaylık sağlıyor. Ekibimizin verimliliği 3 katına çıktı.',
+            title: 'Harika otomasyon araÃ§larÄ±',
+            description: 'TÃ¼m kanallarÄ± tek panelden yÃ¶netmek inanÄ±lmaz kolaylÄ±k saÄŸlÄ±yor. Ekibimizin verimliliÄŸi 3 katÄ±na Ã§Ä±ktÄ±.',
             rating: 4.5
         },
         {
             avatar: 'assets/images/users/user-3.jpg',
             name: 'Mehmet Demir',
-            title: 'Kurumsal düzeyde güvenlik',
-            description: 'KVKK uyumluluğu ve uçtan uca şifreleme ile verilerimiz güvende. Teknik destek ekibi çok hızlı yanıt veriyor.',
+            title: 'Kurumsal dÃ¼zeyde gÃ¼venlik',
+            description: 'KVKK uyumluluÄŸu ve uÃ§tan uca ÅŸifreleme ile verilerimiz gÃ¼vende. Teknik destek ekibi Ã§ok hÄ±zlÄ± yanÄ±t veriyor.',
             rating: 4
         },
     ];
@@ -43,3 +43,4 @@ export class Testimonials {
         'assets/images/clients/07.svg'
     ];
 }
+

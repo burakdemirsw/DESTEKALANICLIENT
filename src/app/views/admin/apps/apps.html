@@ -1,13 +1,13 @@
-<!-- Hero Banner -->
+﻿<!-- Hero Banner -->
 <div class="apps-hero-banner mb-4">
     <div class="row align-items-center">
         <div class="col-lg-7">
             <h2 class="text-white mb-2">
-                <i class="fa-solid fa-puzzle-piece me-2"></i>Tüm Uygulamalar
+                <i class="fa-solid fa-puzzle-piece me-2"></i>TÃ¼m Uygulamalar
             </h2>
             <p class="text-white-50 mb-3">
-                E-ticaret platformlarınızı, pazaryerlerinizi ve sosyal medya kanallarınızı SellenticAI ile
-                entegre edin. Tüm müşteri iletişimlerinizi tek bir yerden yönetin.
+                E-ticaret platformlarÄ±nÄ±zÄ±, pazaryerlerinizi ve sosyal medya kanallarÄ±nÄ±zÄ± WMSSupport ile
+                entegre edin. TÃ¼m mÃ¼ÅŸteri iletiÅŸimlerinizi tek bir yerden yÃ¶netin.
             </p>
             <div class="d-flex gap-2">
                 <span class="badge bg-white bg-opacity-25 text-white px-3 py-2">
@@ -27,18 +27,18 @@
     </div>
 </div>
 
-<!-- Bağlı Uygulamalar -->
+<!-- BaÄŸlÄ± Uygulamalar -->
 @if (connectedApps.length > 0) {
 <div class="mb-4">
     <div class="d-flex align-items-center mb-3">
         <div class="category-icon-wrapper bg-success bg-opacity-10 me-2">
             <i class="fa-solid fa-link text-success"></i>
         </div>
-        <h5 class="mb-0 fw-semibold">Bağlı Uygulamalar</h5>
+        <h5 class="mb-0 fw-semibold">BaÄŸlÄ± Uygulamalar</h5>
         <span class="badge bg-success-subtle text-success ms-2">{{ connectedApps.length }}</span>
     </div>
 
-    <!-- Bağlı - Site -->
+    <!-- BaÄŸlÄ± - Site -->
     @if (connectedSiteChannels.length > 0) {
     <h6 class="text-muted small fw-semibold mb-2 ms-1"><i class="fa-solid fa-globe me-1"></i>Site</h6>
     <div class="row g-3 mb-3">
@@ -50,7 +50,7 @@
                     <div class="card-img-overlay-gradient"></div>
                     <span class="status-badge active">
                         <i class="fa-solid fa-circle me-1" style="font-size: 6px; vertical-align: middle;"></i>
-                        Bağlı
+                        BaÄŸlÄ±
                     </span>
                 </div>
                 <div class="card-body">
@@ -68,13 +68,13 @@
                 <div class="card-footer bg-transparent border-top-0 pt-0">
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-soft-primary flex-fill" type="button">
-                            <i class="fa-solid fa-pen me-1"></i> Düzenle
+                            <i class="fa-solid fa-pen me-1"></i> DÃ¼zenle
                         </button>
                         <button 
                             class="btn btn-sm btn-soft-danger" 
                             type="button"
                             (click)="disconnectIntegration($event, channel)"
-                            title="Entegrasyonu Kaldır">
+                            title="Entegrasyonu KaldÄ±r">
                             <i class="fa-solid fa-unlink"></i>
                         </button>
                     </div>
@@ -85,7 +85,7 @@
     </div>
     }
 
-    <!-- Bağlı - Pazaryeri -->
+    <!-- BaÄŸlÄ± - Pazaryeri -->
     @if (connectedPazaryeriChannels.length > 0) {
     <h6 class="text-muted small fw-semibold mb-2 ms-1"><i class="fa-solid fa-store me-1"></i>Pazaryeri</h6>
     <div class="row g-3 mb-3">
@@ -97,7 +97,7 @@
                     <div class="card-img-overlay-gradient"></div>
                     <span class="status-badge active">
                         <i class="fa-solid fa-circle me-1" style="font-size: 6px; vertical-align: middle;"></i>
-                        Bağlı
+                        BaÄŸlÄ±
                     </span>
                 </div>
                 <div class="card-body">
@@ -115,13 +115,13 @@
                 <div class="card-footer bg-transparent border-top-0 pt-0">
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-soft-primary flex-fill" type="button">
-                            <i class="fa-solid fa-pen me-1"></i> Düzenle
+                            <i class="fa-solid fa-pen me-1"></i> DÃ¼zenle
                         </button>
                         <button 
                             class="btn btn-sm btn-soft-danger" 
                             type="button"
                             (click)="disconnectIntegration($event, channel)"
-                            title="Entegrasyonu Kaldır">
+                            title="Entegrasyonu KaldÄ±r">
                             <i class="fa-solid fa-unlink"></i>
                         </button>
                     </div>
@@ -132,7 +132,7 @@
     </div>
     }
 
-    <!-- Bağlı - Sosyal Medya -->
+    <!-- BaÄŸlÄ± - Sosyal Medya -->
     @if (connectedSosyalMedyaChannels.length > 0) {
     <h6 class="text-muted small fw-semibold mb-2 ms-1"><i class="fa-solid fa-share-nodes me-1"></i>Sosyal Medya</h6>
     <div class="row g-3 mb-3">
@@ -144,7 +144,7 @@
                     <div class="card-img-overlay-gradient"></div>
                     <span class="status-badge active">
                         <i class="fa-solid fa-circle me-1" style="font-size: 6px; vertical-align: middle;"></i>
-                        Bağlı
+                        BaÄŸlÄ±
                     </span>
                 </div>
                 <div class="card-body">
@@ -162,13 +162,13 @@
                 <div class="card-footer bg-transparent border-top-0 pt-0">
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-soft-primary flex-fill" type="button">
-                            <i class="fa-solid fa-pen me-1"></i> Düzenle
+                            <i class="fa-solid fa-pen me-1"></i> DÃ¼zenle
                         </button>
                         <button 
                             class="btn btn-sm btn-soft-danger" 
                             type="button"
                             (click)="disconnectSocialMedia($event, channel)"
-                            title="Bağlantıyı Kes">
+                            title="BaÄŸlantÄ±yÄ± Kes">
                             <i class="fa-solid fa-unlink"></i>
                         </button>
                     </div>
@@ -201,7 +201,7 @@
     </div>
 </div>
 
-<!-- Site Kanalları -->
+<!-- Site KanallarÄ± -->
 @if (siteChannels.length > 0) {
 <div class="mb-4">
     <div class="d-flex align-items-center mb-3">
@@ -248,11 +248,11 @@
                         </button>
                     } @else if (isChannelConnectable(channel)) {
                         <button class="btn btn-sm btn-soft-primary w-100" (click)="onConnectClick($event, channel)">
-                            <i class="fa-solid fa-plug me-1"></i> Bağlan
+                            <i class="fa-solid fa-plug me-1"></i> BaÄŸlan
                         </button>
                     } @else {
                         <button class="btn btn-sm btn-light w-100" type="button" disabled>
-                            <i class="fa-regular fa-clock me-1"></i> Yakında
+                            <i class="fa-regular fa-clock me-1"></i> YakÄ±nda
                         </button>
                     }
                 </div>
@@ -310,11 +310,11 @@
                         </button>
                     } @else if (isChannelConnectable(channel)) {
                         <button class="btn btn-sm btn-soft-primary w-100" (click)="onConnectClick($event, channel)">
-                            <i class="fa-solid fa-plug me-1"></i> Bağlan
+                            <i class="fa-solid fa-plug me-1"></i> BaÄŸlan
                         </button>
                     } @else {
                         <button class="btn btn-sm btn-light w-100" type="button" disabled>
-                            <i class="fa-regular fa-clock me-1"></i> Yakında
+                            <i class="fa-regular fa-clock me-1"></i> YakÄ±nda
                         </button>
                     }
                 </div>
@@ -325,7 +325,7 @@
 </div>
 }
 
-<!-- Sosyal Medya Kanalları -->
+<!-- Sosyal Medya KanallarÄ± -->
 @if (sosyalMedyaChannels.length > 0) {
 <div class="mb-4">
     <div class="d-flex align-items-center mb-3">
@@ -372,11 +372,11 @@
                         </button>
                     } @else if (isChannelConnectable(channel)) {
                         <button class="btn btn-sm btn-soft-primary w-100" (click)="onConnectClick($event, channel)">
-                            <i class="fa-solid fa-plug me-1"></i> Bağlan
+                            <i class="fa-solid fa-plug me-1"></i> BaÄŸlan
                         </button>
                     } @else {
                         <button class="btn btn-sm btn-light w-100" type="button" disabled>
-                            <i class="fa-regular fa-clock me-1"></i> Yakında
+                            <i class="fa-regular fa-clock me-1"></i> YakÄ±nda
                         </button>
                     }
                 </div>
@@ -387,12 +387,12 @@
 </div>
 }
 
-<!-- Boş sonuç -->
+<!-- BoÅŸ sonuÃ§ -->
 @if (filteredChannels.length === 0 && filterText) {
 <div class="text-center py-5">
     <i class="fa-solid fa-search fa-3x text-muted mb-3 d-block"></i>
-    <h5 class="text-muted">Sonuç bulunamadı</h5>
-    <p class="text-muted">"{{ filterText }}" ile eşleşen uygulama bulunamadı.</p>
+    <h5 class="text-muted">SonuÃ§ bulunamadÄ±</h5>
+    <p class="text-muted">"{{ filterText }}" ile eÅŸleÅŸen uygulama bulunamadÄ±.</p>
     <button class="btn btn-sm btn-soft-primary" (click)="filterText = ''; onFilterChange()">
         <i class="fa-solid fa-times me-1"></i> Filtreyi Temizle
     </button>
@@ -411,8 +411,8 @@
                         <img src="assets/images/logos/ticimax_logo.svg" alt="Ticimax" class="app-icon-img" />
                     </div>
                     <div>
-                        <h5 class="modal-title mb-0">{{ isEditMode ? 'Ticimax Güncelle' : 'Ticimax Bağlantısı' }}</h5>
-                        <small class="text-muted">{{ isEditMode ? 'Bağlantı bilgilerinizi güncelleyin' : 'E-ticaret entegrasyon bilgilerini girin' }}</small>
+                        <h5 class="modal-title mb-0">{{ isEditMode ? 'Ticimax GÃ¼ncelle' : 'Ticimax BaÄŸlantÄ±sÄ±' }}</h5>
+                        <small class="text-muted">{{ isEditMode ? 'BaÄŸlantÄ± bilgilerinizi gÃ¼ncelleyin' : 'E-ticaret entegrasyon bilgilerini girin' }}</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close" (click)="closeTicimaxModal()"></button>
@@ -456,17 +456,17 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">
-                        <i class="fa-solid fa-truck me-1 text-success"></i> Kargo Firması
+                        <i class="fa-solid fa-truck me-1 text-success"></i> Kargo FirmasÄ±
                     </label>
                     @if (loadingCargoFirms) {
                         <div class="d-flex align-items-center gap-2 py-2">
                             <span class="spinner-border spinner-border-sm text-muted"></span>
-                            <small class="text-muted">Kargo firmaları yükleniyor...</small>
+                            <small class="text-muted">Kargo firmalarÄ± yÃ¼kleniyor...</small>
                         </div>
                     } @else if (cargoFirms.length > 0) {
                         <div class="input-group">
                             <select class="form-select" [(ngModel)]="ticimaxForm.kargoFirmaId">
-                                <option [ngValue]="null">Seçin veya elle girin →</option>
+                                <option [ngValue]="null">SeÃ§in veya elle girin â†’</option>
                                 @for (cargo of cargoFirms; track cargo.kargoFirmaId) {
                                     <option [ngValue]="cargo.kargoFirmaId">{{ cargo.kargoFirmaTanim }}</option>
                                 }
@@ -480,7 +480,7 @@
                                 (ngModelChange)="ticimaxForm.kargoFirmaId = $event || null"
                             />
                         </div>
-                        <small class="text-muted">Listeden seçin veya Kargo ID'yi elle yazın</small>
+                        <small class="text-muted">Listeden seÃ§in veya Kargo ID'yi elle yazÄ±n</small>
                     } @else {
                         <input
                             type="number"
@@ -497,18 +497,18 @@
             @if (testResult === 'success') {
             <div class="alert alert-success d-flex align-items-center mx-3 mb-0 py-2" role="alert">
                 <i class="fa-solid fa-circle-check me-2"></i>
-                <small>Bağlantı testi başarılı!</small>
+                <small>BaÄŸlantÄ± testi baÅŸarÄ±lÄ±!</small>
             </div>
             } @else if (testResult === 'fail') {
             <div class="alert alert-danger d-flex align-items-center mx-3 mb-0 py-2" role="alert">
                 <i class="fa-solid fa-circle-xmark me-2"></i>
-                <small>Bağlantı testi başarısız. Bilgileri kontrol edin.</small>
+                <small>BaÄŸlantÄ± testi baÅŸarÄ±sÄ±z. Bilgileri kontrol edin.</small>
             </div>
             }
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" (click)="closeTicimaxModal()">
-                    İptal
+                    Ä°ptal
                 </button>
                 <button
                     type="button"
@@ -519,9 +519,9 @@
                     @if (savingTicimax) {
                         <span class="spinner-border spinner-border-sm me-1"></span> Kaydediliyor...
                     } @else if (isEditMode) {
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Güncelle
+                        <i class="fa-solid fa-floppy-disk me-1"></i> GÃ¼ncelle
                     } @else {
-                        <i class="fa-solid fa-plug me-1"></i> Bağlan
+                        <i class="fa-solid fa-plug me-1"></i> BaÄŸlan
                     }
                 </button>
             </div>
@@ -542,8 +542,8 @@
                         <i class="fa-brands fa-instagram text-white" style="font-size: 1.5rem;"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title mb-0 text-white">Instagram Bağlantısı</h5>
-                        <small class="text-white-50">Meta Business hesabınız ile Instagram'ı bağlayın</small>
+                        <h5 class="modal-title mb-0 text-white">Instagram BaÄŸlantÄ±sÄ±</h5>
+                        <small class="text-white-50">Meta Business hesabÄ±nÄ±z ile Instagram'Ä± baÄŸlayÄ±n</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" (click)="closeInstagramModal()"></button>
@@ -555,17 +555,17 @@
                     </div>
                     <h5 class="fw-semibold mb-2">Instagram DM Entegrasyonu</h5>
                     <p class="text-muted small mb-0">
-                        Instagram Direct mesajlarınızı SellenticAI üzerinden yönetmek için
-                        Meta Business hesabınızla giriş yapmanız gerekmektedir.
+                        Instagram Direct mesajlarÄ±nÄ±zÄ± WMSSupport Ã¼zerinden yÃ¶netmek iÃ§in
+                        Meta Business hesabÄ±nÄ±zla giriÅŸ yapmanÄ±z gerekmektedir.
                     </p>
                 </div>
 
                 <div class="bg-light rounded-3 p-3 mb-4 text-start" style="background-color: #f7f7f9 !important;">
                     <h6 class="fw-semibold small mb-2"><i class="fa-solid fa-circle-info text-primary me-1"></i>Gereksinimler</h6>
                     <ul class="list-unstyled small text-muted mb-0">
-                        <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>Facebook Business hesabı</li>
-                        <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>Instagram Professional hesabı (Business/Creator)</li>
-                        <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>Instagram hesabının Facebook sayfasına bağlı olması</li>
+                        <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>Facebook Business hesabÄ±</li>
+                        <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>Instagram Professional hesabÄ± (Business/Creator)</li>
+                        <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>Instagram hesabÄ±nÄ±n Facebook sayfasÄ±na baÄŸlÄ± olmasÄ±</li>
                     </ul>
                 </div>
 
@@ -573,18 +573,18 @@
                 @if (instagramResult === 'success') {
                     <div class="alert alert-success d-flex align-items-center py-2 mb-3" role="alert">
                         <i class="fa-solid fa-circle-check me-2"></i>
-                        <small>Instagram başarıyla bağlandı!</small>
+                        <small>Instagram baÅŸarÄ±yla baÄŸlandÄ±!</small>
                     </div>
                 } @else if (instagramResult === 'fail') {
                     <div class="alert alert-danger d-flex align-items-center py-2 mb-3" role="alert">
                         <i class="fa-solid fa-circle-xmark me-2"></i>
-                        <small>{{ instagramErrorMessage || 'Bağlantı başarısız oldu. Lütfen tekrar deneyin.' }}</small>
+                        <small>{{ instagramErrorMessage || 'BaÄŸlantÄ± baÅŸarÄ±sÄ±z oldu. LÃ¼tfen tekrar deneyin.' }}</small>
                     </div>
                 }
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-light" (click)="closeInstagramModal()">
-                    İptal
+                    Ä°ptal
                 </button>
                 <button
                     type="button"
@@ -594,9 +594,9 @@
                     (click)="connectInstagram()"
                 >
                     @if (connectingInstagram) {
-                        <span class="spinner-border spinner-border-sm me-1"></span> Bağlanıyor...
+                        <span class="spinner-border spinner-border-sm me-1"></span> BaÄŸlanÄ±yor...
                     } @else {
-                        <i class="fa-brands fa-meta me-1"></i> Meta ile Bağlan
+                        <i class="fa-brands fa-meta me-1"></i> Meta ile BaÄŸlan
                     }
                 </button>
             </div>
@@ -618,7 +618,7 @@
                     <div>
                         <h5 class="modal-title mb-0 text-white">
                             @if (isEditMode) {
-                                Trendyol Entegrasyonunu Düzenle
+                                Trendyol Entegrasyonunu DÃ¼zenle
                             } @else {
                                 Trendyol Entegrasyonu
                             }
@@ -633,8 +633,8 @@
                     <div class="alert alert-info d-flex align-items-start py-2 mb-3" role="alert" style="background-color: #e7f3ff; border-color: #b3d9ff;">
                         <i class="fa-solid fa-circle-info me-2 mt-1" style="color: #0066cc;"></i>
                         <small class="text-muted">
-                            Trendyol entegrasyonu için Supplier ID, API Key ve API Secret bilgilerinize ihtiyacınız var.
-                            Bu bilgilere Trendyol Seller Office → Entegrasyonlar bölümünden ulaşabilirsiniz.
+                            Trendyol entegrasyonu iÃ§in Supplier ID, API Key ve API Secret bilgilerinize ihtiyacÄ±nÄ±z var.
+                            Bu bilgilere Trendyol Seller Office â†’ Entegrasyonlar bÃ¶lÃ¼mÃ¼nden ulaÅŸabilirsiniz.
                         </small>
                     </div>
 
@@ -664,7 +664,7 @@
                             type="password"
                             class="form-control"
                             [(ngModel)]="trendyolForm.apiSecret"
-                            placeholder="API Secret'ınızı girin"
+                            placeholder="API Secret'Ä±nÄ±zÄ± girin"
                         />
                     </div>
                 </div>
@@ -680,7 +680,7 @@
                         @if (testingConnection) {
                             <span class="spinner-border spinner-border-sm me-1"></span> Test ediliyor...
                         } @else {
-                            <i class="fa-solid fa-vial me-1"></i> Bağlantıyı Test Et
+                            <i class="fa-solid fa-vial me-1"></i> BaÄŸlantÄ±yÄ± Test Et
                         }
                     </button>
                 </div>
@@ -689,19 +689,19 @@
                 @if (testResult === 'success') {
                     <div class="alert alert-success d-flex align-items-center py-2 mb-0" role="alert">
                         <i class="fa-solid fa-circle-check me-2"></i>
-                        <small>Bağlantı testi başarılı! Bilgileriniz doğru.</small>
+                        <small>BaÄŸlantÄ± testi baÅŸarÄ±lÄ±! Bilgileriniz doÄŸru.</small>
                     </div>
                 } @else if (testResult === 'fail') {
                     <div class="alert alert-danger d-flex align-items-center py-2 mb-0" role="alert">
                         <i class="fa-solid fa-circle-xmark me-2"></i>
-                        <small>Bağlantı testi başarısız. Lütfen bilgilerinizi kontrol edin.</small>
+                        <small>BaÄŸlantÄ± testi baÅŸarÄ±sÄ±z. LÃ¼tfen bilgilerinizi kontrol edin.</small>
                     </div>
                 }
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" (click)="closeTrendyolModal()">
-                    İptal
+                    Ä°ptal
                 </button>
                 <button
                     type="button"
@@ -713,9 +713,9 @@
                     @if (savingTrendyol) {
                         <span class="spinner-border spinner-border-sm me-1"></span> Kaydediliyor...
                     } @else if (isEditMode) {
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Güncelle
+                        <i class="fa-solid fa-floppy-disk me-1"></i> GÃ¼ncelle
                     } @else {
-                        <i class="fa-solid fa-plug me-1"></i> Bağlan
+                        <i class="fa-solid fa-plug me-1"></i> BaÄŸlan
                     }
                 </button>
             </div>

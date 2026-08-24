@@ -1,4 +1,4 @@
-<!-- ─── Setup Wizard ─── Apple iPhone Setup Style ─────────────────────────── -->
+﻿<!-- â”€â”€â”€ Setup Wizard â”€â”€â”€ Apple iPhone Setup Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="wizard-container"
   (mousemove)="onBackgroundMouseMove($event)"
   (mouseleave)="onBackgroundMouseLeave()"
@@ -8,7 +8,7 @@
   [style.--dot-shift-y]="dotShiftY"
   [style.--dot-repel]="dotRepel">
 
-  <!-- Background — Google Stitch-style aurora -->
+  <!-- Background â€” Google Stitch-style aurora -->
   <div class="wizard-bg">
     <div class="aurora">
       <div class="aurora-layer aurora-1"></div>
@@ -40,9 +40,9 @@
   <div class="wizard-content" [class.slide-out-left]="animating && direction === 'forward'"
     [class.slide-out-right]="animating && direction === 'backward'">
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Welcome -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'welcome') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -54,9 +54,9 @@
           Merhaba @if (userName) { <span class="gradient-text">{{ userName }}</span> }
         </h1>
         <p class="step-subtitle">
-          SellenticAI'a hoş geldiniz! Sizi tanımak ve en iyi deneyimi sunmak istiyoruz.
+          WMSSupport'a hoÅŸ geldiniz! Sizi tanÄ±mak ve en iyi deneyimi sunmak istiyoruz.
         </p>
-        <p class="step-question">E-Ticaret veya Pazaryeri siteniz var mı?</p>
+        <p class="step-question">E-Ticaret veya Pazaryeri siteniz var mÄ±?</p>
 
         <div class="choice-buttons">
           <button class="choice-card" (click)="selectHasEcommerce(true)">
@@ -64,21 +64,21 @@
               <i class="fa-solid fa-check"></i>
             </div>
             <span class="choice-label">Evet, var</span>
-            <span class="choice-hint">Hadi bağlayalım!</span>
+            <span class="choice-hint">Hadi baÄŸlayalÄ±m!</span>
           </button>
           <button class="choice-card" (click)="selectHasEcommerce(false)">
             <div class="choice-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
               <i class="fa-solid fa-xmark"></i>
             </div>
-            <span class="choice-label">Hayır, yok</span>
-            <span class="choice-hint">Sorun değil</span>
+            <span class="choice-label">HayÄ±r, yok</span>
+            <span class="choice-hint">Sorun deÄŸil</span>
           </button>
         </div>
 
         @if (hasEcommerce === false) {
           <div class="info-bubble slide-up">
             <i class="fa-solid fa-circle-info"></i>
-            <p>Endişelenmeyin! Sosyal medya hesaplarınızla da başlayabilirsiniz.</p>
+            <p>EndiÅŸelenmeyin! Sosyal medya hesaplarÄ±nÄ±zla da baÅŸlayabilirsiniz.</p>
             <button class="btn-apple-primary mt-3" (click)="goToStep('social-media')">
               Sosyal Medya ile Devam Et
               <i class="fa-solid fa-arrow-right ms-2"></i>
@@ -88,9 +88,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Platform Type -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'platform-type') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -98,8 +98,8 @@
             <i class="fa-solid fa-laptop-code"></i>
           </div>
         </div>
-        <h1 class="step-title">Platformunuzu Seçin</h1>
-        <p class="step-subtitle">Hangi tür bir platforma sahipsiniz?</p>
+        <h1 class="step-title">Platformunuzu SeÃ§in</h1>
+        <p class="step-subtitle">Hangi tÃ¼r bir platforma sahipsiniz?</p>
 
         <div class="choice-buttons">
           <button class="choice-card large" (click)="selectPlatformType('website')">
@@ -120,9 +120,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Platform Select -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'platform-select') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -134,7 +134,7 @@
           @if (platformType === 'website') { Website Platformunuz }
           @else { Pazaryeriniz }
         </h1>
-        <p class="step-subtitle">Hangi platformu kullanıyorsunuz?</p>
+        <p class="step-subtitle">Hangi platformu kullanÄ±yorsunuz?</p>
 
         <div class="platform-grid">
           @for (platform of currentPlatforms; track platform.id) {
@@ -151,9 +151,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Platform Details -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'platform-details') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -161,14 +161,14 @@
             <i class="fa-solid fa-link"></i>
           </div>
         </div>
-        <h1 class="step-title">{{ getPlatformName() }} Bağlantısı</h1>
+        <h1 class="step-title">{{ getPlatformName() }} BaÄŸlantÄ±sÄ±</h1>
         <p class="step-subtitle">Entegrasyon bilgilerinizi girin</p>
 
         <div class="form-card">
           <!-- Ticimax fields -->
           @if (isTicimax) {
             <div class="apple-input-group">
-              <label>Alan Adı</label>
+              <label>Alan AdÄ±</label>
               <input type="text" [(ngModel)]="platformDetails.domainName" placeholder="ornek.ticimax.com" class="apple-input">
             </div>
             <div class="apple-input-group">
@@ -188,16 +188,16 @@
           <!-- Shopify fields -->
           @if (isShopify) {
             <div class="apple-input-group">
-              <label>Mağaza URL</label>
+              <label>MaÄŸaza URL</label>
               <input type="text" [(ngModel)]="platformDetails.storeUrl" placeholder="magaza.myshopify.com" class="apple-input">
             </div>
             <div class="apple-input-group">
               <label>API Key</label>
-              <input type="text" [(ngModel)]="platformDetails.apiKey" placeholder="API anahtarınız" class="apple-input">
+              <input type="text" [(ngModel)]="platformDetails.apiKey" placeholder="API anahtarÄ±nÄ±z" class="apple-input">
             </div>
             <div class="apple-input-group">
               <label>API Secret</label>
-              <input type="password" [(ngModel)]="platformDetails.apiSecret" placeholder="••••••••" class="apple-input">
+              <input type="password" [(ngModel)]="platformDetails.apiSecret" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="apple-input">
             </div>
           }
 
@@ -209,11 +209,11 @@
             </div>
             <div class="apple-input-group">
               <label>API Secret</label>
-              <input type="password" [(ngModel)]="platformDetails.apiSecret" placeholder="••••••••" class="apple-input">
+              <input type="password" [(ngModel)]="platformDetails.apiSecret" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="apple-input">
             </div>
             <div class="apple-input-group">
-              <label>Satıcı ID</label>
-              <input type="text" [(ngModel)]="platformDetails.sellerId" placeholder="Satıcı kimliğiniz" class="apple-input">
+              <label>SatÄ±cÄ± ID</label>
+              <input type="text" [(ngModel)]="platformDetails.sellerId" placeholder="SatÄ±cÄ± kimliÄŸiniz" class="apple-input">
             </div>
           }
 
@@ -225,10 +225,10 @@
             </div>
             <div class="apple-input-group">
               <label>API Secret</label>
-              <input type="password" [(ngModel)]="platformDetails.apiSecret" placeholder="••••••••" class="apple-input">
+              <input type="password" [(ngModel)]="platformDetails.apiSecret" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="apple-input">
             </div>
             <div class="apple-input-group">
-              <label>Tedarikçi ID</label>
+              <label>TedarikÃ§i ID</label>
               <input type="text" [(ngModel)]="platformDetails.supplierId" placeholder="Supplier ID" class="apple-input">
             </div>
           }
@@ -242,9 +242,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Test Order -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'test-order') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -252,8 +252,8 @@
             <i class="fa-solid fa-flask-vial"></i>
           </div>
         </div>
-        <h1 class="step-title">Bağlantı Testi</h1>
-        <p class="step-subtitle">{{ getPlatformName() }} bağlantınızı test edelim</p>
+        <h1 class="step-title">BaÄŸlantÄ± Testi</h1>
+        <p class="step-subtitle">{{ getPlatformName() }} baÄŸlantÄ±nÄ±zÄ± test edelim</p>
 
         @if (testOrderStatus === 'idle') {
           <div class="test-card">
@@ -263,11 +263,11 @@
               </div>
             </div>
             <p class="test-description">
-              Test siparişi çekerek bağlantınızın doğru çalıştığından emin olalım.
+              Test sipariÅŸi Ã§ekerek baÄŸlantÄ±nÄ±zÄ±n doÄŸru Ã§alÄ±ÅŸtÄ±ÄŸÄ±ndan emin olalÄ±m.
             </p>
             <button class="btn-apple-primary" (click)="startTestOrder()">
               <i class="fa-solid fa-play me-2"></i>
-              Testi Başlat
+              Testi BaÅŸlat
             </button>
           </div>
         }
@@ -282,7 +282,7 @@
               </svg>
               <span class="progress-ring-text">{{ testOrderProgress | number:'1.0-0' }}%</span>
             </div>
-            <p class="test-loading-text">Bağlantı test ediliyor<span class="loading-dots"></span></p>
+            <p class="test-loading-text">BaÄŸlantÄ± test ediliyor<span class="loading-dots"></span></p>
           </div>
         }
 
@@ -293,8 +293,8 @@
                 <i class="fa-solid fa-check"></i>
               </div>
             </div>
-            <h3 class="success-title">Bağlantı Başarılı!</h3>
-            <p class="success-text">Test siparişi başarıyla çekildi. Platformunuz hazır.</p>
+            <h3 class="success-title">BaÄŸlantÄ± BaÅŸarÄ±lÄ±!</h3>
+            <p class="success-text">Test sipariÅŸi baÅŸarÄ±yla Ã§ekildi. Platformunuz hazÄ±r.</p>
             <button class="btn-apple-primary mt-4" (click)="confirmTestOrder()">
               Devam Et
               <i class="fa-solid fa-arrow-right ms-2"></i>
@@ -304,9 +304,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Social Media -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'social-media') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -315,7 +315,7 @@
           </div>
         </div>
         <h1 class="step-title">Sosyal Medya</h1>
-        <p class="step-subtitle">Sosyal medya hesaplarınız var mı?</p>
+        <p class="step-subtitle">Sosyal medya hesaplarÄ±nÄ±z var mÄ±?</p>
 
         @if (hasSocialMedia === null) {
           <div class="choice-buttons">
@@ -324,20 +324,20 @@
                 <i class="fa-solid fa-check"></i>
               </div>
               <span class="choice-label">Evet</span>
-              <span class="choice-hint">Bağlayalım</span>
+              <span class="choice-hint">BaÄŸlayalÄ±m</span>
             </button>
             <button class="choice-card" (click)="selectHasSocialMedia(false)">
               <div class="choice-icon" style="background: linear-gradient(135deg, #6b7280, #9ca3af)">
                 <i class="fa-solid fa-forward"></i>
               </div>
-              <span class="choice-label">Şimdilik Değil</span>
+              <span class="choice-label">Åimdilik DeÄŸil</span>
               <span class="choice-hint">Sonra eklerim</span>
             </button>
           </div>
         }
 
         @if (hasSocialMedia === true) {
-          <p class="step-question slide-up">Hangi hesaplarınızı bağlamak istersiniz?</p>
+          <p class="step-question slide-up">Hangi hesaplarÄ±nÄ±zÄ± baÄŸlamak istersiniz?</p>
 
           <div class="social-grid slide-up">
             @for (social of socialMediaOptions; track social.id) {
@@ -358,7 +358,7 @@
 
           @if (selectedSocialMedia.length > 0) {
             <button class="btn-apple-primary mt-4 slide-up" (click)="submitSocialMedia()">
-              {{ selectedSocialMedia.length }} Hesabı Bağla
+              {{ selectedSocialMedia.length }} HesabÄ± BaÄŸla
               <i class="fa-solid fa-arrow-right ms-2"></i>
             </button>
           }
@@ -366,9 +366,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Social Connect -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'social-connect') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -376,7 +376,7 @@
             <i class="fa-solid fa-link"></i>
           </div>
         </div>
-        <h1 class="step-title">Hesaplar Bağlanıyor</h1>
+        <h1 class="step-title">Hesaplar BaÄŸlanÄ±yor</h1>
 
         <div class="connect-card">
           @if (socialConnectStatus === 'connecting') {
@@ -395,7 +395,7 @@
                 }
               </div>
             </div>
-            <p class="connecting-text">{{ currentConnecting }} bağlanıyor<span class="loading-dots"></span></p>
+            <p class="connecting-text">{{ currentConnecting }} baÄŸlanÄ±yor<span class="loading-dots"></span></p>
           }
 
           <!-- Progress -->
@@ -420,7 +420,7 @@
               <div class="success-check small">
                 <i class="fa-solid fa-check"></i>
               </div>
-              <p class="success-text">Tüm hesaplar başarıyla bağlandı!</p>
+              <p class="success-text">TÃ¼m hesaplar baÅŸarÄ±yla baÄŸlandÄ±!</p>
               <button class="btn-apple-primary mt-3" (click)="finishSocialConnect()">
                 Devam Et
                 <i class="fa-solid fa-arrow-right ms-2"></i>
@@ -431,9 +431,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Products Import -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'products-import') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -441,8 +441,8 @@
             <i class="fa-solid fa-cloud-arrow-down"></i>
           </div>
         </div>
-        <h1 class="step-title">Ürünlerinizi Ekleyelim</h1>
-        <p class="step-subtitle">Ürünleriniz platformunuzdan çekilecek</p>
+        <h1 class="step-title">ÃœrÃ¼nlerinizi Ekleyelim</h1>
+        <p class="step-subtitle">ÃœrÃ¼nleriniz platformunuzdan Ã§ekilecek</p>
 
         @if (importStatus === 'idle') {
           <div class="import-card">
@@ -457,10 +457,10 @@
                 <i class="fa-solid fa-box"></i>
               </div>
             </div>
-            <p class="import-text">{{ getPlatformName() }} mağazanızdan ürünlerinizi otomatik olarak çekeceğiz.</p>
+            <p class="import-text">{{ getPlatformName() }} maÄŸazanÄ±zdan Ã¼rÃ¼nlerinizi otomatik olarak Ã§ekeceÄŸiz.</p>
             <button class="btn-apple-primary" (click)="startProductImport()">
               <i class="fa-solid fa-download me-2"></i>
-              Ürünleri Çekmeye Başla
+              ÃœrÃ¼nleri Ã‡ekmeye BaÅŸla
             </button>
           </div>
         }
@@ -478,8 +478,8 @@
                 <span class="progress-ring-label">{{ importedCount }} / {{ totalProducts }}</span>
               </div>
             </div>
-            <p class="import-loading-text">Ürünler çekiliyor<span class="loading-dots"></span></p>
-            <p class="import-sub-text">Bu işlem birkaç dakika sürebilir</p>
+            <p class="import-loading-text">ÃœrÃ¼nler Ã§ekiliyor<span class="loading-dots"></span></p>
+            <p class="import-sub-text">Bu iÅŸlem birkaÃ§ dakika sÃ¼rebilir</p>
           </div>
         }
 
@@ -490,8 +490,8 @@
                 <i class="fa-solid fa-check"></i>
               </div>
             </div>
-            <h3 class="success-title">{{ totalProducts }} Ürün Başarıyla Çekildi!</h3>
-            <p class="success-text">Tüm ürünleriniz sisteme aktarıldı.</p>
+            <h3 class="success-title">{{ totalProducts }} ÃœrÃ¼n BaÅŸarÄ±yla Ã‡ekildi!</h3>
+            <p class="success-text">TÃ¼m Ã¼rÃ¼nleriniz sisteme aktarÄ±ldÄ±.</p>
             <button class="btn-apple-primary mt-4" (click)="finishProductImport()">
               Devam Et
               <i class="fa-solid fa-arrow-right ms-2"></i>
@@ -501,9 +501,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Products Index -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'products-index') {
       <div class="step-panel step-fade-in">
         <div class="step-icon-wrapper">
@@ -511,8 +511,8 @@
             <i class="fa-solid fa-brain"></i>
           </div>
         </div>
-        <h1 class="step-title">Ürünleri Tanıtmaya Hazır Mısınız?</h1>
-        <p class="step-subtitle">AI asistanınız ürünlerinizi öğrenecek</p>
+        <h1 class="step-title">ÃœrÃ¼nleri TanÄ±tmaya HazÄ±r MÄ±sÄ±nÄ±z?</h1>
+        <p class="step-subtitle">AI asistanÄ±nÄ±z Ã¼rÃ¼nlerinizi Ã¶ÄŸrenecek</p>
 
         @if (indexStatus === 'idle') {
           <div class="index-card">
@@ -528,11 +528,11 @@
               </div>
             </div>
             <p class="index-text">
-              Ürünleriniz SellenticAI'a tanıtılacak ve AI asistanınız bunları müşterilerinize sunabilecek.
+              ÃœrÃ¼nleriniz WMSSupport'a tanÄ±tÄ±lacak ve AI asistanÄ±nÄ±z bunlarÄ± mÃ¼ÅŸterilerinize sunabilecek.
             </p>
             <button class="btn-apple-primary" (click)="startProductIndex()">
               <i class="fa-solid fa-rocket me-2"></i>
-              İndexlemeyi Başlat
+              Ä°ndexlemeyi BaÅŸlat
             </button>
           </div>
         }
@@ -550,8 +550,8 @@
                 <span class="progress-ring-label">{{ indexedCount }} / {{ totalProducts }}</span>
               </div>
             </div>
-            <p class="import-loading-text">AI ürünleri işliyor<span class="loading-dots"></span></p>
-            <p class="import-sub-text">Ürünler analiz ediliyor ve sınıflandırılıyor</p>
+            <p class="import-loading-text">AI Ã¼rÃ¼nleri iÅŸliyor<span class="loading-dots"></span></p>
+            <p class="import-sub-text">ÃœrÃ¼nler analiz ediliyor ve sÄ±nÄ±flandÄ±rÄ±lÄ±yor</p>
           </div>
         }
 
@@ -562,8 +562,8 @@
                 <i class="fa-solid fa-check"></i>
               </div>
             </div>
-            <h3 class="success-title">Ürün İndexleme Tamamlandı!</h3>
-            <p class="success-text">{{ totalProducts }} ürün başarıyla AI sistemine tanıtıldı.</p>
+            <h3 class="success-title">ÃœrÃ¼n Ä°ndexleme TamamlandÄ±!</h3>
+            <p class="success-text">{{ totalProducts }} Ã¼rÃ¼n baÅŸarÄ±yla AI sistemine tanÄ±tÄ±ldÄ±.</p>
             <button class="btn-apple-primary mt-4" (click)="finishProductIndex()">
               Devam Et
               <i class="fa-solid fa-arrow-right ms-2"></i>
@@ -573,9 +573,9 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     <!-- STEP: Completed -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
     @if (currentStep === 'completed') {
       <div class="step-panel step-fade-in completed-step">
         <!-- Confetti particles -->
@@ -596,18 +596,18 @@
           </div>
 
           <h1 class="completed-title">
-            Hazırsınız! 🎉
+            HazÄ±rsÄ±nÄ±z! ğŸ‰
           </h1>
           <p class="completed-subtitle">
-            Tebrikler <span class="gradient-text">{{ userName }}</span>! Tüm ayarlamalar tamamlandı.
+            Tebrikler <span class="gradient-text">{{ userName }}</span>! TÃ¼m ayarlamalar tamamlandÄ±.
           </p>
           <p class="completed-text">
-            SellenticAI artık sizin için çalışmaya hazır. Müşterilerinize en iyi deneyimi sunmaya başlayalım.
+            WMSSupport artÄ±k sizin iÃ§in Ã§alÄ±ÅŸmaya hazÄ±r. MÃ¼ÅŸterilerinize en iyi deneyimi sunmaya baÅŸlayalÄ±m.
           </p>
 
           <button class="btn-apple-primary large mt-5" (click)="goToDashboard()">
             <i class="fa-solid fa-rocket me-2"></i>
-            Haydi Başlayalım!
+            Haydi BaÅŸlayalÄ±m!
           </button>
         </div>
       </div>
@@ -615,3 +615,4 @@
 
   </div>
 </div>
+

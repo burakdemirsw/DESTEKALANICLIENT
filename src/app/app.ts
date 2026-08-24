@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+﻿import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import * as tablerIcons from '@ng-icons/tabler-icons';
 import * as tablerIconsFill from '@ng-icons/tabler-icons/fill';
@@ -37,8 +37,9 @@ export class App implements OnInit {
             .subscribe(data => {
                 if (data['title']) {
                     this.titleService.setTitle(data['title'] +
-                        ' | SellenticAI');
+                        ' | WMSSupport');
                 }
             });
     }
 }
+
