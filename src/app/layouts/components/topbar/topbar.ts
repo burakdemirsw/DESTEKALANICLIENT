@@ -1,21 +1,15 @@
 import {Component} from '@angular/core';
 import {NgIcon} from '@ng-icons/core';
 import {LayoutStoreService} from '@core/services/layout-store.service';
-import {LucideAngularModule, LucidePalette, Search} from 'lucide-angular';
 import {LogoComponent} from '@/app/components/logo/logo.component';
-import {MessagesDropdown} from '@layouts/components/topbar/components/messages-dropdown/messages-dropdown';
-import {ThemeToggler} from '@layouts/components/topbar/components/theme-toggler/theme-toggler';
 import {UserProfile} from '@layouts/components/topbar/components/user-profile/user-profile';
 
 @Component({
     selector: 'app-topbar',
     imports: [
         NgIcon,
-        LucideAngularModule,
         LogoComponent,
-        ThemeToggler,
         UserProfile,
-        MessagesDropdown,
     ],
     templateUrl: './topbar.html'
 })
@@ -39,6 +33,4 @@ export class Topbar {
         }
     }
 
-    Search = Search;
-    protected readonly LucidePalette = LucidePalette;
 }
