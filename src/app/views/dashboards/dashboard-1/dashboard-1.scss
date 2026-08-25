@@ -29,6 +29,40 @@
   z-index: 1;
 }
 
+.range-toolbar {
+  align-items: center;
+  background: #eaf0fb;
+  border: 1px solid #d4dff4;
+  border-radius: 12px;
+  display: inline-flex;
+  gap: 0;
+  overflow: hidden;
+}
+
+.range-btn {
+  background: transparent;
+  border: none;
+  color: #5270aa;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-height: 42px;
+  min-width: 72px;
+  padding: 0.5rem 0.9rem;
+}
+
+.range-btn + .range-btn {
+  border-left: 1px solid #d4dff4;
+}
+
+.range-btn.active {
+  background: linear-gradient(135deg, #4a76cb 0%, #6a91df 100%);
+  color: #fff;
+}
+
+.range-btn.refresh {
+  min-width: 92px;
+}
+
 .top-create-btn {
   align-items: center;
   background: linear-gradient(135deg, #213a78 0%, #3157ad 100%);
@@ -93,6 +127,118 @@
   margin: 1rem 0 1.2rem;
 }
 
+.chart-title {
+  color: #0f2d63;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.bar-chart-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.bar-chart-item {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 56px 1fr 32px;
+}
+
+.bar-label {
+  color: #4b5f82;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.bar-track {
+  background: #e7edf9;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.bar-value {
+  background: linear-gradient(90deg, #2f5fb8 0%, #6e9be7 100%);
+  border-radius: 999px;
+  height: 100%;
+}
+
+.bar-count {
+  color: #1f3f7e;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.recent-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.recent-item {
+  align-items: center;
+  background: #f6f9ff;
+  border: 1px solid #d8e3f7;
+  border-radius: 12px;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0.9rem;
+  text-decoration: none;
+}
+
+.recent-item:hover {
+  background: #edf3ff;
+}
+
+.recent-subject {
+  color: #1a315f;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.recent-meta {
+  color: #5f7398;
+  font-size: 0.8rem;
+}
+
+.recent-status {
+  background: #dce9ff;
+  border-radius: 999px;
+  color: #2a4f94;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  white-space: nowrap;
+}
+
+.stack-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.stack-track {
+  background: #e7edf9;
+  border-radius: 999px;
+  height: 9px;
+  overflow: hidden;
+}
+
+.stack-fill {
+  background: linear-gradient(90deg, #315fb5 0%, #81a8ed 100%);
+  border-radius: 999px;
+  height: 100%;
+}
+
+.stack-track.alt {
+  background: #efe9ff;
+}
+
+.stack-fill.alt {
+  background: linear-gradient(90deg, #6a4ad0 0%, #8d6ae2 100%);
+}
+
 .status-grid {
   display: grid;
   gap: 0.7rem;
@@ -153,6 +299,10 @@
   .top-action-area {
     flex-direction: column;
     justify-content: stretch;
+  }
+
+  .range-toolbar {
+    width: fit-content;
   }
 
   .top-create-btn {

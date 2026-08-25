@@ -37,7 +37,7 @@ export class App implements OnInit {
             .subscribe(data => {
                 if (data['title']) {
                     this.titleService.setTitle(data['title'] +
-                        ' | WMSSupport');
+                        ' | Destek Alanı');
                 }
             });
     }

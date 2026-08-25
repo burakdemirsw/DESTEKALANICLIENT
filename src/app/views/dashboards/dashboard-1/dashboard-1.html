@@ -2,14 +2,28 @@
 
 <div class="dashboard-shell container-fluid mt-3">
   <div class="dashboard-top-bg"></div>
-  <div class="top-action-area">
-    <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
-      <i class="fa-regular fa-rectangle-list me-2"></i>Destek Taleplerim
-    </a>
-    <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
-      <i class="fa-solid fa-plus me-2"></i>Yeni Talep Oluştur
-    </a>
+  <div class="top-action-area justify-content-between">
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
+        <i class="fa-regular fa-rectangle-list me-2"></i>Destek Taleplerim
+      </a>
+      <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
+        <i class="fa-solid fa-plus me-2"></i>Yeni Talep Oluştur
+      </a>
+    </div>
+
+    <div class="range-toolbar">
+      @for (day of rangeOptions; track day) {
+        <button type="button" class="range-btn" [class.active]="selectedRange === day" (click)="setDayRange(day)">
+          {{ day }} Gün
+        </button>
+      }
+      <button type="button" class="range-btn refresh" (click)="refreshDashboard()">
+        <i class="fa-solid fa-rotate-right me-1"></i>Yenile
+      </button>
+    </div>
   </div>
+
   <div class="row g-4 align-items-stretch mb-0 top-panels">
     <div class="col-12">
       <div class="simple-card h-100">
@@ -44,6 +58,95 @@
             </div>
           }
         }
+      </div>
+    </div>
+
+    <div class="col-12 col-xxl-6">
+      <div class="simple-card h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h4 class="mb-0 chart-title">Son Gün Bazında Açılan Talep Raporu</h4>
+          @if (rangeLoading) {
+            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+          }
+        </div>
+        <p class="card-subheading mb-3">Seçili dönem: son {{ selectedRange }} gün</p>
+
+        @if (dailyOpenedSeries.length > 0) {
+          <div class="bar-chart-list">
+            @for (item of dailyOpenedSeries; track item.label) {
+              <div class="bar-chart-item">
+                <span class="bar-label">{{ item.label }}</span>
+                <div class="bar-track">
+                  <div class="bar-value" [style.width.%]="getOpenedBarWidth(item.count)"></div>
+                </div>
+                <span class="bar-count">{{ item.count }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-muted">Rapor verisi bulunamadı.</div>
+        }
+      </div>
+    </div>
+
+    <div class="col-12 col-xxl-6">
+      <div class="simple-card h-100">
+        <h4 class="mb-2 chart-title">Son Gelen 5 Talep</h4>
+        <p class="card-subheading mb-3">En güncel talepleriniz</p>
+
+        @if (recentRequests.length > 0) {
+          <div class="recent-list">
+            @for (request of recentRequests; track request.id) {
+              <a class="recent-item" [routerLink]="['/admin/user-requests', request.id]">
+                <div>
+                  <div class="recent-subject">{{ request.subject || '-' }}</div>
+                  <div class="recent-meta">{{ request.requestNo || '-' }} • {{ formatDate(request.createdDate) }}</div>
+                </div>
+                <span class="recent-status">{{ request.statusName || '-' }}</span>
+              </a>
+            }
+          </div>
+        } @else {
+          <div class="text-muted">Talep bulunamadı.</div>
+        }
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="simple-card h-100">
+        <h4 class="mb-2 chart-title">Duruma Göre Dağılım</h4>
+        <div class="stack-list">
+          @for (item of statusBreakdown; track item.label) {
+            <div class="stack-item">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>{{ item.label }}</span>
+                <span>{{ item.count }} ({{ item.percent }}%)</span>
+              </div>
+              <div class="stack-track">
+                <div class="stack-fill" [style.width.%]="item.percent"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="simple-card h-100">
+        <h4 class="mb-2 chart-title">Önceliğe Göre Dağılım</h4>
+        <div class="stack-list">
+          @for (item of priorityBreakdown; track item.label) {
+            <div class="stack-item">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>{{ item.label }}</span>
+                <span>{{ item.count }} ({{ item.percent }}%)</span>
+              </div>
+              <div class="stack-track alt">
+                <div class="stack-fill alt" [style.width.%]="item.percent"></div>
+              </div>
+            </div>
+          }
+        </div>
       </div>
     </div>
   </div>

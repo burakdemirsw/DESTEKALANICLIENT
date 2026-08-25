@@ -1,12 +1,18 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card request-page-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="card-title mb-0">Kullanıcı Talepleri</h4>
-                <button class="btn btn-primary btn-sm" (click)="openCreate()">
-                    + Yeni Talep
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" (click)="toggleFilters()">
+                        <i class="fa-solid" [class.fa-filter]="!showFilters" [class.fa-filter-circle-xmark]="showFilters"></i>
+                        {{ showFilters ? 'Filtreyi Gizle' : 'Filtreyi Aç' }}
+                    </button>
+                    <button class="btn btn-primary btn-sm" (click)="openCreate()">
+                        + Yeni Talep
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 @if (loading) {
@@ -15,58 +21,65 @@
                         <p class="mt-2 text-muted">Yükleniyor...</p>
                     </div>
                 } @else {
-                    <div class="row g-2 mb-3">
-                        <div class="col-12 col-lg-3">
-                            <input
-                                type="text"
-                                class="form-control"
-                                placeholder="Ara: konu, açıklama..."
-                                [(ngModel)]="filters.searchTerm"
-                                (keyup.enter)="onFilterChange()">
+                    @if (showFilters) {
+                        <div class="filter-panel mb-3">
+                            <div class="row g-2">
+                                <div class="col-12 col-lg-3">
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Ara: konu, açıklama..."
+                                        [(ngModel)]="filters.searchTerm"
+                                        (keyup.enter)="onFilterChange()">
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <select class="form-select" [(ngModel)]="filters.applicationId" (change)="onFilterChange()">
+                                        <option value="">Uygulama (Tümü)</option>
+                                        @for (application of applications; track application.id) {
+                                            <option [value]="application.id">{{ application.applicationName }}</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <select class="form-select" [(ngModel)]="filters.categoryId" (change)="onFilterChange()">
+                                        <option value="">Kategori (Tümü)</option>
+                                        @for (category of categories; track category.id) {
+                                            <option [value]="category.id">{{ category.name }}</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <select class="form-select" [(ngModel)]="filters.priorityId" (change)="onFilterChange()">
+                                        <option value="">Öncelik (Tümü)</option>
+                                        @for (priority of priorities; track priority.id) {
+                                            <option [value]="priority.id">{{ priority.name }}</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-6 col-lg-2">
+                                    <select class="form-select" [(ngModel)]="filters.statusId" (change)="onFilterChange()">
+                                        <option value="">Durum (Tümü)</option>
+                                        @for (status of statuses; track status.id) {
+                                            <option [value]="status.id">{{ status.name }}</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12 col-lg-1 d-grid">
+                                    <button type="button" class="btn btn-light" (click)="clearFilters()">Temizle</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-6 col-lg-2">
-                            <select class="form-select" [(ngModel)]="filters.applicationId" (change)="onFilterChange()">
-                                <option value="">Uygulama (Tümü)</option>
-                                @for (application of applications; track application.id) {
-                                    <option [value]="application.id">{{ application.applicationName }}</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-6 col-lg-2">
-                            <select class="form-select" [(ngModel)]="filters.categoryId" (change)="onFilterChange()">
-                                <option value="">Kategori (Tümü)</option>
-                                @for (category of categories; track category.id) {
-                                    <option [value]="category.id">{{ category.name }}</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-6 col-lg-2">
-                            <select class="form-select" [(ngModel)]="filters.priorityId" (change)="onFilterChange()">
-                                <option value="">Öncelik (Tümü)</option>
-                                @for (priority of priorities; track priority.id) {
-                                    <option [value]="priority.id">{{ priority.name }}</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-6 col-lg-2">
-                            <select class="form-select" [(ngModel)]="filters.statusId" (change)="onFilterChange()">
-                                <option value="">Durum (Tümü)</option>
-                                @for (status of statuses; track status.id) {
-                                    <option [value]="status.id">{{ status.name }}</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-12 col-lg-1 d-grid">
-                            <button type="button" class="btn btn-light" (click)="clearFilters()">Temizle</button>
-                        </div>
-                    </div>
+                    }
 
                     <div class="d-flex flex-column gap-3">
                         @for (item of filteredRequests; track item.id) {
-                            <div class="border rounded-3 p-3 p-lg-4 bg-white shadow-sm">
+                            <div class="border rounded-3 p-2 p-lg-3 bg-white shadow-sm request-item-card">
                                 <div class="row g-3 align-items-start">
                                     <div class="col-12 col-xl-4">
                                         <div class="d-flex align-items-center gap-2 mb-2">
+                                            <a class="btn btn-soft-info btn-sm" [routerLink]="['/admin/user-requests', item.id]">
+                                                Detay
+                                            </a>
                                             <span class="badge text-white" [style.background-color]="getStatusColorCode(item) || '#64748b'">
                                                 {{ item.statusName || getStatusName(item.statusId) }}
                                             </span>
@@ -76,7 +89,7 @@
                                                 <span class="badge bg-success-subtle text-success">Aktif</span>
                                             }
                                         </div>
-                                        <h6 class="mb-2" title="{{ item.subject }}">{{ item.subject || '-' }}</h6>
+                                        <h6 class="mb-2 request-subject" title="{{ item.subject }}">{{ item.subject || '-' }}</h6>
                                         <div class="small text-muted">Tarih: {{ formatDate(item.createdDate) }}</div>
                                     </div>
 
@@ -108,11 +121,6 @@
                                     </div>
                                 </div>
 
-                                <div class="d-flex justify-content-end mt-3">
-                                    <a class="btn btn-soft-info btn-sm" [routerLink]="['/admin/user-requests', item.id]">
-                                        Detay
-                                    </a>
-                                </div>
                             </div>
                         } @empty {
                             <div class="text-center text-muted border rounded-3 p-4 bg-light-subtle">Talep bulunamadı.</div>

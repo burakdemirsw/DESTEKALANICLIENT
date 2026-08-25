@@ -13,7 +13,7 @@ export class Testimonials {
             avatar: 'assets/images/users/user-1.jpg',
             name: 'Ahmet YÄ±lmaz',
             title: 'MÃ¼ÅŸteri iletiÅŸimimiz tamamen deÄŸiÅŸti!',
-            description: 'WMSSupport sayesinde mÃ¼ÅŸteri yanÄ±t sÃ¼remiz %80 dÃ¼ÅŸtÃ¼. AI chatbot gerÃ§ekten insan gibi konuÅŸuyor!',
+            description: 'Destek Alanı sayesinde mÃ¼ÅŸteri yanÄ±t sÃ¼remiz %80 dÃ¼ÅŸtÃ¼. AI chatbot gerÃ§ekten insan gibi konuÅŸuyor!',
             rating: 5
         },
         {

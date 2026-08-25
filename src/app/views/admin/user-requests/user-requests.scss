@@ -1,0 +1,46 @@
+.request-page-card {
+  border: 1px solid #d7e0ef;
+  border-radius: 14px;
+}
+
+.filter-panel {
+  background: #f6f9ff;
+  border: 1px solid #d8e3f7;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.request-item-card {
+  border-color: #dbe4f3 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%) !important;
+  color: #1f3763;
+  font-weight: 500;
+}
+
+.request-subject {
+  color: #1b366b;
+  font-size: 1.03rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.card-body {
+  color: #243b68;
+  font-weight: 500;
+}
+
+.small.text-muted {
+  color: #4f6592 !important;
+  font-weight: 600;
+}
+
+.card-title {
+  color: #1a2f57;
+  font-weight: 800;
+}
+
+.request-item-card .text-muted.fst-italic {
+  color: #3f5787 !important;
+  font-style: normal !important;
+  font-weight: 700;
+}

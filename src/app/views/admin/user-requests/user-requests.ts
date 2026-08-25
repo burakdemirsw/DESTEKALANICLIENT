@@ -26,6 +26,7 @@ import { AuthStateService } from '@core/services/auth-state.service';
     selector: 'app-user-requests-page',
     imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './user-requests.html',
+    styleUrl: './user-requests.scss',
 })
     
 export class UserRequestsPage implements OnInit {
@@ -39,6 +40,7 @@ export class UserRequestsPage implements OnInit {
     statuses: RequestStatusResponse[] = [];
     users: User[] = [];
     loading = false;
+    showFilters = false;
     showModal = false;
     editMode = false;
     saveAttempted = false;
@@ -141,6 +143,10 @@ export class UserRequestsPage implements OnInit {
         };
         this.currentPage = 1;
         await this.loadRequests();
+    }
+
+    toggleFilters(): void {
+        this.showFilters = !this.showFilters;
     }
 
     setPage(page: number): void {
