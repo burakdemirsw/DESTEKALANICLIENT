@@ -17,11 +17,7 @@ export class Header {
     public scroll = inject(ScrollService)
     public layout = inject(LayoutStoreService)
 
-    navItems = [
-        { label: 'Ana Sayfa', id: 'home' },
-        { label: 'Talep Oluştur', id: 'cta' },
-        { label: 'İletişim', id: 'contact' },
-    ];
+    navItems = [];
     appName = 'Destek Alanı';
 
     @HostListener('window:scroll', [])

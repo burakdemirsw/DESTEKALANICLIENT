@@ -6,7 +6,7 @@
                 <span class="landing-logo-icon">
                     <i class="fa-solid fa-paper-plane"></i>
                 </span>
-                <span class="landing-logo-text">Destek <span class="landing-logo-highlight">Alani</span></span>
+                <span class="landing-logo-text">Destek <span class="landing-logo-highlight">Alanı</span></span>
             </a>
 
             <button class="navbar-toggler border-0" type="button" (click)="isCollapsed = !isCollapsed"
@@ -16,16 +16,6 @@
             </button>
 
             <div [ngbCollapse]="isCollapsed" class="navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav gap-1 mx-auto mt-3 mt-lg-0" id="navbar-example">
-                    @for (item of navItems; track $index) {
-                        <li class="nav-item">
-                            <a class="nav-link text-uppercase"
-                               [class.active]="scroll.activeSection === item.id"
-                               (click)="scroll.scrollTo(item.id)" href="javascript:void(0)">{{item.label}}</a>
-                        </li>
-                    }
-                </ul>
-
                 <div class="d-flex align-items-center gap-2">
                     <a routerLink="/auth/sign-in" class="btn btn-sm btn-landing-outline">Destek Portalına Giriş</a>
                     <a routerLink="/auth/sign-up" class="btn btn-sm btn-landing">Hesap Oluştur</a>

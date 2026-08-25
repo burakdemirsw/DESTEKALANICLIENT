@@ -49,7 +49,6 @@ export class Footer {
                     badge: {title: 'Yeni Pozisyonlar', variant: 'warning'}
                 },
                 {name: 'Blog', url: ''},
-                {name: 'İletişim', url: ''},
             ],
         },
         {
