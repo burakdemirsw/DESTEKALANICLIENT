@@ -21,6 +21,7 @@ import { RequestStatusResponse } from '@/app/core/models/request-status/request-
 import { User } from '@/app/core/models/user/user.models';
 import { RoleUserResponse } from '@/app/core/models/role/role.models';
 import { AuthStateService } from '@core/services/auth-state.service';
+import { isAllowedAttachment, recordAttachmentAccess, sanitizeAttachmentFileName } from '@/app/utils/file-security';
 
 interface MessageGroup {
     senderKey: string;
@@ -64,6 +65,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
     newMessage = '';
     attachmentFile: File | null = null;
     attachmentFileName: string | null = null;
+    previewImageUrl: string | null = null;
+    previewImageName: string | null = null;
     replyAttempted = false;
     showEditModal = false;
     showReplyModal = false;
@@ -372,6 +375,18 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return this.formatDate(latestMessage.createdDate);
     }
 
+    getGroupLatestRelativeDate(group: MessageGroup): string {
+        if (!group.messages.length) return '';
+
+        const latestMessage = group.messages.reduce((latest, current) => {
+            const latestTime = latest.createdDate ? new Date(latest.createdDate).getTime() : 0;
+            const currentTime = current.createdDate ? new Date(current.createdDate).getTime() : 0;
+            return currentTime > latestTime ? current : latest;
+        });
+
+        return this.getRelativeTimeLabel(latestMessage.createdDate);
+    }
+
     private buildGroupedMessageSections(messages: UserRequestMessageResponse[]): GroupedMessageSection[] {
         const sections: GroupedMessageSection[] = [];
 
@@ -400,7 +415,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return sections;
     }
 
-    private getMessageDateKey(dateStr?: string): string {
+    getMessageDateKey(dateStr?: string): string {
         if (!dateStr) return 'unknown';
         const date = new Date(dateStr);
         if (Number.isNaN(date.getTime())) return 'unknown';
@@ -424,7 +439,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         });
     }
 
-    private getMessageSenderKey(message: UserRequestMessageResponse): string {
+    getMessageSenderKey(message: UserRequestMessageResponse): string {
         return `${message.senderUserId || ''}|${(message.from || '').toLowerCase()}`;
     }
 
@@ -452,8 +467,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         setTimeout(() => {
             this.replyTextareaRef?.nativeElement.focus();
         });
-    }
-
+    }  
+ 
     closeReplyModal(): void {
         this.replyAttempted = false;
         this.showReplyModal = false;
@@ -468,14 +483,26 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
             return;
         }
 
+        const sanitizedName = sanitizeAttachmentFileName(file.name);
+        if (!isAllowedAttachment(file.type || '', sanitizedName)) {
+            this.clearAttachment();
+            alert('Sadece resim dosyaları ve zipli resim arşivi yüklenebilir. Desteklenen formatlar: JPG, PNG, WEBP, GIF, BMP, SVG, ZIP, RAR, 7Z.');
+            return;
+        }
+
         if (file.size > UserRequestDetailPage.MAX_ATTACHMENT_SIZE_BYTES) {
             this.clearAttachment();
             alert('Dosya boyutu 5 MB\'ı geçemez.');
             return;
         }
 
-        this.attachmentFile = file;
-        this.attachmentFileName = file.name;
+        const safeFile = new File([file], sanitizedName, {
+            type: file.type || 'application/octet-stream',
+            lastModified: file.lastModified,
+        });
+
+        this.attachmentFile = safeFile;
+        this.attachmentFileName = safeFile.name;
     }
 
     clearAttachment(): void {
@@ -502,8 +529,38 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
 
         const normalized = fileUrl.replace(/\\/g, '/');
         const lastSlashIndex = normalized.lastIndexOf('/');
-        const name = lastSlashIndex >= 0 ? normalized.slice(lastSlashIndex + 1) : normalized;
-        return name || 'Ek dosya';
+        const rawName = lastSlashIndex >= 0 ? normalized.slice(lastSlashIndex + 1) : normalized;
+        return sanitizeAttachmentFileName(rawName || 'Ek dosya');
+    }
+
+    openAttachmentAccessLog(message: UserRequestMessageResponse, action: 'view' | 'download' = 'view'): void {
+        const userId = this.userMenuService.getUserIdFromToken();
+        if (!this.requestId || !userId) {
+            return;
+        }
+
+        const accessLog = recordAttachmentAccess({
+            requestId: this.requestId,
+            fileName: this.getAttachmentFileName(message),
+            userId,
+            mimeType: message.fileType || 'application/octet-stream',
+            action,
+        });
+
+        console.info('Attachment access logged', accessLog);
+    }
+
+    openImagePreview(message: UserRequestMessageResponse): void {
+        if (!message.fileUrl) return;
+
+        this.previewImageUrl = message.fileUrl;
+        this.previewImageName = this.getAttachmentFileName(message);
+        this.openAttachmentAccessLog(message, 'view');
+    }
+
+    closeImagePreview(): void {
+        this.previewImageUrl = null;
+        this.previewImageName = null;
     }
 
     getAttachmentTypeLabel(message: UserRequestMessageResponse): string {
@@ -572,6 +629,34 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         } catch {
             return dateStr;
         }
+    }
+
+    getRelativeTimeLabel(dateStr?: string): string {
+        if (!dateStr) return '';
+
+        const date = new Date(dateStr);
+        const time = date.getTime();
+        if (Number.isNaN(time)) return '';
+
+        const diffMs = Date.now() - time;
+        if (diffMs < 0) return 'az once';
+
+        const minuteMs = 60 * 1000;
+        const hourMs = 60 * minuteMs;
+        const dayMs = 24 * hourMs;
+
+        const days = Math.floor(diffMs / dayMs);
+        if (days > 0) {
+            return `${days} gun once`;
+        }
+
+        const hours = Math.floor(diffMs / hourMs);
+        if (hours > 0) {
+            return `${hours} saat once`;
+        }
+
+        const minutes = Math.max(1, Math.floor(diffMs / minuteMs));
+        return `${minutes} dk once`;
     }
 
     // ── Mesaj Gönderme ──

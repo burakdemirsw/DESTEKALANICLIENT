@@ -2,33 +2,46 @@
 
 <div class="dashboard-shell container-fluid mt-3">
   <div class="dashboard-top-bg"></div>
-  <div class="top-action-area justify-content-between">
-    <div class="d-flex gap-2 flex-wrap">
-      <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
-        <i class="fa-regular fa-rectangle-list me-2"></i>Destek Taleplerim
-      </a>
-      <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
-        <i class="fa-solid fa-plus me-2"></i>Yeni Talep Oluştur
-      </a>
+
+  <div class="dashboard-header">
+    <div class="dashboard-title-wrap">
+      <span class="eyebrow">İş akışı</span>
+      <h1 class="dashboard-title">Destek Yönetimi</h1>
     </div>
 
-    <div class="range-toolbar">
-      @for (day of rangeOptions; track day) {
-        <button type="button" class="range-btn" [class.active]="selectedRange === day" (click)="setDayRange(day)">
-          {{ day }} Gün
+    <div class="top-action-area justify-content-between">
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary top-create-btn secondary" [routerLink]="['/admin/user-requests']">
+          <i class="fa-regular fa-rectangle-list me-2"></i>Destek Taleplerim
+        </a>
+        <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
+          <i class="fa-solid fa-plus me-2"></i>Yeni Talep Oluştur
+        </a>
+      </div>
+
+      <div class="range-toolbar">
+        @for (day of rangeOptions; track day) {
+          <button type="button" class="range-btn" [class.active]="selectedRange === day" (click)="setDayRange(day)">
+            {{ day }} Gün
+          </button>
+        }
+        <button type="button" class="range-btn refresh" (click)="refreshDashboard()">
+          <i class="fa-solid fa-rotate-right me-1"></i>Yenile
         </button>
-      }
-      <button type="button" class="range-btn refresh" (click)="refreshDashboard()">
-        <i class="fa-solid fa-rotate-right me-1"></i>Yenile
-      </button>
+      </div>
     </div>
   </div>
 
   <div class="row g-4 align-items-stretch mb-0 top-panels">
     <div class="col-12">
-      <div class="simple-card h-100">
-        <div class="card-chip">Durum Özeti</div>
-        <h3 class="card-heading">Destek Taleplerim</h3>
+      <div class="simple-card h-100 summary-card">
+        <div class="card-header-row">
+          <div>
+            <div class="card-chip">Durum Özeti</div>
+            <h3 class="card-heading">Destek Taleplerim</h3>
+          </div>
+          <span class="live-dot"><span class="live-pulse"></span>Canlı</span>
+        </div>
         <p class="card-subheading">Tüm destek kayıtlarınızın anlık durum dağılımı.</p>
         <div class="separator"></div>
 
@@ -42,6 +55,9 @@
             <div class="status-grid">
               @for (status of supportStatuses; track status.title) {
                 <div class="status-item" [ngClass]="status.colorClass" [style.background-color]="status.colorCode">
+                  <div class="status-topline">
+                    <span class="status-badge">{{ status.isSolved ? 'Kapandı' : 'Aktif' }}</span>
+                  </div>
                   <p class="status-title">{{ status.title }}</p>
                   <div class="status-count-wrap">
                     @if (status.isSolved) {
@@ -98,9 +114,12 @@
           <div class="recent-list">
             @for (request of recentRequests; track request.id) {
               <a class="recent-item" [routerLink]="['/admin/user-requests', request.id]">
-                <div>
+                <div class="recent-copy">
                   <div class="recent-subject">{{ request.subject || '-' }}</div>
                   <div class="recent-meta">{{ request.requestNo || '-' }} • {{ formatDate(request.createdDate) }}</div>
+                  @if (request.companyDescription) {
+                    <div class="recent-description">{{ request.companyDescription }}</div>
+                  }
                 </div>
                 <span class="recent-status">{{ request.statusName || '-' }}</span>
               </a>

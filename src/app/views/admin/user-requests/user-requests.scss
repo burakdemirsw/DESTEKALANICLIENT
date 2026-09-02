@@ -1,46 +1,59 @@
+$primary-900: #0f172a;
+$primary-800: #1e293b;
+$primary-700: #1d4ed8;
+$primary-600: #2563eb;
+$primary-500: #3b82f6;
+$primary-100: #eff6ff;
+$primary-50: #f8fbff;
+$border-color: #dfeaf6;
+$text-muted: #64748b;
+$text-default: #1e293b;
+
 .request-page-card {
-  border: 1px solid #d7e0ef;
-  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid $border-color;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
 }
 
 .filter-panel {
-  background: #f6f9ff;
-  border: 1px solid #d8e3f7;
+  background: $primary-50;
+  border: 1px solid $border-color;
   border-radius: 12px;
   padding: 0.75rem;
 }
 
 .request-item-card {
-  border-color: #dbe4f3 !important;
+  border-color: $border-color !important;
   background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%) !important;
-  color: #1f3763;
+  color: $text-default;
   font-weight: 500;
 }
 
 .request-subject {
-  color: #1b366b;
+  color: $primary-800;
   font-size: 1.03rem;
   font-weight: 800;
   line-height: 1.4;
 }
 
 .card-body {
-  color: #243b68;
+  color: $text-default;
   font-weight: 500;
 }
 
 .small.text-muted {
-  color: #4f6592 !important;
+  color: $text-muted !important;
   font-weight: 600;
 }
 
 .card-title {
-  color: #1a2f57;
+  color: $primary-900;
   font-weight: 800;
 }
 
 .request-item-card .text-muted.fst-italic {
-  color: #3f5787 !important;
+  color: $primary-700 !important;
   font-style: normal !important;
   font-weight: 700;
 }
