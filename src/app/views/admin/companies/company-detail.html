@@ -527,9 +527,14 @@
                         } @else {
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="text-muted">Toplam: <strong>{{ usersTotalCount }}</strong> kayıt</div>
-                                <div style="max-width:300px">
-                                    <input type="text" class="form-control form-control-sm" placeholder="Ad, soyad veya e-posta ara..."
-                                           [(ngModel)]="userFilterText" (ngModelChange)="onUserFilterChange()">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm" (click)="openCreateUser()">
+                                        <i class="fa-solid fa-user-plus me-1"></i>Yeni Kullanıcı
+                                    </button>
+                                    <div style="max-width:300px">
+                                        <input type="text" class="form-control form-control-sm" placeholder="Ad, soyad veya e-posta ara..."
+                                               [(ngModel)]="userFilterText" (ngModelChange)="onUserFilterChange()">
+                                    </div>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -607,7 +612,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Kullanıcı Düzenle</h5>
+                            <h5 class="modal-title">{{ userModalMode === 'create' ? 'Yeni Kullanıcı' : 'Kullanıcı Düzenle' }}</h5>
                             <button type="button" class="btn-close" (click)="closeUserModal()"></button>
                         </div>
                         <div class="modal-body">
@@ -620,6 +625,16 @@
                                     <label class="form-label">Soyad</label>
                                     <input type="text" class="form-control" [(ngModel)]="userForm.lastName" name="lastName" required>
                                 </div>
+                                @if (userModalMode === 'create') {
+                                    <div class="mb-3">
+                                        <label class="form-label">E-posta</label>
+                                        <input type="email" class="form-control" [(ngModel)]="userForm.email" name="email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Şifre</label>
+                                        <input type="password" class="form-control" [(ngModel)]="userForm.password" name="password" required>
+                                    </div>
+                                }
                                 <div class="mb-3">
                                     <label class="form-label">Cinsiyet</label>
                                     <select class="form-select" [(ngModel)]="userForm.gender" name="gender">
@@ -628,15 +643,23 @@
                                         <option value="Diğer">Diğer</option>
                                     </select>
                                 </div>
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" [(ngModel)]="userForm.isBlocked" name="isBlocked" id="isBlocked">
-                                    <label class="form-check-label" for="isBlocked">Engelli</label>
-                                </div>
+                                @if (userModalMode === 'edit') {
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" [(ngModel)]="userForm.isBlocked" name="isBlocked">
+                                        <label class="form-check-label">Engelli</label>
+                                    </div>
+                                }
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-light" (click)="closeUserModal()">İptal</button>
-                            <button type="button" class="btn btn-primary" (click)="saveUser()">Güncelle</button>
+                            <button type="button" class="btn btn-light" (click)="closeUserModal()" [disabled]="usersSaving">İptal</button>
+                            <button type="button" class="btn btn-primary" (click)="saveUser()" [disabled]="usersSaving">
+                                @if (usersSaving) {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Kaydediliyor...
+                                } @else {
+                                    {{ userModalMode === 'create' ? 'Oluştur' : 'Güncelle' }}
+                                }
+                            </button>
                         </div>
                     </div>
                 </div>

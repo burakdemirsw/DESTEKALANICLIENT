@@ -9,7 +9,7 @@ import { AuthStateService } from '@/app/core/services/auth-state.service';
 import { UsersService } from '@/app/core/services/users.service';
 import { CompanySettingsService } from '@/app/core/services/company-settings.service';
 import { Company, UpdateCompanyRequest } from '@/app/core/models/customer/company.models';
-import { UserResponse, UpdateUserRequest } from '@/app/core/models/user/user.models';
+import { CreateUserRequest, UserResponse, UpdateUserRequest } from '@/app/core/models/user/user.models';
 import {
     CompanySetting,
     CreateCompanySettingRequest,
@@ -20,6 +20,15 @@ import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/app/constants';
 interface AddressOption {
     id: string;
     name: string;
+}
+
+interface UserFormModel {
+    name: string;
+    lastName: string;
+    email: string;
+    password: string;
+    gender: string;
+    isBlocked: boolean;
 }
 
 @Component({
@@ -69,7 +78,9 @@ export class CompanyDetailPage implements OnInit {
     // ═══ USERS TAB ═══
     users: UserResponse[] = [];
     usersLoading = false;
+    usersSaving = false;
     showUserModal = false;
+    userModalMode: 'create' | 'edit' = 'create';
     selectedUser: UserResponse | null = null;
     userFilterText = '';
     filteredUsers: UserResponse[] = [];
@@ -80,9 +91,11 @@ export class CompanyDetailPage implements OnInit {
     usersTotalPages = 1;
     usersTotalPagesArray: number[] = [];
     usersTotalCount = 0;
-    userForm: any = {
+    userForm: UserFormModel = {
         name: '',
         lastName: '',
+        email: '',
+        password: '',
         gender: 'Erkek',
         isBlocked: false,
     };
@@ -446,36 +459,84 @@ export class CompanyDetailPage implements OnInit {
         return [];
     }
 
+    openCreateUser(): void {
+        this.userModalMode = 'create';
+        this.selectedUser = null;
+        this.userForm = {
+            name: '',
+            lastName: '',
+            email: '',
+            password: '',
+            gender: 'Erkek',
+            isBlocked: false,
+        };
+        this.showUserModal = true;
+    }
+
     openEditUser(user: UserResponse): void {
+        this.userModalMode = 'edit';
         this.selectedUser = user;
         this.userForm = {
-            name: user.name,
-            lastName: user.lastName,
-            gender: user.gender,
+            name: user.name || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            password: '',
+            gender: user.gender || 'Erkek',
             isBlocked: user.isBlocked,
         };
         this.showUserModal = true;
     }
 
     async saveUser(): Promise<void> {
-        if (!this.selectedUser) return;
+        if (!this.userForm.name.trim() || !this.userForm.lastName.trim()) {
+            this.errorMessage = 'Ad ve soyad zorunludur.';
+            return;
+        }
+
+        if (this.userModalMode === 'create' && (!this.userForm.email.trim() || !this.userForm.password.trim())) {
+            this.errorMessage = 'E-posta ve şifre zorunludur.';
+            return;
+        }
+
+        this.usersSaving = true;
+        this.errorMessage = '';
+
         try {
-            const req: UpdateUserRequest = {
-                name: this.userForm.name,
-                lastName: this.userForm.lastName,
-                gender: this.userForm.gender,
-                isBlocked: this.userForm.isBlocked ?? false,
-            };
-            await this.usersService.update(this.selectedUser.id, req);
+            if (this.userModalMode === 'create') {
+                const req: CreateUserRequest = {
+                    name: this.userForm.name.trim(),
+                    lastName: this.userForm.lastName.trim(),
+                    email: this.userForm.email.trim(),
+                    password: this.userForm.password,
+                    gender: this.userForm.gender,
+                };
+                await this.usersService.create(req);
+                this.successMessage = 'Kullanıcı başarıyla oluşturuldu.';
+            } else {
+                if (!this.selectedUser) return;
+                const req: UpdateUserRequest = {
+                    name: this.userForm.name.trim(),
+                    lastName: this.userForm.lastName.trim(),
+                    gender: this.userForm.gender,
+                    isBlocked: this.userForm.isBlocked ?? false,
+                };
+                await this.usersService.update(this.selectedUser.id, req);
+                this.successMessage = 'Kullanıcı başarıyla güncellendi.';
+            }
             this.showUserModal = false;
             await this.loadUsers();
         } catch (err) {
             console.error('Save user error:', err);
+            this.errorMessage = 'Kullanıcı işlemi sırasında bir hata oluştu.';
+        } finally {
+            this.usersSaving = false;
         }
     }
 
     closeUserModal(): void {
         this.showUserModal = false;
+        this.selectedUser = null;
+        this.usersSaving = false;
     }
 
     // ═══════════════════════════════════════════════════════════════════════

@@ -80,6 +80,7 @@ export interface UserRequestMessage {
     requestId: string;
     senderUserId: string;
     message: string;
+    isRead?: boolean;
     fileUrl?: string | null;
     fileType?: string | null;
     from?: string;
@@ -95,6 +96,7 @@ export interface UserRequestMessageResponse {
     requestId: string;
     senderUserId: string;
     message: string;
+    isRead: boolean;
     fileUrl?: string | null;
     fileType?: string | null;
     isBlocked: boolean;

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -22,6 +22,9 @@ import { User } from '@/app/core/models/user/user.models';
 import { RoleUserResponse } from '@/app/core/models/role/role.models';
 import { AuthStateService } from '@core/services/auth-state.service';
 import { isAllowedAttachment, recordAttachmentAccess, sanitizeAttachmentFileName } from '@/app/utils/file-security';
+import { UserRequestSignalRService } from '@/app/core/services/user-request-signalr.service';
+import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
 
 interface MessageGroup {
     senderKey: string;
@@ -44,11 +47,15 @@ interface GroupedMessageSection {
 export class UserRequestDetailPage implements OnInit, AfterViewChecked {
     private static readonly MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
     private static readonly MIN_REPLY_MESSAGE_LENGTH = 10;
+    private incomingMessageSound = new Audio('assets/sounds/incoming-message-sound.mp3');
 
     @ViewChild('chatBody') private chatBodyRef!: ElementRef<HTMLDivElement>;
     @ViewChild('messageFileInput') private messageFileInputRef?: ElementRef<HTMLInputElement>;
     @ViewChild('replyTextarea') private replyTextareaRef?: ElementRef<HTMLTextAreaElement>;
     private shouldScrollToBottom = false;
+    private signalRSubscription: Subscription | null = null;
+    private realtimeRefreshInProgress = false;
+    private pendingRealtimeRefresh = false;
     requestId = '';
     request: UserRequest | null = null;
     messages: UserRequestMessageResponse[] = [];
@@ -93,6 +100,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         private userMenuService: UserMenuService,
         private rolesService: RolesService,
         private authStateService: AuthStateService,
+        private userRequestSignalRService: UserRequestSignalRService,
     ) {}
 
     ngAfterViewChecked(): void {
@@ -121,7 +129,86 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
             this.loadPriorities();
             this.loadStatuses();
             this.loadUsers();
+            this.initializeSignalR();
         }
+    }
+
+    ngOnDestroy(): void {
+        this.cleanupSignalR();
+    }
+
+    private async initializeSignalR(): Promise<void> {
+        const currentRequestId = this.normalizeRequestId(this.requestId);
+        if (!currentRequestId) return;
+
+        await this.userRequestSignalRService.start();
+        await this.userRequestSignalRService.joinRequestRoom(currentRequestId);
+
+        this.signalRSubscription = this.userRequestSignalRService.newMessage$.subscribe(message => {
+            const incomingRequestId = this.normalizeRequestId(message?.requestId || '');
+            if (!incomingRequestId || incomingRequestId !== currentRequestId) return;
+
+            this.showIncomingMessageToast(message);
+            this.triggerRealtimeMessagesRefresh();
+        });
+    }
+
+    private showIncomingMessageToast(message: UserRequestMessageResponse): void {
+        const currentUserId = this.userMenuService.getUserIdFromToken();
+        if (currentUserId && message.senderUserId === currentUserId) {
+            return;
+        }
+
+        this.incomingMessageSound.currentTime = 0;
+        this.incomingMessageSound.play().catch(() => {});
+
+        const sender = message.senderUserName?.trim() || 'Yeni mesaj';
+        const preview = message.message?.trim() || 'Mesaj içeriği yok';
+
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: `${sender}`,
+            text: preview.length > 90 ? `${preview.slice(0, 90)}...` : preview,
+            showConfirmButton: false,
+            timer: 2800,
+            timerProgressBar: true,
+        });
+    }
+
+    private async triggerRealtimeMessagesRefresh(): Promise<void> {
+        if (this.realtimeRefreshInProgress) {
+            this.pendingRealtimeRefresh = true;
+            return;
+        }
+
+        this.realtimeRefreshInProgress = true;
+        try {
+            await this.loadMessages();
+        } finally {
+            this.realtimeRefreshInProgress = false;
+
+            if (this.pendingRealtimeRefresh) {
+                this.pendingRealtimeRefresh = false;
+                await this.triggerRealtimeMessagesRefresh();
+            }
+        }
+    }
+
+    private cleanupSignalR(): void {
+        this.signalRSubscription?.unsubscribe();
+        this.signalRSubscription = null;
+
+        const currentRequestId = this.normalizeRequestId(this.requestId);
+        if (currentRequestId) {
+            this.userRequestSignalRService.leaveRequestRoom(currentRequestId);
+        }
+        this.userRequestSignalRService.stop();
+    }
+
+    private normalizeRequestId(requestId: string): string {
+        return (requestId || '').trim().toLowerCase();
     }
 
     async loadRequest(): Promise<void> {
@@ -249,6 +336,27 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return this.statuses.find(s => s.id === id)?.name ?? '-';
     }
 
+    getStatusBadgeBackground(colorCode?: string | null): string {
+        return this.normalizeHexColor(colorCode) ?? '#dbeafe';
+    }
+
+    getStatusBadgeBorderColor(colorCode?: string | null): string {
+        return this.adjustHexColor(this.normalizeHexColor(colorCode) ?? '#93c5fd', -18);
+    }
+
+    getStatusBadgeTextColor(colorCode?: string | null): string {
+        const normalized = this.normalizeHexColor(colorCode);
+        if (!normalized) return '#1e3a8a';
+
+        const hex = normalized.slice(1);
+        const red = parseInt(hex.slice(0, 2), 16);
+        const green = parseInt(hex.slice(2, 4), 16);
+        const blue = parseInt(hex.slice(4, 6), 16);
+        const luminance = (red * 0.299 + green * 0.587 + blue * 0.114) / 255;
+
+        return luminance > 0.68 ? '#10233f' : '#ffffff';
+    }
+
     getUserFullName(id?: string): string {
         if (!id) return '-';
         const user = this.users.find(u => u.id === id);
@@ -259,6 +367,29 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         if (this.hasAdminRole) return 'admin';
         if (this.isCustomerRole) return 'customer';
         return '';
+    }
+
+    private normalizeHexColor(colorCode?: string | null): string | null {
+        if (!colorCode) return null;
+
+        const value = colorCode.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
+
+        if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+            return `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
+        }
+
+        return null;
+    }
+
+    private adjustHexColor(hexColor: string, amount: number): string {
+        const hex = hexColor.replace('#', '');
+        const channels = [0, 2, 4].map(index => {
+            const channel = parseInt(hex.slice(index, index + 2), 16);
+            return Math.max(0, Math.min(255, channel + amount));
+        });
+
+        return `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
     }
 
     toggleSection(section: string): void {
@@ -310,23 +441,15 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
     }
 
     isOutgoingMessage(message: UserRequestMessageResponse): boolean {
-        const messageRole = (message.from || '').toLowerCase();
         const currentUserId = this.userMenuService.getUserIdFromToken();
+
+        if (currentUserId && message.senderUserId) {
+            return message.senderUserId === currentUserId;
+        }
+
+        const messageRole = (message.from || '').toLowerCase();
         const currentRole = this.getCurrentUserRoleName();
-
-        if (messageRole) {
-            return messageRole === currentRole;
-        }
-
-        if (message.senderUserId === currentUserId) {
-            return true;
-        }
-
-        if (currentRole === 'admin') {
-            return true;
-        }
-
-        return false;
+        return !!messageRole && !!currentRole && messageRole === currentRole;
     }
 
     isRequestOwnerMessage(message: UserRequestMessageResponse): boolean {
@@ -670,11 +793,6 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         const userId = this.userMenuService.getUserIdFromToken();
         if (!userId) {
             alert('Kullanıcı bilgisi alınamadı. Lütfen tekrar giriş yapın.');
-            return;
-        }
-
-        const confirmed = confirm('Mesajı iletmek istediğinize emin misiniz?');
-        if (!confirmed) {
             return;
         }
 

@@ -40,7 +40,7 @@ export class UserRequestsPage implements OnInit {
     statuses: RequestStatusResponse[] = [];
     users: User[] = [];
     loading = false;
-    showFilters = false;
+    showFilters = true;
     showModal = false;
     editMode = false;
     saveAttempted = false;
