@@ -12,14 +12,18 @@ $panel: #09090b;
 $panel-line: #2a2a32;
 $panel-text: #a1a1aa;
 
+// Uygulama kabuğu her sayfanın üstüne 12px boşluk bırakır (app.scss); giriş sayfası tam ekran
+// olduğu için ekrana sabitlenir: üstte şerit kalmaz, sayfa gereksiz yere kaymaz.
 :host {
     display: block;
-    min-height: 100vh;
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
 }
 
 .login-wrapper {
     display: flex;
-    min-height: 100vh;
+    min-height: 100%;
     font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
     color: $ink;
 }
@@ -284,8 +288,7 @@ $panel-text: #a1a1aa;
     }
 }
 
-.login-btn,
-.google-btn {
+.login-btn {
     width: 100%;
     min-height: 44px;
     padding: 0 1rem;
@@ -330,33 +333,6 @@ $panel-text: #a1a1aa;
 @keyframes login-spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-.divider {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: $muted;
-    font-size: 0.75rem;
-
-    &::before,
-    &::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: $line-soft;
-    }
-}
-
-.google-btn {
-    border: 1px solid $line;
-    background: #fff;
-    color: $ink;
-    font-weight: 500;
-
-    &:hover {
-        background: #f3f3f3;
     }
 }
 

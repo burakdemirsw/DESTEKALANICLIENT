@@ -1,4 +1,18 @@
-export interface UserRequest {
+// Talebin mesaj / değerlendirme özeti (liste, anasayfa ve detayda kullanılır; eski API'de gelmez)
+export interface UserRequestActivityInfo {
+    // Son (iç not olmayan) mesajın tarihi ve destek yöneticisinden gelip gelmediği
+    lastMessageDate?: string | null;
+    lastMessageFromManager?: boolean | null;
+    // Giriş yapan kullanıcının okumadığı, karşı taraftan gelen mesaj sayısı
+    unreadCount?: number;
+    satisfactionRating?: number | null;
+    satisfactionComment?: string | null;
+    // Önceliğin hedef çözüm süresi (saat) ve talebin bu süreyi aşıp aşmadığı
+    priorityTargetHours?: number | null;
+    isOverdue?: boolean;
+}
+
+export interface UserRequest extends UserRequestActivityInfo {
     id: string;
     requestNo?: string | null;
     userId: string;
@@ -30,7 +44,7 @@ export interface UserRequest {
     priorityColorCode?: string | null;
 }
 
-export interface UserRequestResponse {
+export interface UserRequestResponse extends UserRequestActivityInfo {
     id: string;
     userId: string;
     assignedUserId?: string | null;
@@ -65,6 +79,8 @@ export interface CreateUserRequestRequest {
     categoryId: string;
     subject: string;
     description: string;
+    // Talep açanın seçtiği öncelik (aciliyet); boşsa varsayılan öncelik
+    priorityId?: string | null;
 }
 
 // POST UserRequests/with-files yanıtı. failedFiles: denetimden geçip sunucuda kaydedilemeyen dosyaların adları.
@@ -113,6 +129,9 @@ export interface UserRequestMessageResponse {
     updatedDate: string;
     senderUserName?: string | null;
     from?: string | null;
+    // Gönderen destek yöneticisi mi; iç not mu (yalnız yöneticiye gelir)
+    isFromManager?: boolean;
+    isInternal?: boolean;
 }
 
 export interface CreateUserRequestMessageRequest {
@@ -121,6 +140,8 @@ export interface CreateUserRequestMessageRequest {
     message: string;
     fileUrl?: string | null;
     fileType?: string | null;
+    // İç not (yalnız destek yöneticisi gönderebilir)
+    isInternal?: boolean;
 }
 
 export interface UserRequestStatusSummaryReportRequest {

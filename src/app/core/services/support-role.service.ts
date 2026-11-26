@@ -4,9 +4,9 @@ import { UserMenuService } from './user-menu.service';
 import { Role, RoleUserResponse } from '../models/role/role.models';
 
 // Rol adları API'de ve talep ekranlarında kullanılır, değiştirilmez (bkz. CLAUDE.md "Proje Kapsamı").
-// Eski kayıtlarda geçen 'admin' / 'customer' adları da aynı rol sayılır.
-const ADMIN_ROLE_NAMES = ['destek alanı yönetici', 'admin'];
-const CUSTOMER_ROLE_NAMES = ['destek alanı', 'customer'];
+// API'deki SupportRoleNames ile aynı tutulur: API'nin yönetici saymadığı rol burada da yönetici ekranı açmaz.
+const ADMIN_ROLE_NAMES = ['destek alanı yönetici', 'destek alanı yöneticisi'];
+const CUSTOMER_ROLE_NAMES = ['destek alanı'];
 
 export interface SupportRoleInfo {
     isAdmin: boolean;

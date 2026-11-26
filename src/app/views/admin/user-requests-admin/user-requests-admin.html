@@ -73,9 +73,19 @@
                                     <tr>
                                         <td>{{ item.requestNo || '-' }}</td>
                                         <td>
-                                            <span class="text-truncate d-inline-block" style="max-width: 220px;" title="{{ item.subject }}">
+                                            <a class="text-truncate d-inline-block align-middle" style="max-width: 220px;" title="{{ item.subject }}"
+                                               [class.fw-bold]="!!item.unreadCount" [routerLink]="['/admin/user-requests', item.id]">
                                                 {{ item.subject }}
-                                            </span>
+                                            </a>
+                                            @if (item.unreadCount) {
+                                                <span class="badge rounded-pill bg-primary ms-1 align-middle" [title]="item.unreadCount + ' okunmamış mesaj'">{{ item.unreadCount }} yeni</span>
+                                            }
+                                            @if (!item.isClosed && item.lastMessageFromManager === false) {
+                                                <div class="small text-muted"><i class="fa-regular fa-hourglass-half me-1"></i>Yanıt bekliyor</div>
+                                            }
+                                            @if (!item.isClosed && item.isOverdue) {
+                                                <div class="small text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Hedef süre aşıldı</div>
+                                            }
                                         </td>
                                         <td>{{ item.userName || getUserFullName(item.userId) }}</td>
                                         <td>

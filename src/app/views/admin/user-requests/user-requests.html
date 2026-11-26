@@ -118,14 +118,27 @@
                     </thead>
                     <tbody>
                         @for (item of requests; track item.id) {
-                            <tr [class.ur-row-closed]="isClosed(item)">
+                            <tr [class.ur-row-closed]="isClosed(item)" [class.ur-row-unread]="!!item.unreadCount">
                                 <td class="text-nowrap">
                                     <a class="sa-mono" [routerLink]="['/admin/user-requests', item.id]">{{ item.requestNo || 'Talep' }}</a>
                                 </td>
                                 <td>
                                     <a class="sa-cell-main" [routerLink]="['/admin/user-requests', item.id]">{{ item.subject || '-' }}</a>
+                                    @if (item.unreadCount) {
+                                        <span class="ur-unread" [title]="item.unreadCount + ' okunmamış mesaj'">{{ item.unreadCount }} yeni</span>
+                                    }
                                     @if (item.applicationName) {
                                         <div class="sa-cell-sub">{{ item.applicationName }}</div>
+                                    }
+                                    @if (waitingLabel(item) || (item.isOverdue && !isClosed(item))) {
+                                        <div class="ur-flags">
+                                            @if (waitingLabel(item)) {
+                                                <span><i class="fa-regular fa-hourglass-half me-1"></i>{{ waitingLabel(item) }}</span>
+                                            }
+                                            @if (item.isOverdue && !isClosed(item)) {
+                                                <span class="ur-overdue"><i class="fa-solid fa-circle-exclamation me-1"></i>Hedef süre aşıldı</span>
+                                            }
+                                        </div>
                                     }
                                     <div class="sa-cell-sub d-md-none">{{ getRelativeTimeLabel(item.createdDate) }}</div>
                                 </td>
@@ -245,6 +258,17 @@
                                     <div class="invalid-feedback d-block">Kategori seçimi zorunludur.</div>
                                 }
                             </div>
+                            @if (activePriorities.length > 1) {
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="createPriority">Aciliyet</label>
+                                    <select id="createPriority" class="form-select" [(ngModel)]="createPriorityId" name="priorityId">
+                                        @for (priority of activePriorities; track priority.id) {
+                                            <option [value]="priority.id">{{ priorityLabel(priority) }}</option>
+                                        }
+                                    </select>
+                                    <div class="ur-hint mt-1">İşinizi durduran bir sorunsa daha yüksek aciliyeti seçin.</div>
+                                </div>
+                            }
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="createSubject">Konu</label>

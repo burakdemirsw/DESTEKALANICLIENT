@@ -27,6 +27,13 @@ Anasayfa
   "Tekrar dene" bağlantısı çıkar.
 - Son güncellemede nelerin değiştiği sayfada kısaca gösterilir.
 - Girişteki karşılama ekranı tıklanınca ya da bir tuşa basılınca kapanır, süresi kısaldı.
+- "Yanıt bekleyen talep" kartı eklendi: destek ekibi için son mesajı müşteriden gelen açık talepler, talep açan
+  kullanıcı için destek ekibinin yanıtladığı ve kendi yanıtını bekleyen talepler.
+- "Destek Performansı" paneli eklendi: seçilen dönemde ilk yanıt ve çözüm süreleri, hedef sürede kapanan taleplerin
+  oranı, hedef süresini aşan açık talepler ve ortalama memnuniyet puanı.
+- Destek ekibi için "Temsilci Performansı" tablosu eklendi: temsilci başına açık / kapanan talep, ortalama çözüm süresi
+  ve memnuniyet.
+- Yeni talep ya da yanıt gelince sayılar sayfa yenilenmeden güncellenir.
 
 Kullanıcı Talepleri
 - Talepler kart yerine tablo olarak listelenir; talep numarasına ya da konusuna tıklanınca detay açılır.
@@ -47,6 +54,11 @@ Kullanıcı Talepleri
 - Seçilen kategorinin açıklaması formda yol gösterici olarak görünür; konu yazılırken aynı konuda açık talep varsa
   listelenir.
 - Gönder düğmesine iki kez tıklanınca iki talep açılmaz; hata olursa anlaşılır bir mesaj gösterilir.
+- Yeni talep açarken aciliyet (öncelik) seçilebilir; öncelikte hedef süre varsa yanında yazar.
+- Kategori listesi seçilen uygulamaya göre gelir; bir uygulamaya bağlı kategori yalnız o uygulamada görünür.
+- Listede okunmamış mesajı olan talepler kalın yazılır ve yeni mesaj sayısı görünür; "Yanıtınız bekleniyor" ya da
+  "Yanıt bekliyor" bilgisi ve hedef süresini aşan talepler için "Hedef süre aşıldı" yazar.
+- Başka biri yanıt yazınca ya da talep açınca liste kendiliğinden yenilenir.
 
 Talep Detayı
 - Sayfa yeniden düzenlendi: yanıtlar tek akışta, talep bilgileri (talep sahibi, atanan kişi, uygulama, kategori,
@@ -67,6 +79,17 @@ Talep Detayı
 - Talep ekleri yalnız talebi görme yetkisi olan kullanıcılara açılır; dosyalar bağlantıyla dışarıdan açılamaz.
   Resimler yanıtın içinde gösterilir, diğer dosyalar "İndir" düğmesiyle indirilir.
 - Yanıta eklenen dosyalar da yeni talepteki güvenlik denetiminden geçer.
+- Talebin açıklaması artık iki kez görünmüyor.
+- Durum, öncelik, atanan kişi ve kategori değişiklikleri, talebin kapanması ve yeniden açılması yanıtların arasında
+  sırasıyla gösterilir (örn. "Ayşe durumu 'Cevaplandı' olarak değiştirdi").
+- Destek ekibi iç not ekleyebilir: iç notu yalnız destek ekibi görür, talep sahibine gösterilmez ve e-posta gitmez.
+- Talep açılınca karşı taraftan gelen mesajlar okundu olarak işaretlenir.
+- Destek ekibi yanıtlayınca talep sahibine "Sorununuz çözüldü mü?" sorulur; "Evet" denince talep kapanır ve 1-5
+  arası puan ile yorum verilebilir. Kapanan ama değerlendirilmeyen talepte değerlendirme istenir.
+- Kapanan talep "Yeniden Aç" ile tekrar açılabilir; isteğe bağlı açıklama talebe mesaj olarak eklenir.
+- Hazır yanıtlar artık destek ekibinde ortak: ekleyen herkes için görünür, silme onay ister.
+- Önceliğin hedef çözüm süresi ve talebin bu süreyi aşıp aşmadığı Talep Bilgileri panelinde gösterilir; verilen puan
+  ve yorum da burada görünür.
 
 Menü
 - Uygulama yalnız destek merkezi olarak sadeleştirildi: yan menüde Anasayfa, Destek Merkezi, Şirket Bilgileri ve
@@ -81,12 +104,60 @@ Menü
 Giriş ve Kayıt
 - Ekranlardaki tanıtım metinleri destek merkezine göre güncellendi.
 - Giriş ekranı uygulamanın yeni görünümüne uyarlandı: sade koyu tanıtım paneli ve tek vurgu renkli giriş formu.
+- Giriş ekranındaki "Google ile Giriş" düğmesi kaldırıldı; giriş e-posta ve şifreyle yapılır.
 
 Şirket Bilgileri
 - Ayarlar sekmesinden otomatik yanıt ve çalışma saatleri seçenekleri kaldırıldı.
+- Kullanıcılar sekmesindeki "Yeni Kullanıcı" çalışır hâle geldi; eklenen kullanıcı şirkete talep açan kullanıcı olarak
+  eklenir ve hemen giriş yapabilir.
+
+Talep Sorumluları (yeni sayfa)
+- Destek Merkezi'nde her talep uygulaması ve kategorisi için sorumlu yöneticiler seçilir. Açılan talep, uygulamasının
+  ya da kategorisinin sorumlularına düşer ve onlara e-posta gider; sorumlusu olmayan talep tüm yöneticilere düşer.
+- "Yöneticiler" sekmesinde her yöneticinin hangi uygulama ve kategorilerden sorumlu olduğu tek listede görünür.
+
+Tüm Talepler
+- "Bana Düşenler" ve "Tümü" sekmeleri eklendi. Bana Düşenler; sorumlusu olduğunuz uygulama ve kategorilerdeki,
+  size atanan ve sorumlusu olmayan talepleri gösterir.
+- Seçilen sekme, arama ve sayfa sayfa adresinde saklanır.
+- Talep kapatma ve silme artık sayfa içindeki onay penceresiyle yapılır; atanan kişi listesinde yalnız yöneticiler
+  görünür.
+- Okunmamış mesajı olan talepler kalın yazılır ve yeni mesaj sayısı görünür; son mesajı müşteriden gelen açık
+  talepler "Yanıt bekliyor", hedef süresini aşanlar "Hedef süre aşıldı" ile işaretlenir.
+- Talebin konusuna tıklanınca detayı açılır.
+
+Bildirimler
+- Talep açılınca talebin düştüğü yöneticilere, talep sahibine "talebiniz alındı" e-postası gider; e-postada talebi
+  açan bağlantı bulunur.
+- Yönetici yanıt yazınca talep sahibine, talep sahibi yanıt yazınca talebi üstlenen yöneticiye (yoksa talebin
+  sorumlularına) e-posta gider.
+- Uygulamanın hangi sayfasında olursanız olun talebinize yanıt gelince, iç not eklenince (destek ekibi), yeni talep
+  açılınca (destek ekibi), talep yeniden açılınca ya da çözüm onaylanınca köşede bildirim çıkar; "Talebi Aç" ile
+  talebe gidilir. Sekme arka plandaysa gelen bildirim sayısı sekme başlığında görünür.
+
+Güvenlik
+- Kullanıcılar yalnız kendi şirketlerinin taleplerini, kullanıcılarını ve şirket bilgilerini görebilir; başka şirketin
+  kaydı bağlantıyla da açılamaz. Tanım ve ayar ekranlarında değişiklik yalnız yöneticiler tarafından yapılabilir.
+
+Rol Atamaları
+- Tüm şirketlerin kullanıcıları şirket adıyla listelenir; başka şirketteki bir kullanıcıya da yönetici rolü verilebilir.
+- Rol kaldırma sayfa içindeki onay penceresiyle yapılır.
+
+Sistem Logları (yeni sayfa)
+- Sistem Yönetimi'nde uygulama hataları ve istek kayıtları tarihe göre listelenir; seviye, durum kodu, tarih aralığı
+  ve metinle süzülür, kayda tıklanınca hata ayrıntısı açılır. Yalnız yöneticiler görebilir.
+- Kayıtlardaki oturum anahtarları gizlenir.
 
 Tanıtım Sayfası (yeni sayfa)
 - Uygulamanın adresi açılınca, giriş yapmadan önce sade bir tanıtım sayfası gelir: destek merkezinin ne işe yaradığı,
   talebin dört adımda nasıl ilerlediği ve Raf Takip WMS kullanan markalar (referanslar) gösterilir.
 - Sağ üstteki "Panele Giriş" düğmesi giriş ekranını açar; oturumu açık olan kullanıcı "Panele Git" ile doğrudan
   Anasayfa'ya geçer.
+
+Talep Öncelikleri
+- Önceliğe hedef çözüm süresi (saat) girilebilir; bu sürede çözülmeyen talepler ekranlarda "Hedef süre aşıldı"
+  olarak işaretlenir ve anasayfadaki performans panelinde sayılır.
+
+Talep Kategorileri
+- Kategori bir talep uygulamasına bağlanabilir; bağlı kategori talep açarken yalnız o uygulamada listelenir.
+  Uygulama seçilmezse kategori her uygulamada görünür.

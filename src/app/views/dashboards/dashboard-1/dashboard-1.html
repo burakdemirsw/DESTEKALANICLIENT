@@ -159,6 +159,54 @@
       </div>
     }
 
+    <!-- Performans (dönemde açılan talepler) -->
+    @if (performance; as report) {
+      <div class="sa-panel db-performance mb-3">
+        <div class="sa-panel-head">
+          <h2 class="sa-panel-title">Destek Performansı</h2>
+          <span class="sa-panel-note">{{ rangeLabel }} · {{ report.openedCount }} talep</span>
+        </div>
+        <div class="db-perf-grid">
+          <div class="db-perf-item">
+            <div class="db-perf-label">İlk yanıt süresi</div>
+            <div class="db-perf-value">{{ formatMinutes(report.averageFirstResponseMinutes) }}</div>
+            <div class="db-kpi-note">Ortalama · ortanca {{ formatMinutes(report.medianFirstResponseMinutes) }}</div>
+          </div>
+          <div class="db-perf-item">
+            <div class="db-perf-label">Çözüm süresi</div>
+            <div class="db-perf-value">{{ formatMinutes(report.averageResolutionMinutes) }}</div>
+            <div class="db-kpi-note">Ortalama · {{ report.closedCount }} kapanan talep</div>
+          </div>
+          <div class="db-perf-item">
+            <div class="db-perf-label">Hedef sürede kapanan</div>
+            <div class="db-perf-value">{{ withinTargetPercent === null ? '-' : '%' + withinTargetPercent }}</div>
+            <div class="db-kpi-note">
+              @if (report.closedWithTargetCount) {
+                {{ report.closedWithinTargetCount }} / {{ report.closedWithTargetCount }} talep
+              } @else {
+                Önceliklerde hedef süre tanımlı değil
+              }
+            </div>
+          </div>
+          <div class="db-perf-item">
+            <div class="db-perf-label">Hedef süresi aşan açık talep</div>
+            <div class="db-perf-value" [class.db-perf-value--alert]="report.overdueOpenCount > 0">{{ report.overdueOpenCount }}</div>
+            <div class="db-kpi-note">{{ report.openCount }} açık talepten</div>
+          </div>
+          <div class="db-perf-item">
+            <div class="db-perf-label">Memnuniyet</div>
+            <div class="db-perf-value">
+              {{ formatRating(report.averageSatisfaction) }}
+              @if (report.averageSatisfaction !== null && report.averageSatisfaction !== undefined) {
+                <span class="db-perf-unit">/ 5</span>
+              }
+            </div>
+            <div class="db-kpi-note">{{ report.ratedCount }} değerlendirme</div>
+          </div>
+        </div>
+      </div>
+    }
+
     <div class="row g-3">
       <!-- Açılan / kapanan -->
       <div class="col-12 col-xl-8">
@@ -245,6 +293,41 @@
       @for (panel of adminPanels; track panel.title) {
         <div class="col-12 col-md-6">
           <ng-container [ngTemplateOutlet]="breakdownPanel" [ngTemplateOutletContext]="{ $implicit: panel }" />
+        </div>
+      }
+
+      @if (isAdmin && performance?.byManager?.length) {
+        <div class="col-12">
+          <div class="sa-panel">
+            <div class="sa-panel-head">
+              <h2 class="sa-panel-title">Temsilci Performansı</h2>
+              <span class="sa-panel-note">{{ rangeLabel }} içinde açılan talepler</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-centered sa-table">
+                <thead>
+                  <tr>
+                    <th>Temsilci</th>
+                    <th class="text-end">Açık</th>
+                    <th class="text-end">Kapanan</th>
+                    <th class="text-end d-none d-md-table-cell">Ort. Çözüm</th>
+                    <th class="text-end d-none d-md-table-cell">Memnuniyet</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of performance!.byManager; track row.userId ?? row.name) {
+                    <tr>
+                      <td [class.sa-muted]="!row.userId">{{ row.name }}</td>
+                      <td class="text-end sa-mono">{{ row.openCount }}</td>
+                      <td class="text-end sa-mono">{{ row.closedCount }}</td>
+                      <td class="text-end d-none d-md-table-cell">{{ formatMinutes(row.averageResolutionMinutes) }}</td>
+                      <td class="text-end d-none d-md-table-cell">{{ formatRating(row.averageSatisfaction) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       }
 

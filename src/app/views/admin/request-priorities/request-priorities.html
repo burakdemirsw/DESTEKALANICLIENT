@@ -30,6 +30,7 @@
                                     <th>Öncelik Adı</th>
                                     <th>Açıklama</th>
                                     <th>Varsayılan</th>
+                                    <th>Hedef Süre</th>
                                     <th>Durum</th>
                                     <th class="text-end">İşlemler</th>
                                 </tr>
@@ -50,6 +51,7 @@
                                                 <span class="badge bg-light text-muted">—</span>
                                             }
                                         </td>
+                                        <td class="text-nowrap">{{ targetLabel(item.targetHours) }}</td>
                                         <td>
                                             @if (item.isBlocked) {
                                                 <span class="badge bg-danger-subtle text-danger">Pasif</span>
@@ -63,7 +65,7 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="5" class="text-center text-muted">Öncelik bulunamadı.</td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted">Öncelik bulunamadı.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -120,6 +122,17 @@
                         <div class="mb-3">
                             <label class="form-label">Açıklama</label>
                             <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="targetHoursInput">Hedef Çözüm Süresi (saat)</label>
+                            <input id="targetHoursInput" type="number" class="form-control" min="1" max="8760" step="1"
+                                   [class.is-invalid]="isTargetHoursInvalid" [(ngModel)]="form.targetHours" name="targetHours"
+                                   placeholder="Örn. 4 (acil), 24 (normal)">
+                            @if (isTargetHoursInvalid) {
+                                <div class="invalid-feedback d-block">1 ile 8760 arasında tam sayı girin ya da boş bırakın.</div>
+                            } @else {
+                                <div class="form-text">Bu öncelikteki talep bu süre içinde çözülmezse ekranlarda "Hedef süre aşıldı" yazar. Boşsa hedef yok.</div>
+                            }
                         </div>
                         <div class="mb-3">
                             <div class="form-check form-switch">

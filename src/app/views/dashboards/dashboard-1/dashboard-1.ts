@@ -11,6 +11,10 @@ import { RequestStatusesService } from '@core/services/request-statuses.service'
 import { RequestApplicationsService } from '@core/services/request-applications.service';
 import { ReleaseNotesService } from '@core/services/release-notes.service';
 import { UrlQueryStateService } from '@core/services/url-query-state.service';
+import { SupportReportsService } from '@core/services/support-reports.service';
+import { RequestActivityNotifierService } from '@core/services/request-activity-notifier.service';
+import { SupportPerformanceReportResponse } from '@core/models/support-report/support-report.models';
+import { Subscription } from 'rxjs';
 import { UserRequestResponse } from '@core/models/user-request/user-request.models';
 import { RequestStatusResponse } from '@core/models/request-status/request-status.models';
 import { RequestApplicationResponse } from '@core/models/request-application/request-application.models';
@@ -69,6 +73,8 @@ interface BreakdownPanel {
 const DEFAULT_RANGE: RangeKey = '7';
 const MAX_LOADED_REQUESTS = 1000;
 const AUTO_REFRESH_MS = 2 * 60 * 1000;
+// API'nin durum özeti en çok 62 günü kapsar
+const SUMMARY_API_MAX_DAYS = 62;
 const LIST_URL = ['/admin/user-requests'];
 
 @Component({
@@ -83,6 +89,12 @@ export class Dashboard1 implements OnInit, OnDestroy {
     readonly todayKey = toDateKey(new Date());
 
     private refreshTimer: ReturnType<typeof setInterval> | null = null;
+    private activitySubscription: Subscription | null = null;
+    private activityRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Dönemin performans raporu (ilk yanıt / çözüm süresi, hedef süre, memnuniyet); eski API'de boş kalır
+    performance: SupportPerformanceReportResponse | null = null;
+    performanceLoading = false;
     private currentUserId = '';
 
     isAdmin = false;
@@ -138,6 +150,8 @@ export class Dashboard1 implements OnInit, OnDestroy {
         private readonly applicationsService: RequestApplicationsService,
         private readonly releaseNotesService: ReleaseNotesService,
         private readonly urlQueryState: UrlQueryStateService,
+        private readonly supportReportsService: SupportReportsService,
+        private readonly activityNotifier: RequestActivityNotifierService,
     ) {}
 
     async ngOnInit(): Promise<void> {
@@ -154,11 +168,22 @@ export class Dashboard1 implements OnInit, OnDestroy {
         this.refreshTimer = setInterval(() => {
             if (!document.hidden && !this.loading) this.refreshDashboard(true);
         }, AUTO_REFRESH_MS);
+
+        // Yeni talep / yanıt gelince sayılar sessizce yenilenir (art arda olaylar tek yenilemede toplanır)
+        this.activitySubscription = this.activityNotifier.changes$.subscribe(() => {
+            if (this.activityRefreshTimer) clearTimeout(this.activityRefreshTimer);
+            this.activityRefreshTimer = setTimeout(() => {
+                this.activityRefreshTimer = null;
+                if (!this.loading) this.refreshDashboard(true);
+            }, 2000);
+        });
     }
 
     ngOnDestroy(): void {
         if (this.refreshTimer) clearInterval(this.refreshTimer);
         this.refreshTimer = null;
+        this.activitySubscription?.unsubscribe();
+        if (this.activityRefreshTimer) clearTimeout(this.activityRefreshTimer);
     }
 
     get pageTitle(): string {
@@ -229,6 +254,7 @@ export class Dashboard1 implements OnInit, OnDestroy {
     private async onRangeChanged(): Promise<void> {
         this.writeRangeQuery();
         this.recompute();
+        await this.loadPerformance();
     }
 
     get rangeLabel(): string {
@@ -241,11 +267,28 @@ export class Dashboard1 implements OnInit, OnDestroy {
 
     // ── Veri yükleme ──
     async refreshDashboard(silent = false): Promise<void> {
-        await Promise.all([this.loadItems(silent), this.loadMyAssigned()]);
+        await Promise.all([this.loadItems(silent), this.loadMyAssigned(), this.loadPerformance(silent)]);
         this.lastUpdated = new Date();
     }
 
-    // Yönetici tüm şirketlerin taleplerini, talep açan kullanıcı kendi taleplerini görür. Hesaplar en yeni
+    private async loadPerformance(silent = false): Promise<void> {
+        const range = this.range;
+        if (!silent) this.performanceLoading = true;
+        try {
+            const response = await this.supportReportsService.getPerformance({
+                startDate: toDateKey(range.start),
+                endDate: toDateKey(range.end),
+            });
+            if (range === this.range) this.performance = response?.data ?? null;
+        } catch {
+            if (range === this.range && !silent) this.performance = null;
+        } finally {
+            this.performanceLoading = false;
+        }
+    }
+
+    // Yönetici tüm şirketlerin taleplerini, şirket kullanıcısı kendi şirketinin taleplerini görür (kapsamı API token'daki
+    // kullanıcıya göre belirler; istekteki userId / companyId dikkate alınmaz). Hesaplar en yeni
     // 1000 talep üzerinden yapılır; daha fazla talep varsa ekranda belirtilir.
     private async loadItems(silent = false): Promise<void> {
         if (!this.currentUserId) return;
@@ -280,7 +323,9 @@ export class Dashboard1 implements OnInit, OnDestroy {
         try {
             const [current, doubled] = await Promise.all([
                 this.userRequestsService.getStatusSummaryReport({ userId: this.currentUserId, dayCount: range.days }),
-                this.userRequestsService.getStatusSummaryReport({ userId: this.currentUserId, dayCount: range.days * 2 }),
+                range.days * 2 <= SUMMARY_API_MAX_DAYS
+                    ? this.userRequestsService.getStatusSummaryReport({ userId: this.currentUserId, dayCount: range.days * 2 })
+                    : Promise.resolve(null),
             ]);
             if (range !== this.range) return;
 
@@ -403,7 +448,7 @@ export class Dashboard1 implements OnInit, OnDestroy {
     // Durum kartları grafik ve dağılımlarla aynı taleplerden sayılır (sayılar birbirini tutsun).
     private updateStatusCards(): void {
         if (!this.itemsLoaded) return;
-        if (!this.coversRange(this.range) && this.range.key !== 'ozel') {
+        if (!this.coversRange(this.range) && this.range.key !== 'ozel' && this.range.days <= SUMMARY_API_MAX_DAYS) {
             this.loadSummaryFromApi();
             return;
         }
@@ -441,8 +486,14 @@ export class Dashboard1 implements OnInit, OnDestroy {
         const openedToday = this.items.filter(item => isInRange(item.createdDate, today)).length;
         const closedToday = this.items.filter(item => isInRange(item.closedDate, today)).length;
 
+        // Son mesajın kimden geldiği yeni API'de gelir; gelmiyorsa "yanıt bekleyen" kartı gösterilmez
+        const hasReplyInfo = open.some(item => typeof item.lastMessageFromManager === 'boolean');
+        const awaitingManager = open.filter(item => item.lastMessageFromManager === false).length;
+        const awaitingCustomer = open.filter(item => item.lastMessageFromManager === true).length;
+
         if (this.isAdmin) {
             this.workCards = [
+                ...(hasReplyInfo ? [{ label: 'Yanıt bekleyen talep', value: awaitingManager, note: 'Son mesaj müşteriden' }] : []),
                 { label: 'Atanmamış açık talep', value: open.filter(item => !item.assignedUserId).length },
                 { label: 'Bana atanan açık talep', value: this.myAssignedOpenCount, link: ['/admin/user-requests/all'] },
                 { label: 'Bugün açılan', value: openedToday },
@@ -452,10 +503,31 @@ export class Dashboard1 implements OnInit, OnDestroy {
         }
 
         this.workCards = [
+            ...(hasReplyInfo ? [{ label: 'Sizden yanıt bekleyen', value: awaitingCustomer, note: 'Destek ekibi yanıtladı' }] : []),
             { label: 'Açık taleplerim', value: open.length },
             { label: 'Bu dönemde açılan', value: this.items.filter(item => isInRange(item.createdDate, this.range)).length, note: this.rangeLabel },
             { label: 'Bu dönemde kapanan', value: this.items.filter(item => isInRange(item.closedDate, this.range)).length, note: this.rangeLabel },
         ];
+    }
+
+    // ── Performans ──
+    // Dakika cinsinden süreyi okunur yazar: "45 dk", "3,5 saat", "2,1 gün"
+    formatMinutes(minutes?: number | null): string {
+        if (minutes === null || minutes === undefined) return '-';
+        if (minutes < 60) return `${Math.max(1, Math.round(minutes))} dk`;
+        const hours = minutes / 60;
+        if (hours < 24) return `${hours.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} saat`;
+        return `${(hours / 24).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} gün`;
+    }
+
+    formatRating(value?: number | null): string {
+        return value === null || value === undefined ? '-' : value.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+    }
+
+    get withinTargetPercent(): number | null {
+        const report = this.performance;
+        if (!report?.closedWithTargetCount) return null;
+        return Math.round((report.closedWithinTargetCount / report.closedWithTargetCount) * 100);
     }
 
     private toStatusCard(title: string, count: number, total: number): StatusCard {

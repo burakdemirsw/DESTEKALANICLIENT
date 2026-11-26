@@ -31,6 +31,7 @@ export class RequestPrioritiesPage implements OnInit {
         description: '',
         isDefault: false,
         isBlocked: false,
+        targetHours: null,
     };
 
     constructor(private priorityService: RequestPrioritiesService, private authStateService: AuthStateService) {}
@@ -78,7 +79,7 @@ export class RequestPrioritiesPage implements OnInit {
     openCreate(): void {
         this.editMode = false;
         this.selectedPriority = null;
-        this.form = { name: '', description: '', isDefault: false, isBlocked: false };
+        this.form = { name: '', description: '', isDefault: false, isBlocked: false, targetHours: null };
         this.showModal = true;
     }
 
@@ -90,11 +91,29 @@ export class RequestPrioritiesPage implements OnInit {
             description: priority.description,
             isDefault: priority.isDefault ?? false,
             isBlocked: priority.isBlocked ?? false,
+            targetHours: priority.targetHours ?? null,
         };
         this.showModal = true;
     }
 
+    // Hedef süre: boş ya da geçersizse hedef yok; 1 ile 8760 saat arası kabul edilir
+    private toTargetHours(value: unknown): number | null {
+        const hours = Number(value);
+        return Number.isInteger(hours) && hours >= 1 && hours <= 8760 ? hours : null;
+    }
+
+    get isTargetHoursInvalid(): boolean {
+        const value = this.form?.targetHours;
+        return value !== null && value !== undefined && value !== '' && this.toTargetHours(value) === null;
+    }
+
+    targetLabel(hours?: number | null): string {
+        if (!hours) return '—';
+        return hours % 24 === 0 ? `${hours / 24} gün` : `${hours} saat`;
+    }
+
     async save(): Promise<void> {
+        if (this.isTargetHoursInvalid) return;
         try {
             if (this.editMode && this.selectedPriority) {
                 const req: UpdateRequestPriorityRequest = {
@@ -102,6 +121,8 @@ export class RequestPrioritiesPage implements OnInit {
                     description: this.form.description,
                     isDefault: this.form.isDefault,
                     isBlocked: this.form.isBlocked,
+                    targetHours: this.toTargetHours(this.form.targetHours),
+                    order: this.selectedPriority.order,
                 };
                 await this.priorityService.update(this.selectedPriority.id, req);
             } else {
@@ -109,6 +130,7 @@ export class RequestPrioritiesPage implements OnInit {
                     name: this.form.name,
                     description: this.form.description,
                     isDefault: this.form.isDefault,
+                    targetHours: this.toTargetHours(this.form.targetHours),
                 };
                 await this.priorityService.create(req);
             }

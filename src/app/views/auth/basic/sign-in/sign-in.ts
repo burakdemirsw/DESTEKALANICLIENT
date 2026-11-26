@@ -71,11 +71,4 @@ export class SignIn {
             this.errorMessage = err?.error?.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.';
         }
     }
-
-    devLogin() {
-        localStorage.setItem('accessToken', 'dev-token');
-        localStorage.setItem('refreshToken', 'dev-refresh-token');
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-        this.router.navigateByUrl(returnUrl);
-    }
 }

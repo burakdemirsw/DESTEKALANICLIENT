@@ -21,6 +21,7 @@ import {
     CreateUserRequestMessageRequest,
     UpdateUserRequestRequest,
 } from '@/app/core/models/user-request/user-request.models';
+import { UserRequestHistoryResponse } from '@/app/core/models/user-request/user-request-activity.models';
 import { RequestCategoryResponse } from '@/app/core/models/request-category/request-category.models';
 import { RequestPriorityResponse } from '@/app/core/models/request-priority/request-priority.models';
 import { RequestStatusResponse } from '@/app/core/models/request-status/request-status.models';
@@ -48,6 +49,13 @@ const QUICK_FIELD_LABELS: Record<QuickField, string> = {
     assignedUserId: 'Atanan kişi',
 };
 
+// Yanıt akışındaki kayıt: mesaj ya da değişiklik geçmişi satırı (tarihe göre birlikte sıralanır)
+type ThreadItem =
+    | { kind: 'message'; key: string; date: number; message: UserRequestMessageResponse }
+    | { kind: 'history'; key: string; date: number; entry: UserRequestHistoryResponse };
+
+const MAX_RATING_COMMENT_LENGTH = 1000;
+
 @Component({
     selector: 'app-user-request-detail-page',
     imports: [CommonModule, FormsModule, RouterModule, ConfirmModal],
@@ -65,8 +73,6 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
     private signalRSubscription: Subscription | null = null;
     private realtimeRefreshInProgress = false;
     private pendingRealtimeRefresh = false;
-    private baseDocumentTitle: string | null = null;
-    private unseenMessageCount = 0;
 
     readonly attachmentAccept = ATTACHMENT_ACCEPT;
     readonly attachmentRulesText = ATTACHMENT_RULES_TEXT;
@@ -75,6 +81,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
     currentUserId = '';
     request: UserRequest | null = null;
     messages: UserRequestMessageResponse[] = [];
+    history: UserRequestHistoryResponse[] = [];
+    threadItems: ThreadItem[] = [];
     categories: RequestCategoryResponse[] = [];
     priorities: RequestPriorityResponse[] = [];
     statuses: RequestStatusResponse[] = [];
@@ -94,10 +102,27 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
     replyAttempted = false;
     sending = false;
     dragActive = false;
+    // İç not: yalnız destek yöneticileri görür (her gönderimden sonra kapanır, yanlışlıkla iç not kalmasın)
+    composeInternal = false;
 
     // Hazır yanıtlar (yönetici)
     cannedReplies: CannedReply[] = [];
     showCannedReplies = false;
+    cannedReplyToDelete: CannedReply | null = null;
+    cannedSaving = false;
+
+    // Çözüm onayı ve puan (talep sahibi tarafı)
+    showRatingModal = false;
+    ratingValue = 0;
+    ratingComment = '';
+    ratingSaving = false;
+    readonly ratingOptions = [1, 2, 3, 4, 5];
+    readonly maxRatingCommentLength = MAX_RATING_COMMENT_LENGTH;
+
+    // Yeniden açma
+    showReopenModal = false;
+    reopenMessage = '';
+    reopening = false;
 
     // Sağ panelden hızlı değişiklik (yönetici)
     quickForm: Record<QuickField, string> = { statusId: '', priorityId: '', assignedUserId: '' };
@@ -151,6 +176,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
             this.loadCurrentUserRoles();
             this.loadRequest();
             this.loadMessages();
+            this.loadHistory();
             this.loadCategories();
             this.loadPriorities();
             this.loadStatuses();
@@ -168,20 +194,24 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
     ngOnDestroy(): void {
         this.destroyed = true;
         this.cleanupSignalR();
-        this.resetTitleCounter();
         Object.values(this.attachmentImageUrls).forEach(url => URL.revokeObjectURL(url));
         this.attachmentImageUrls = {};
     }
 
+    // Sekmeye dönülünce, bu arada gelen mesajlar okundu yapılır
     @HostListener('document:visibilitychange')
     onVisibilityChange(): void {
-        if (!document.hidden) this.resetTitleCounter();
+        if (!document.hidden && this.messagesLoaded) this.markMessagesRead();
     }
 
     @HostListener('document:keydown.escape')
     onEscape(): void {
         if (this.previewImageUrl) {
             this.closeImagePreview();
+        } else if (this.showRatingModal && !this.ratingSaving) {
+            this.showRatingModal = false;
+        } else if (this.showReopenModal && !this.reopening) {
+            this.showReopenModal = false;
         } else if (this.showEditModal && !this.editSaving) {
             this.closeEditModal();
         } else if (this.showCannedReplies) {
@@ -216,7 +246,6 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
 
         this.incomingMessageSound.currentTime = 0;
         this.incomingMessageSound.play().catch(() => {});
-        this.bumpTitleCounter();
 
         const sender = message.senderUserName?.trim() || 'Yeni mesaj';
         const preview = message.message?.trim() || 'Mesaj içeriği yok';
@@ -232,20 +261,6 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
         });
     }
 
-    // Sekme arka plandayken gelen mesaj sayısı sekme başlığında gösterilir: "(2) Destek Alanı"
-    private bumpTitleCounter(): void {
-        if (!document.hidden) return;
-        if (this.baseDocumentTitle === null) this.baseDocumentTitle = document.title;
-        this.unseenMessageCount++;
-        document.title = `(${this.unseenMessageCount}) ${this.baseDocumentTitle}`;
-    }
-
-    private resetTitleCounter(): void {
-        if (this.baseDocumentTitle !== null) document.title = this.baseDocumentTitle;
-        this.baseDocumentTitle = null;
-        this.unseenMessageCount = 0;
-    }
-
     private async triggerRealtimeMessagesRefresh(): Promise<void> {
         if (this.realtimeRefreshInProgress) {
             this.pendingRealtimeRefresh = true;
@@ -254,7 +269,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
 
         this.realtimeRefreshInProgress = true;
         try {
-            await this.loadMessages();
+            // Gelen mesaj durumu / atamayı değiştirmiş olabilir
+            await Promise.all([this.loadMessages(), this.loadRequest(), this.loadHistory()]);
         } finally {
             this.realtimeRefreshInProgress = false;
             if (this.pendingRealtimeRefresh) {
@@ -303,13 +319,43 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
             this.messages = this.extractArray<UserRequestMessageResponse>(response?.data)
                 .sort((left, right) => toTime(left.createdDate) - toTime(right.createdDate));
             this.messagesLoaded = true;
+            this.buildThread();
             this.loadImageAttachments();
             this.shouldScrollToBottom = true;
+            if (!document.hidden) this.markMessagesRead();
         } catch {
             if (!this.messagesLoaded) this.toast('error', 'Mesajlar yüklenemedi.');
         } finally {
             this.messagesLoading = false;
         }
+    }
+
+    // Değişiklik geçmişi (durum, öncelik, atama...) akışta mesajlarla birlikte gösterilir. Eski API'de uç yoksa boş kalır.
+    async loadHistory(): Promise<void> {
+        try {
+            const response = await this.requestService.getHistory(this.requestId);
+            this.history = this.extractArray<UserRequestHistoryResponse>(response?.data);
+        } catch {
+            this.history = [];
+        }
+        this.buildThread();
+    }
+
+    private buildThread(): void {
+        const items: ThreadItem[] = [
+            ...this.messages.map(message => ({ kind: 'message' as const, key: `m-${message.id}`, date: toTime(message.createdDate), message })),
+            ...this.history.map(entry => ({ kind: 'history' as const, key: `h-${entry.id}`, date: toTime(entry.createdDate), entry })),
+        ];
+        this.threadItems = items.sort((left, right) => left.date - right.date);
+    }
+
+    // Karşı taraftan gelen okunmamış mesajlar okundu yapılır (hata kullanıcıya gösterilmez)
+    private markMessagesRead(): void {
+        this.requestService.markMessagesRead(this.requestId)
+            .then(() => {
+                if (this.request) this.request = { ...this.request, unreadCount: 0 };
+            })
+            .catch(() => {});
     }
 
     private async loadCategories(): Promise<void> {
@@ -346,8 +392,15 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
 
         // Kullanıcı listesi yalnız yöneticinin atama seçimi için gerekir; talep açan kullanıcıya yüklenmez.
         if (this.hasAdminRole) {
-            this.cannedReplies = this.cannedRepliesService.getAll(this.currentUserId);
-            await this.loadAssignees();
+            await Promise.all([this.loadCannedReplies(), this.loadAssignees()]);
+        }
+    }
+
+    private async loadCannedReplies(): Promise<void> {
+        try {
+            this.cannedReplies = await this.cannedRepliesService.getAll();
+        } catch {
+            this.cannedReplies = [];
         }
     }
 
@@ -445,8 +498,43 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
         return `"${name}" talebi kapatılacak. Kapanan talebe yanıt yazılamaz.`;
     }
 
+    // Mesaj destek yöneticisinden mi; eski API isFromManager göndermezse eski "from" alanına bakılır
     isStaffMessage(message: UserRequestMessageResponse): boolean {
+        if (typeof message.isFromManager === 'boolean') return message.isFromManager;
         return (message.from || '').toLowerCase() === 'admin';
+    }
+
+    // Açıklama sunucuda talebin ilk mesajı olarak da kaydedilir; o durumda ayrı kart gösterilmez (iki kez görünmesin)
+    get showDescriptionCard(): boolean {
+        const description = this.request?.description?.trim();
+        if (!description || !this.messagesLoaded) return false;
+        return !this.messages.some(message => message.message?.trim() === description);
+    }
+
+    // Geçmiş satırının metni: "durumu 'Cevaplandı' olarak değiştirdi"
+    describeHistory(entry: UserRequestHistoryResponse): string {
+        const value = entry.newValue?.trim();
+        switch (entry.fieldName) {
+            case 'Status':
+                return `durumu "${value || '-'}" olarak değiştirdi`;
+            case 'Priority':
+                return `önceliği "${value || '-'}" olarak değiştirdi`;
+            case 'Category':
+                return `kategoriyi "${value || '-'}" olarak değiştirdi`;
+            case 'Application':
+                return value ? `uygulamayı "${value}" olarak değiştirdi` : 'uygulamayı kaldırdı';
+            case 'AssignedUser':
+                if (!value) return 'atamayı kaldırdı';
+                return value === entry.userName?.trim() ? 'talebi üstlendi' : `talebi ${value} kişisine atadı`;
+            case 'Closed':
+                return 'talebi kapattı';
+            case 'Reopened':
+                return 'talebi yeniden açtı';
+            case 'Rated':
+                return `çözümü onayladı ve ${value || ''} puan verdi`;
+            default:
+                return `${entry.fieldName} alanını değiştirdi`;
+        }
     }
 
     isRequestOwnerMessage(message: UserRequestMessageResponse): boolean {
@@ -465,12 +553,42 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
     // Sıradaki yanıtın kimden beklendiği; kapalı talepte gösterilmez.
     get waitingLabel(): string {
         if (!this.request || !this.messagesLoaded || this.isRequestCompleted()) return '';
-        const lastMessage = this.messages.at(-1);
-        const supportRepliedLast = !!lastMessage && this.isStaffMessage(lastMessage);
+        const supportRepliedLast = this.supportRepliedLast;
         if (this.hasAdminRole) {
             return supportRepliedLast ? 'Müşterinin yanıtı bekleniyor' : 'Yanıtınız bekleniyor';
         }
         return supportRepliedLast ? 'Yanıtınız bekleniyor' : 'Destek ekibinin yanıtı bekleniyor';
+    }
+
+    // Son (iç not olmayan) mesaj destek yöneticisinden mi
+    get supportRepliedLast(): boolean {
+        const lastMessage = [...this.messages].reverse().find(message => !message.isInternal);
+        return !!lastMessage && this.isStaffMessage(lastMessage);
+    }
+
+    // Talep sahibi tarafı (yönetici değil): çözüm onayı, puan ve yeniden açma bu tarafa gösterilir
+    get isRequesterSide(): boolean {
+        return this.isCustomerRole && !this.hasAdminRole;
+    }
+
+    // Yönetici yanıtladıysa talep sahibine "Sorununuz çözüldü mü?" sorulur
+    get canConfirmResolution(): boolean {
+        return this.isRequesterSide && !!this.request && !this.isRequestCompleted() && this.messagesLoaded && this.supportRepliedLast;
+    }
+
+    // Kapanmış ama puanlanmamış talepte değerlendirme istenir
+    get canRateClosedRequest(): boolean {
+        return this.isRequesterSide && !!this.request && this.isRequestCompleted() && !this.request.satisfactionRating;
+    }
+
+    get canReopenRequest(): boolean {
+        return !!this.request && this.isRequestCompleted() && (this.hasAdminRole || this.isCustomerRole);
+    }
+
+    get targetLabel(): string {
+        const hours = this.request?.priorityTargetHours;
+        if (!hours) return '';
+        return hours % 24 === 0 ? `${hours / 24} gün` : `${hours} saat`;
     }
 
     isRequestCompleted(): boolean {
@@ -624,6 +742,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
             return;
         }
 
+        const isInternal = this.hasAdminRole && this.composeInternal;
         this.sending = true;
         try {
             if (this.attachmentFile) {
@@ -632,12 +751,14 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
                     senderUserId: this.currentUserId,
                     message: this.newMessage.trim(),
                     file: this.attachmentFile,
+                    isInternal,
                 });
             } else {
                 const req: CreateUserRequestMessageRequest = {
                     requestId: this.requestId,
                     senderUserId: this.currentUserId,
                     message: this.newMessage.trim(),
+                    isInternal,
                 };
                 await this.requestService.createMessage(req);
             }
@@ -646,7 +767,8 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
             this.clearAttachment();
             this.replyAttempted = false;
             this.showCannedReplies = false;
-            await Promise.all([this.loadRequest(), this.loadMessages()]);
+            this.composeInternal = false;
+            await Promise.all([this.loadRequest(), this.loadMessages(), this.loadHistory()]);
         } catch (err) {
             this.toast('error', 'Mesaj gönderilemedi. ' + this.describeError(err));
         } finally {
@@ -666,14 +788,96 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
         setTimeout(() => this.replyTextareaRef?.nativeElement.focus());
     }
 
-    saveCannedReply(): void {
-        if (!this.newMessage.trim()) return;
-        this.cannedReplies = this.cannedRepliesService.add(this.currentUserId, this.newMessage);
-        this.toast('success', 'Hazır yanıt kaydedildi.');
+    // Yazılan metni ekibin ortak hazır yanıtlarına ekler
+    async saveCannedReply(): Promise<void> {
+        if (!this.newMessage.trim() || this.cannedSaving) return;
+        this.cannedSaving = true;
+        try {
+            this.cannedReplies = await this.cannedRepliesService.add(this.newMessage, this.cannedReplies.length + 1);
+            this.toast('success', 'Hazır yanıt kaydedildi.');
+        } catch (err) {
+            this.toast('error', 'Hazır yanıt kaydedilemedi. ' + this.describeError(err));
+        } finally {
+            this.cannedSaving = false;
+        }
     }
 
+    // Hazır yanıtlar ekipte ortaktır; silme onay ister
     removeCannedReply(reply: CannedReply): void {
-        this.cannedReplies = this.cannedRepliesService.remove(this.currentUserId, reply.id);
+        this.cannedReplyToDelete = reply;
+    }
+
+    async confirmRemoveCannedReply(): Promise<void> {
+        const reply = this.cannedReplyToDelete;
+        if (!reply || this.cannedSaving) return;
+        this.cannedSaving = true;
+        try {
+            this.cannedReplies = await this.cannedRepliesService.remove(reply.id);
+            this.cannedReplyToDelete = null;
+            this.toast('success', 'Hazır yanıt silindi.');
+        } catch (err) {
+            this.toast('error', 'Hazır yanıt silinemedi. ' + this.describeError(err));
+        } finally {
+            this.cannedSaving = false;
+        }
+    }
+
+    get cannedDeleteMessage(): string {
+        return `"${this.cannedReplyToDelete?.title ?? ''}" hazır yanıtı ekipteki herkes için silinecek.`;
+    }
+
+    // ── Çözüm onayı ve puan ──
+    openRatingModal(): void {
+        this.ratingValue = 0;
+        this.ratingComment = '';
+        this.showRatingModal = true;
+    }
+
+    closeRatingModal(): void {
+        if (!this.ratingSaving) this.showRatingModal = false;
+    }
+
+    async submitRating(): Promise<void> {
+        if (!this.request || this.ratingSaving || this.ratingValue < 1) return;
+        this.ratingSaving = true;
+        try {
+            await this.requestService.confirmResolution(this.requestId, {
+                rating: this.ratingValue,
+                comment: this.ratingComment.trim().slice(0, MAX_RATING_COMMENT_LENGTH) || null,
+            });
+            this.showRatingModal = false;
+            await Promise.all([this.loadRequest(), this.loadHistory()]);
+            this.toast('success', 'Değerlendirmeniz için teşekkürler.');
+        } catch (err) {
+            this.toast('error', 'Değerlendirme gönderilemedi. ' + this.describeError(err));
+        } finally {
+            this.ratingSaving = false;
+        }
+    }
+
+    // ── Yeniden açma ──
+    openReopenModal(): void {
+        this.reopenMessage = '';
+        this.showReopenModal = true;
+    }
+
+    closeReopenModal(): void {
+        if (!this.reopening) this.showReopenModal = false;
+    }
+
+    async submitReopen(): Promise<void> {
+        if (!this.request || this.reopening) return;
+        this.reopening = true;
+        try {
+            await this.requestService.reopen(this.requestId, { message: this.reopenMessage.trim() || null });
+            this.showReopenModal = false;
+            await Promise.all([this.loadRequest(), this.loadMessages(), this.loadHistory()]);
+            this.toast('success', 'Talep yeniden açıldı.');
+        } catch (err) {
+            this.toast('error', 'Talep yeniden açılamadı. ' + this.describeError(err));
+        } finally {
+            this.reopening = false;
+        }
     }
 
     // ── Sağ panelden hızlı değişiklik (durum / öncelik / atanan) ──
@@ -700,7 +904,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
                 ? { assignedUserId: value || null }
                 : { [field]: value };
             await this.requestService.update(this.request.id, this.buildUpdateBody(override));
-            await this.loadRequest();
+            await Promise.all([this.loadRequest(), this.loadHistory()]);
             this.toast('success', `${QUICK_FIELD_LABELS[field]} güncellendi.`);
         } catch (err) {
             this.quickForm[field] = previous;
@@ -849,7 +1053,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
                 isBlocked: this.editForm.isBlocked,
             }));
             this.showEditModal = false;
-            await this.loadRequest();
+            await Promise.all([this.loadRequest(), this.loadHistory()]);
             this.toast('success', 'Talep güncellendi.');
         } catch (err) {
             this.toast('error', 'Talep güncellenemedi. ' + this.describeError(err));
@@ -869,7 +1073,7 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestro
         try {
             await this.requestService.close(this.requestId);
             this.showCloseConfirm = false;
-            await this.loadRequest();
+            await Promise.all([this.loadRequest(), this.loadHistory()]);
             this.toast('success', 'Talep kapatıldı.');
         } catch (err) {
             this.toast('error', 'Talep kapatılamadı. ' + this.describeError(err));

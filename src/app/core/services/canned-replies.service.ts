@@ -1,56 +1,64 @@
 import { Injectable } from '@angular/core';
+import { HttpClientService } from './http-client.service';
+import { ApiResponse } from '../models/api-response.model';
+import {
+    CannedReplyResponse,
+    CreateCannedReplyRequest,
+    UpdateCannedReplyRequest,
+} from '../models/canned-reply/canned-reply.models';
 
 export interface CannedReply {
     id: string;
+    title: string;
     text: string;
 }
 
-const STORAGE_KEY_PREFIX = 'supportCannedReplies:';
-
-const DEFAULT_REPLIES: string[] = [
-    'Merhaba, talebinizi aldık ve inceliyoruz. En kısa sürede bilgi vereceğiz.',
-    'Sorunu daha iyi anlayabilmemiz için hatanın ekran görüntüsünü ve hangi adımlardan sonra oluştuğunu paylaşabilir misiniz?',
-    'Gerekli düzenlemeyi yaptık. Kontrol edip sonucu bize bildirebilir misiniz?',
-    'Talebiniz çözüldüğü için kapatıyoruz. Yeniden yaşarsanız yeni talep açabilirsiniz.',
-];
-
-// Yöneticinin yanıt yazarken tek tıkla eklediği hazır metinler. Şimdilik tarayıcıda, kullanıcıya özel saklanır
-// (ekip içinde ortak olması için API'de tablo gerekir). İlk açılışta örnek metinlerle gelir.
+// Destek yöneticilerinin ortak hazır yanıtları (API'de, ekip içinde ortak). Yalnız destek yöneticisi çağırabilir.
 @Injectable({ providedIn: 'root' })
 export class CannedRepliesService {
-    getAll(userId: string): CannedReply[] {
-        if (!userId) return [];
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_PREFIX + userId);
-            if (raw === null) {
-                return DEFAULT_REPLIES.map((text, index) => ({ id: `default-${index}`, text }));
-            }
-            const parsed = JSON.parse(raw);
-            return Array.isArray(parsed)
-                ? parsed.filter((item): item is CannedReply => typeof item?.id === 'string' && typeof item?.text === 'string')
-                : [];
-        } catch {
-            return [];
-        }
+    private static readonly TITLE_LENGTH = 60;
+
+    constructor(private http: HttpClientService) {}
+
+    getAllRaw(includeBlocked = false): Promise<ApiResponse<CannedReplyResponse[]>> {
+        return this.http.get<CannedReplyResponse[]>({
+            controller: 'CannedReplies',
+            queryString: includeBlocked ? 'includeBlocked=true' : undefined,
+        });
     }
 
-    add(userId: string, text: string): CannedReply[] {
+    create(request: CreateCannedReplyRequest): Promise<ApiResponse<CannedReplyResponse>> {
+        return this.http.post<CannedReplyResponse>({ controller: 'CannedReplies' }, request);
+    }
+
+    update(id: string, request: UpdateCannedReplyRequest): Promise<ApiResponse<unknown>> {
+        return this.http.post<unknown>({ controller: 'CannedReplies', action: `update/${id}` }, request);
+    }
+
+    delete(id: string): Promise<ApiResponse<unknown>> {
+        return this.http.post<unknown>({ controller: 'CannedReplies', action: `delete/${id}` }, {});
+    }
+
+    // Yanıt kutusunda kullanılan aktif hazır yanıtlar
+    async getAll(): Promise<CannedReply[]> {
+        const response = await this.getAllRaw();
+        return (response?.data ?? []).map(item => ({ id: item.id, title: item.title, text: item.text }));
+    }
+
+    // Yazılan metni hazır yanıt olarak ekler; başlık metnin başından üretilir. Güncel listeyi döner.
+    async add(text: string, order = 0): Promise<CannedReply[]> {
         const trimmed = text.trim();
-        const replies = this.getAll(userId);
-        if (!trimmed || replies.some(reply => reply.text === trimmed)) return replies;
-        return this.store(userId, [...replies, { id: `${Date.now()}`, text: trimmed }]);
+        if (!trimmed) return this.getAll();
+        const firstLine = trimmed.split(/\r?\n/)[0];
+        const title = firstLine.length > CannedRepliesService.TITLE_LENGTH
+            ? `${firstLine.slice(0, CannedRepliesService.TITLE_LENGTH - 1)}…`
+            : firstLine;
+        await this.create({ title, text: trimmed, order });
+        return this.getAll();
     }
 
-    remove(userId: string, id: string): CannedReply[] {
-        return this.store(userId, this.getAll(userId).filter(reply => reply.id !== id));
-    }
-
-    private store(userId: string, replies: CannedReply[]): CannedReply[] {
-        try {
-            localStorage.setItem(STORAGE_KEY_PREFIX + userId, JSON.stringify(replies));
-        } catch {
-            // Depolama kapalıysa liste yalnız bu sayfa açıkken geçerli olur.
-        }
-        return replies;
+    async remove(id: string): Promise<CannedReply[]> {
+        await this.delete(id);
+        return this.getAll();
     }
 }

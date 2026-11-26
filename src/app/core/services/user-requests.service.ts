@@ -12,6 +12,12 @@ import {
     UserRequestStatusSummaryReportRequest,
     UserRequestStatusSummaryReportResponse,
 } from '../models/user-request/user-request.models';
+import {
+    ConfirmResolutionRequest,
+    MarkMessagesReadResponse,
+    ReopenUserRequestRequest,
+    UserRequestHistoryResponse,
+} from '../models/user-request/user-request-activity.models';
 import { ApiResponse } from '../models/api-response.model';
 import { AdminPaginationRequest, buildPaginationRequest, buildAdminPaginationRequest, PagedResult } from '../models/pagination.model';
 
@@ -116,6 +122,9 @@ export class UserRequestsService {
         formData.append('categoryId', request.categoryId);
         formData.append('subject', request.subject);
         formData.append('description', request.description);
+        if (request.priorityId) {
+            formData.append('priorityId', request.priorityId);
+        }
         files.forEach(file => formData.append('files', file, file.name));
 
         const response = await this.http.post<CreateUserRequestWithFilesResponse>(
@@ -158,10 +167,14 @@ export class UserRequestsService {
         senderUserId: string;
         message?: string;
         file?: File;
+        isInternal?: boolean;
     }): Promise<ApiResponse<any>> {
         const formData = new FormData();
         formData.append('requestId', request.requestId);
         formData.append('senderUserId', request.senderUserId);
+        if (request.isInternal) {
+            formData.append('isInternal', 'true');
+        }
 
         if (request.message) {
             formData.append('message', request.message);
@@ -178,5 +191,24 @@ export class UserRequestsService {
     // kullanıcı indirebilir.
     downloadMessageFile(messageId: string): Promise<Blob> {
         return this.http.getBlob({ controller: 'UserRequests', action: `messages/${messageId}/file` });
+    }
+
+    // ── Talep hareketleri (geçmiş, okundu, çözüm onayı, yeniden açma) ──
+    getHistory(requestId: string): Promise<ApiResponse<UserRequestHistoryResponse[]>> {
+        return this.http.get<UserRequestHistoryResponse[]>({ controller: 'UserRequests', action: `${requestId}/history` });
+    }
+
+    // Karşı taraftan gelen okunmamış mesajları okundu yapar
+    markMessagesRead(requestId: string): Promise<ApiResponse<MarkMessagesReadResponse>> {
+        return this.http.post<MarkMessagesReadResponse>({ controller: 'UserRequests', action: `${requestId}/messages/mark-read` }, {});
+    }
+
+    // Talep sahibi tarafının çözüm onayı: talep kapanır, puan (1-5) ve yorum kaydedilir
+    confirmResolution(requestId: string, request: ConfirmResolutionRequest): Promise<ApiResponse<unknown>> {
+        return this.http.post<unknown>({ controller: 'UserRequests', action: `${requestId}/confirm-resolution` }, request);
+    }
+
+    reopen(requestId: string, request: ReopenUserRequestRequest): Promise<ApiResponse<unknown>> {
+        return this.http.post<unknown>({ controller: 'UserRequests', action: `${requestId}/reopen` }, request);
     }
 }

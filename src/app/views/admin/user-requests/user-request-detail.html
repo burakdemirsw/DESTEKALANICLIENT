@@ -36,6 +36,9 @@
                     @if (request.closedDate) {
                         <span><i class="fa-solid fa-lock me-1"></i>Kapanış: {{ formatDate(request.closedDate) }}</span>
                     }
+                    @if (request.isOverdue && !isRequestCompleted()) {
+                        <span class="td-overdue"><i class="fa-solid fa-circle-exclamation me-1"></i>Hedef süre aşıldı</span>
+                    }
                 </div>
             </div>
             <div class="sa-head-actions">
@@ -57,6 +60,11 @@
                         <i class="fa-solid fa-reply me-2"></i>Yanıtla
                     </button>
                 } @else if (isRequestCompleted()) {
+                    @if (canReopenRequest) {
+                        <button type="button" class="btn btn-light" (click)="openReopenModal()">
+                            <i class="fa-solid fa-rotate-left me-2"></i>Yeniden Aç
+                        </button>
+                    }
                     <a class="btn btn-primary" [routerLink]="['/admin/user-requests']" [queryParams]="similarRequestQuery">
                         <i class="fa-solid fa-plus me-2"></i>Benzer Yeni Talep Aç
                     </a>
@@ -75,8 +83,8 @@
                     </div>
 
                     <div class="td-thread" #chatBody>
-                        <!-- Talebin açıklaması akışın ilk kaydı olarak gösterilir -->
-                        @if (request.description) {
+                        <!-- Açıklama sunucuda ilk mesaj olarak kaydedilmediyse (eski talepler) akışın ilk kaydı olarak gösterilir -->
+                        @if (showDescriptionCard) {
                             <article class="td-msg td-msg--origin">
                                 <div class="td-avatar" aria-hidden="true">{{ getInitial(ownerName) }}</div>
                                 <div class="td-msg-main">
@@ -98,16 +106,26 @@
                                 <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Mesajlar yükleniyor...
                             </div>
                         } @else {
-                            @for (msg of messages; track msg.id) {
+                            @for (item of threadItems; track item.key) {
+                              @if (item.kind === 'history') {
+                                <div class="td-event">
+                                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                                    <span><strong>{{ item.entry.userName || 'Sistem' }}</strong> {{ describeHistory(item.entry) }}</span>
+                                    <span class="td-event-date" [title]="formatDate(item.entry.createdDate)">{{ getRelativeTimeLabel(item.entry.createdDate) }}</span>
+                                </div>
+                              } @else {
+                                @let msg = item.message;
                                 @let isStaff = isStaffMessage(msg);
-                                <article class="td-msg" [class.td-msg--staff]="isStaff">
+                                <article class="td-msg" [class.td-msg--staff]="isStaff && !msg.isInternal" [class.td-msg--internal]="msg.isInternal">
                                     <div class="td-avatar" [class.td-avatar--staff]="isStaff" aria-hidden="true">
                                         {{ getInitial(getMessageSenderLabel(msg)) }}
                                     </div>
                                     <div class="td-msg-main">
                                         <div class="td-msg-head">
                                             <span class="td-msg-name">{{ getMessageSenderLabel(msg) }}</span>
-                                            @if (msg.from) {
+                                            @if (msg.isInternal) {
+                                                <span class="td-msg-role td-msg-role--internal"><i class="fa-solid fa-lock me-1"></i>İç Not</span>
+                                            } @else if (msg.from || msg.isFromManager !== undefined) {
                                                 <span class="td-msg-role" [class.td-msg-role--staff]="isStaff">
                                                     @if (isStaff) {
                                                         Müşteri Temsilcisi
@@ -161,6 +179,7 @@
                                         }
                                     </div>
                                 </article>
+                              }
                             } @empty {
                                 <div class="sa-empty">
                                     <i class="fa-regular fa-comments me-2"></i>Henüz yanıt yok.
@@ -169,20 +188,42 @@
                         }
                     </div>
 
+                    @if (canConfirmResolution) {
+                        <div class="td-resolution">
+                            <span><i class="fa-regular fa-circle-question me-2"></i>Destek ekibi yanıtladı. Sorununuz çözüldü mü?</span>
+                            <div class="td-resolution-actions">
+                                <button type="button" class="btn btn-sm btn-primary" (click)="openRatingModal()">
+                                    <i class="fa-solid fa-check me-1"></i>Evet, çözüldü
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light" (click)="focusComposer()">Hayır, yazacağım</button>
+                            </div>
+                        </div>
+                    }
+
                     @if (canComposeMessage()) {
-                        <div class="td-composer" [class.is-dragging]="dragActive"
+                        <div class="td-composer" [class.is-dragging]="dragActive" [class.td-composer--internal]="composeInternal"
                              (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
                             @if (hasAdminRole) {
                                 <div class="td-composer-tools">
                                     <button type="button" class="btn btn-sm btn-light" (click)="toggleCannedReplies()" [attr.aria-expanded]="showCannedReplies">
                                         <i class="fa-regular fa-comment-dots me-1"></i>Hazır Yanıtlar
                                     </button>
+                                    <div class="form-check form-switch td-internal-switch">
+                                        <input class="form-check-input" type="checkbox" id="composeInternalSwitch"
+                                               [(ngModel)]="composeInternal" name="composeInternal" [disabled]="sending">
+                                        <label class="form-check-label" for="composeInternalSwitch">
+                                            <i class="fa-solid fa-lock me-1"></i>İç not (müşteri görmez)
+                                        </label>
+                                    </div>
                                 </div>
                                 @if (showCannedReplies) {
                                     <div class="td-canned">
                                         @for (reply of cannedReplies; track reply.id) {
                                             <div class="td-canned-item">
-                                                <button type="button" class="td-canned-text" (click)="insertCannedReply(reply)">{{ reply.text }}</button>
+                                                <button type="button" class="td-canned-text" (click)="insertCannedReply(reply)" [title]="reply.text">
+                                                    <span class="td-canned-title">{{ reply.title }}</span>
+                                                    <span class="td-canned-preview">{{ reply.text }}</span>
+                                                </button>
                                                 <button type="button" class="td-icon-btn" (click)="removeCannedReply(reply)" title="Hazır yanıtı sil" aria-label="Hazır yanıtı sil">
                                                     <i class="fa-regular fa-trash-can"></i>
                                                 </button>
@@ -190,8 +231,8 @@
                                         } @empty {
                                             <div class="sa-muted small py-1">Kayıtlı hazır yanıt yok.</div>
                                         }
-                                        <button type="button" class="btn btn-sm btn-light mt-2" [disabled]="!newMessage.trim()" (click)="saveCannedReply()">
-                                            <i class="fa-solid fa-plus me-1"></i>Yazılanı hazır yanıt olarak kaydet
+                                        <button type="button" class="btn btn-sm btn-light mt-2" [disabled]="!newMessage.trim() || cannedSaving" (click)="saveCannedReply()">
+                                            <i class="fa-solid fa-plus me-1"></i>Yazılanı ekibin hazır yanıtlarına ekle
                                         </button>
                                     </div>
                                 }
@@ -205,7 +246,7 @@
                                       [(ngModel)]="newMessage"
                                       name="newMessage"
                                       [disabled]="sending"
-                                      placeholder="Yanıtınızı yazın... Ekran görüntüsünü Ctrl+V ile yapıştırabilirsiniz."
+                                      [placeholder]="composeInternal ? 'İç not yazın... Yalnız destek ekibi görür.' : 'Yanıtınızı yazın... Ekran görüntüsünü Ctrl+V ile yapıştırabilirsiniz.'"
                                       (keydown.enter)="onMessageKeydown($any($event))"
                                       (paste)="onPaste($event)"></textarea>
                             @if (shouldShowReplyLengthWarning()) {
@@ -235,7 +276,7 @@
                                     @if (sending) {
                                         <span class="spinner-border spinner-border-sm me-1" role="status"></span>Gönderiliyor...
                                     } @else {
-                                        <i class="fa-solid fa-paper-plane me-1"></i>Gönder
+                                        <i class="fa-solid me-1" [class.fa-paper-plane]="!composeInternal" [class.fa-lock]="composeInternal"></i>{{ composeInternal ? 'İç Not Ekle' : 'Gönder' }}
                                     }
                                 </button>
                             </div>
@@ -246,9 +287,21 @@
                             }
                         </div>
                     } @else if (isRequestCompleted()) {
+                        @if (canRateClosedRequest) {
+                            <div class="td-resolution">
+                                <span><i class="fa-regular fa-star me-2"></i>Talebiniz kapandı. Aldığınız desteği değerlendirir misiniz?</span>
+                                <div class="td-resolution-actions">
+                                    <button type="button" class="btn btn-sm btn-primary" (click)="openRatingModal()">Değerlendir</button>
+                                </div>
+                            </div>
+                        }
                         <div class="td-closed-notice">
                             <i class="fa-solid fa-circle-check me-2"></i>Bu talep kapandığı için yanıt gönderilemez.
-                            <a class="fw-medium ms-1" [routerLink]="['/admin/user-requests']" [queryParams]="similarRequestQuery">Benzer yeni talep açın</a>.
+                            @if (canReopenRequest) {
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline fw-medium" (click)="openReopenModal()">Yeniden açın</button>
+                                ya da
+                            }
+                            <a class="fw-medium ms-1" [routerLink]="['/admin/user-requests']" [queryParams]="similarRequestQuery">benzer yeni talep açın</a>.
                         </div>
                     }
                 </div>
@@ -342,6 +395,33 @@
                             <div>
                                 <dt>Atanan Kişi</dt>
                                 <dd>{{ assignedName }}</dd>
+                            </div>
+                        }
+
+                        @if (targetLabel) {
+                            <div>
+                                <dt>Hedef Çözüm Süresi</dt>
+                                <dd>
+                                    {{ targetLabel }}
+                                    @if (request.isOverdue) {
+                                        <span class="td-overdue d-block small">Aşıldı</span>
+                                    }
+                                </dd>
+                            </div>
+                        }
+                        @if (request.satisfactionRating) {
+                            <div>
+                                <dt>Değerlendirme</dt>
+                                <dd>
+                                    <span class="td-stars" [attr.aria-label]="request.satisfactionRating + ' / 5'">
+                                        @for (star of ratingOptions; track star) {
+                                            <i [class]="star <= request.satisfactionRating ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                                        }
+                                    </span>
+                                    @if (request.satisfactionComment) {
+                                        <span class="d-block small sa-muted text-break">{{ request.satisfactionComment }}</span>
+                                    }
+                                </dd>
                             </div>
                         }
 
@@ -447,4 +527,88 @@
         [busy]="closing"
         (confirmed)="confirmCloseRequest()"
         (cancelled)="showCloseConfirm = false" />
+}
+
+<!-- ═══ Çözüm onayı ve puan ═══ -->
+@if (showRatingModal && request) {
+    <div class="modal-backdrop-modern" (click)="closeRatingModal()">
+        <div class="modal-modern" role="dialog" aria-modal="true" aria-labelledby="ratingTitle" (click)="$event.stopPropagation()">
+            <div class="modal-modern-header">
+                <h5 id="ratingTitle"><i class="fa-regular fa-star"></i> {{ isRequestCompleted() ? 'Desteği Değerlendirin' : 'Sorun Çözüldü' }}</h5>
+                <button class="modal-close-btn" aria-label="Kapat" [disabled]="ratingSaving" (click)="closeRatingModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-modern-body">
+                @if (!isRequestCompleted()) {
+                    <p class="mb-3">Talep kapatılacak. Aldığınız desteği 1 ile 5 arasında puanlayın.</p>
+                } @else {
+                    <p class="mb-3">Aldığınız desteği 1 ile 5 arasında puanlayın.</p>
+                }
+                <div class="td-rating" role="radiogroup" aria-label="Puan">
+                    @for (star of ratingOptions; track star) {
+                        <button type="button" class="td-rating-star" role="radio" [attr.aria-checked]="ratingValue === star"
+                                [attr.aria-label]="star + ' puan'" [class.is-active]="star <= ratingValue" (click)="ratingValue = star">
+                            <i [class]="star <= ratingValue ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                        </button>
+                    }
+                </div>
+                <label class="form-label mt-3" for="ratingComment">Yorum <span class="sa-muted fw-normal">(isteğe bağlı)</span></label>
+                <textarea id="ratingComment" class="form-control" rows="3" [maxLength]="maxRatingCommentLength"
+                          [(ngModel)]="ratingComment" name="ratingComment" placeholder="Görüşünüzü yazabilirsiniz"></textarea>
+                @if (ratingValue < 1) {
+                    <div class="reply-hint mt-2">Göndermek için bir puan seçin.</div>
+                }
+            </div>
+            <div class="modal-modern-footer">
+                <button type="button" class="btn btn-light" [disabled]="ratingSaving" (click)="closeRatingModal()">Vazgeç</button>
+                <button type="button" class="btn btn-primary" [disabled]="ratingSaving || ratingValue < 1" (click)="submitRating()">
+                    @if (ratingSaving) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    {{ isRequestCompleted() ? 'Gönder' : 'Onayla ve Kapat' }}
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══ Yeniden açma ═══ -->
+@if (showReopenModal && request) {
+    <div class="modal-backdrop-modern" (click)="closeReopenModal()">
+        <div class="modal-modern" role="dialog" aria-modal="true" aria-labelledby="reopenTitle" (click)="$event.stopPropagation()">
+            <div class="modal-modern-header">
+                <h5 id="reopenTitle"><i class="fa-solid fa-rotate-left"></i> Talebi Yeniden Aç</h5>
+                <button class="modal-close-btn" aria-label="Kapat" [disabled]="reopening" (click)="closeReopenModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-modern-body">
+                <p class="mb-3">Talep yeniden açılacak ve yanıt yazılabilecek. Önceki değerlendirme geçmişte kalır.</p>
+                <label class="form-label" for="reopenMessage">Açıklama <span class="sa-muted fw-normal">(isteğe bağlı, talebe mesaj olarak eklenir)</span></label>
+                <textarea id="reopenMessage" class="form-control" rows="3" [(ngModel)]="reopenMessage" name="reopenMessage"
+                          placeholder="Sorun neden devam ediyor?"></textarea>
+            </div>
+            <div class="modal-modern-footer">
+                <button type="button" class="btn btn-light" [disabled]="reopening" (click)="closeReopenModal()">Vazgeç</button>
+                <button type="button" class="btn btn-primary" [disabled]="reopening" (click)="submitReopen()">
+                    @if (reopening) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    Yeniden Aç
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (cannedReplyToDelete) {
+    <app-confirm-modal
+        title="Hazır Yanıtı Sil"
+        [message]="cannedDeleteMessage"
+        confirmText="Hazır Yanıtı Sil"
+        [danger]="true"
+        [busy]="cannedSaving"
+        (confirmed)="confirmRemoveCannedReply()"
+        (cancelled)="cannedReplyToDelete = null" />
 }

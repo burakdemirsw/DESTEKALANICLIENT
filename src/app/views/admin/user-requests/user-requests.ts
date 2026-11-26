@@ -10,6 +10,9 @@ import { RequestStatusesService } from '@/app/core/services/request-statuses.ser
 import { RequestApplicationsService } from '@/app/core/services/request-applications.service';
 import { UserMenuService } from '@/app/core/services/user-menu.service';
 import { RequestDraftService } from '@/app/core/services/request-draft.service';
+import { SupportRoleService } from '@/app/core/services/support-role.service';
+import { RequestActivityNotifierService } from '@/app/core/services/request-activity-notifier.service';
+import { Subscription } from 'rxjs';
 import { UrlQueryStateService } from '@core/services/url-query-state.service';
 import { AuthStateService } from '@core/services/auth-state.service';
 import {
@@ -94,6 +97,10 @@ export class UserRequestsPage implements OnInit, OnDestroy {
     private similarTimer: ReturnType<typeof setTimeout> | null = null;
     private similarRequestSeq = 0;
     private loadSeq = 0;
+    private activitySubscription: Subscription | null = null;
+    private activityRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+    isAdmin = false;
 
     currentUserId = '';
     requests: UserRequest[] = [];
@@ -124,6 +131,8 @@ export class UserRequestsPage implements OnInit, OnDestroy {
     saveAttempted = false;
     saving = false;
     form: CreateForm = this.emptyForm();
+    // Talep açanın seçtiği aciliyet (öncelik); varsayılan öncelikle açılır
+    createPriorityId = '';
     attachmentFiles: File[] = [];
     attachmentErrors: string[] = [];
     dragActive = false;
@@ -142,10 +151,23 @@ export class UserRequestsPage implements OnInit, OnDestroy {
         private draftService: RequestDraftService,
         private urlQueryState: UrlQueryStateService,
         private authStateService: AuthStateService,
+        private supportRoleService: SupportRoleService,
+        private activityNotifier: RequestActivityNotifierService,
     ) {}
 
     async ngOnInit(): Promise<void> {
         this.currentUserId = this.userMenuService.getUserIdFromToken() ?? '';
+        this.supportRoleService.getCurrentRoles().then(roles => (this.isAdmin = roles.isAdmin));
+
+        // Başka biri yanıt yazınca / talep açınca liste sessizce yenilenir (art arda olaylar tek yenilemede toplanır)
+        this.activitySubscription = this.activityNotifier.changes$.subscribe(() => {
+            if (this.activityRefreshTimer) clearTimeout(this.activityRefreshTimer);
+            this.activityRefreshTimer = setTimeout(() => {
+                this.activityRefreshTimer = null;
+                this.loadRequests(true);
+            }, 1500);
+        });
+
         await Promise.all([this.loadApplications(), this.loadCategories(), this.loadPriorities(), this.loadStatuses()]);
 
         this.readListQuery();
@@ -158,6 +180,8 @@ export class UserRequestsPage implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.activitySubscription?.unsubscribe();
+        if (this.activityRefreshTimer) clearTimeout(this.activityRefreshTimer);
         this.clearTimer('searchTimer');
         this.clearTimer('similarTimer');
         if (this.draftTimer) {
@@ -234,10 +258,13 @@ export class UserRequestsPage implements OnInit, OnDestroy {
         };
     }
 
-    async loadRequests(): Promise<void> {
+    // silent: arka planda yenileme (yükleniyor yazısı gösterilmez, hata olursa eldeki liste kalır)
+    async loadRequests(silent = false): Promise<void> {
         const seq = ++this.loadSeq;
-        this.loading = true;
-        this.loadError = false;
+        if (!silent) {
+            this.loading = true;
+            this.loadError = false;
+        }
         try {
             const response = await this.requestService.getPaged(this.buildListRequest());
             if (seq !== this.loadSeq) return;
@@ -256,7 +283,7 @@ export class UserRequestsPage implements OnInit, OnDestroy {
             this.buildPagesArray();
             this.writeListQuery();
         } catch {
-            if (seq !== this.loadSeq) return;
+            if (seq !== this.loadSeq || silent) return;
             this.requests = [];
             this.loadError = true;
         } finally {
@@ -451,6 +478,8 @@ export class UserRequestsPage implements OnInit, OnDestroy {
         this.similarRequests = [];
         this.draftRestoredAt = '';
 
+        this.createPriorityId = this.defaultPriorityId;
+
         if (prefill) {
             this.form = {
                 applicationId: prefill.applicationId ?? '',
@@ -469,6 +498,11 @@ export class UserRequestsPage implements OnInit, OnDestroy {
                 }
                 : this.emptyForm();
             this.draftRestoredAt = draft ? formatDateTime(draft.savedAt) : '';
+        }
+
+        // Seçili kategori seçili uygulamaya ait değilse (bağı sonradan değişmiş) temizlenir
+        if (this.form.categoryId && !this.isCategoryAllowed(this.form.categoryId)) {
+            this.form.categoryId = '';
         }
 
         this.showModal = true;
@@ -503,8 +537,14 @@ export class UserRequestsPage implements OnInit, OnDestroy {
     }
 
     onApplicationChange(): void {
-        if (!this.form.applicationId) this.form.categoryId = '';
+        if (!this.form.applicationId || !this.isCategoryAllowed(this.form.categoryId)) this.form.categoryId = '';
         this.onFormChange();
+    }
+
+    // Uygulamaya bağlı kategori yalnız o uygulamada, bağı olmayan kategori her uygulamada seçilir
+    private isCategoryAllowed(categoryId: string): boolean {
+        const category = this.categories.find(c => c.id === categoryId);
+        return !!category && (!category.applicationId || category.applicationId === this.form.applicationId);
     }
 
     onSubjectChange(): void {
@@ -549,7 +589,32 @@ export class UserRequestsPage implements OnInit, OnDestroy {
     }
 
     get activeCategories(): RequestCategoryResponse[] {
-        return this.categories.filter(c => !c.isBlocked || c.id === this.form.categoryId);
+        return this.categories.filter(c =>
+            (!c.isBlocked || c.id === this.form.categoryId) &&
+            (!c.applicationId || c.applicationId === this.form.applicationId));
+    }
+
+    // Aciliyet seçimi: aktif öncelikler (önceliklerde hedef süre varsa yanında yazar)
+    get activePriorities(): RequestPriorityResponse[] {
+        return this.priorities.filter(p => !p.isBlocked || p.id === this.createPriorityId);
+    }
+
+    get defaultPriorityId(): string {
+        return this.priorities.find(p => p.isDefault && !p.isBlocked)?.id ?? '';
+    }
+
+    priorityLabel(priority: RequestPriorityResponse): string {
+        const hours = priority.targetHours;
+        if (!hours) return priority.name;
+        const target = hours % 24 === 0 ? `${hours / 24} gün` : `${hours} saat`;
+        return `${priority.name} (hedef ${target})`;
+    }
+
+    // Listede sıradaki yanıtın kimden beklendiği (API son mesaj bilgisini göndermezse boş)
+    waitingLabel(item: UserRequest): string {
+        if (this.isClosed(item) || typeof item.lastMessageFromManager !== 'boolean') return '';
+        if (this.isAdmin) return item.lastMessageFromManager ? '' : 'Yanıt bekliyor';
+        return item.lastMessageFromManager ? 'Yanıtınız bekleniyor' : '';
     }
 
     get activeApplications(): RequestApplicationResponse[] {
@@ -667,6 +732,7 @@ export class UserRequestsPage implements OnInit, OnDestroy {
         if (!this.isCreateFormValid()) return;
 
         const req: CreateUserRequestRequest = {
+            priorityId: this.createPriorityId || null,
             userId: this.currentUserId,
             applicationId: this.form.applicationId,
             categoryId: this.form.categoryId,

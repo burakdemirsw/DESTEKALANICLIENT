@@ -5,6 +5,8 @@ import { PageTitle } from '@app/components/page-title';
 import { RequestCategoriesService } from '@/app/core/services/request-categories.service';
 import { RequestCategoryResponse, CreateRequestCategoryRequest, UpdateRequestCategoryRequest } from '@/app/core/models/request-category/request-category.models';
 import { AuthStateService } from '@core/services/auth-state.service';
+import { RequestApplicationsService } from '@/app/core/services/request-applications.service';
+import { RequestApplicationResponse } from '@/app/core/models/request-application/request-application.models';
 
 @Component({
     selector: 'app-request-categories-page',
@@ -13,6 +15,8 @@ import { AuthStateService } from '@core/services/auth-state.service';
 })
 export class RequestCategoriesPage implements OnInit {
     categories: RequestCategoryResponse[] = [];
+    // Kategori bir uygulamaya bağlanırsa talep açarken yalnız o uygulamada seçilir
+    applications: RequestApplicationResponse[] = [];
     loading = false;
     showModal = false;
     editMode = false;
@@ -32,12 +36,39 @@ export class RequestCategoriesPage implements OnInit {
         colorCode: '#64748b',
         order: 0,
         isBlocked: false,
+        applicationId: '',
     };
 
-    constructor(private categoryService: RequestCategoriesService, private authStateService: AuthStateService) {}
+    constructor(
+        private categoryService: RequestCategoriesService,
+        private authStateService: AuthStateService,
+        private applicationsService: RequestApplicationsService,
+    ) {}
 
     ngOnInit(): void {
         this.loadCategories();
+        this.loadApplications();
+    }
+
+    private async loadApplications(): Promise<void> {
+        try {
+            const response = await this.applicationsService.getPaged({
+                companyId: this.authStateService.profile?.companyId ?? '',
+                pageNumber: 1,
+                pageSize: 1000,
+            });
+            this.applications = response?.data?.items ?? [];
+        } catch {
+            this.applications = [];
+        }
+    }
+
+    // Listede uygulama adı: API'den gelmezse yüklenen uygulamalardan bulunur
+    getApplicationName(category: RequestCategoryResponse): string {
+        if (!category.applicationId) return 'Tüm uygulamalar';
+        return category.applicationName
+            || this.applications.find(application => application.id === category.applicationId)?.applicationName
+            || '-';
     }
 
     async loadCategories(): Promise<void> {
@@ -79,7 +110,7 @@ export class RequestCategoriesPage implements OnInit {
     openCreate(): void {
         this.editMode = false;
         this.selectedCategory = null;
-        this.form = { name: '', description: '', colorCode: '#64748b', order: 0, isBlocked: false };
+        this.form = { name: '', description: '', colorCode: '#64748b', order: 0, isBlocked: false, applicationId: '' };
         this.showModal = true;
     }
 
@@ -92,6 +123,7 @@ export class RequestCategoriesPage implements OnInit {
             colorCode: category.colorCode ?? '#64748b',
             order: category.order ?? 0,
             isBlocked: category.isBlocked ?? false,
+            applicationId: category.applicationId ?? '',
         };
         this.showModal = true;
     }
@@ -105,6 +137,7 @@ export class RequestCategoriesPage implements OnInit {
                     colorCode: this.form.colorCode,
                     order: Number(this.form.order) || 0,
                     isBlocked: this.form.isBlocked,
+                    applicationId: this.form.applicationId || null,
                 };
                 await this.categoryService.update(this.selectedCategory.id, req);
             } else {
@@ -113,6 +146,7 @@ export class RequestCategoriesPage implements OnInit {
                     description: this.form.description,
                     colorCode: this.form.colorCode,
                     order: Number(this.form.order) || 0,
+                    applicationId: this.form.applicationId || null,
                 };
                 await this.categoryService.create(req);
             }

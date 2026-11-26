@@ -16,21 +16,27 @@ değiştirilmez.
   müşteri panelleri 26.11.2026'da client, API ve veritabanından kaldırıldı. Bunlara ait sayfa, servis, model, uç nokta ya
   da tablo yeniden eklenmez; gerekiyorsa önce kullanıcıya sorulur.
   - Kalan sayfalar: Anasayfa (`/dashboard`); Destek Merkezi (`/admin/user-requests`, `/admin/user-requests/all`,
-    `/admin/user-requests/:id`, `/admin/request-applications`, `/admin/request-categories`, `/admin/request-statuses`,
-    `/admin/request-priorities`); Şirket Bilgileri (`/admin/company-detail`); Sistem Yönetimi (`/admin/companies`,
-    `/admin/user-types`, `/admin/roles`, `/admin/role-assignments`, `/admin/menus`, `/admin/role-menus`,
-    `/admin/mail-settings`, `/admin/aws-s3-settings`, `/admin/cloudinary-settings`); profil (`/users/profile`), sürüm
-    notları, auth ve hata sayfaları.
+    `/admin/user-requests/:id`, `/admin/request-applications`, `/admin/request-categories`,
+    `/admin/request-responsibles`, `/admin/request-statuses`, `/admin/request-priorities`); Şirket Bilgileri
+    (`/admin/company-detail`); Sistem Yönetimi (`/admin/companies`, `/admin/user-types`, `/admin/roles`,
+    `/admin/role-assignments`, `/admin/menus`, `/admin/role-menus`, `/admin/mail-settings`, `/admin/aws-s3-settings`,
+    `/admin/cloudinary-settings`, `/admin/app-logs`); profil (`/users/profile`), sürüm notları, auth ve hata sayfaları.
   - **Destek talebi yapısını bozacak hiçbir alan kaldırılmaz.** Talep, talep mesajı / dosya eki, talep uygulaması,
     kategori, durum, öncelik, mail ayarları (bildirim e-postası) ve dosya depolama ayarları (S3 / Cloudinary) bu yapının
     parçasıdır.
 - **Roller iki tanedir; adları API'de ve talep ekranlarında kullanılır, değiştirilmez:** `Destek Alanı Yönetici` (tüm
   şirketlerin taleplerini görür, tanımları ve sistemi yönetir) ve `Destek Alanı` (talep açan şirket kullanıcısı; yalnız
   kendi şirketinin taleplerini görür, kayıt olana otomatik atanır).
+  - **Yetkiyi API verir, menü yalnız gösterir.** Şirket kullanıcısının başka şirketin kaydını görmesi, tanım / ayar
+    değiştirmesi API'de 403 ile engellenir; client'ta yalnız menüyü ya da düğmeyi gizlemek yetki sayılmaz. Yeni bir
+    yönetim ekranının uçları API'de yönetici kontrolüyle yazılır (bkz. backend `CLAUDE.md`).
+- **Talepler sorumlulara düşer:** Talep Sorumluları ekranında her talep uygulaması / kategorisi için sorumlu yöneticiler
+  seçilir. Talep, uygulamasının ya da kategorisinin sorumlularına düşer (Tüm Talepler > "Bana Düşenler" ve e-posta);
+  sorumlusu olmayan talep tüm yöneticilere düşer. Sorumlu yalnız `Destek Alanı Yönetici` rolündeki kullanıcı olabilir.
 - **Yan menü yalnız destek alanını içerir:** Anasayfa, Destek Merkezi (Destek Taleplerim, Tüm Talepler, Talep
-  Uygulamaları, Talep Kategorileri, Talep Durumları, Talep Öncelikleri), Şirket Bilgileri, Sistem Yönetimi. Yeni sayfa bu
-  gruplardan birine eklenir (bkz. "Yeni Sayfa / Menü"); `Destek Alanı` rolüne yalnız Anasayfa, Destek Taleplerim, Şirket
-  Bilgileri ve profil atanmıştır.
+  Uygulamaları, Talep Kategorileri, Talep Sorumluları, Talep Durumları, Talep Öncelikleri), Şirket Bilgileri, Sistem
+  Yönetimi (… Sistem Logları). Yeni sayfa bu gruplardan birine eklenir (bkz. "Yeni Sayfa / Menü"); `Destek Alanı`
+  rolüne yalnız Anasayfa, Destek Taleplerim, Şirket Bilgileri, profil ve sürüm notları atanmıştır.
 
 ## Build ve Yerel Sunucu
 

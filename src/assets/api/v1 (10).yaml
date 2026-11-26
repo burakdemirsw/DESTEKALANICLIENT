@@ -1645,6 +1645,182 @@ paths:
                 $ref: "#/components/schemas/ApiResponseOfListOfstring"
       security:
         - Bearer: []
+  /api/AppLogs/paged:
+    post:
+      tags:
+        - AppLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppLogPagedRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/AppLogPagedRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/AppLogPagedRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultOfAppLogResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultOfAppLogResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultOfAppLogResponse"
+      security:
+        - Bearer: []
+  /api/AppLogs/{id}:
+    get:
+      tags:
+        - AppLogs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfAppLogDetailResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfAppLogDetailResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfAppLogDetailResponse"
+      security:
+        - Bearer: []
+  /api/CannedReplies:
+    get:
+      tags:
+        - CannedReplies
+      parameters:
+        - name: includeBlocked
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfCannedReplyResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfCannedReplyResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfCannedReplyResponse"
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - CannedReplies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCannedReplyRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateCannedReplyRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateCannedReplyRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCannedReplyResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCannedReplyResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCannedReplyResponse"
+      security:
+        - Bearer: []
+  /api/CannedReplies/update/{id}:
+    post:
+      tags:
+        - CannedReplies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCannedReplyRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCannedReplyRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateCannedReplyRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+      security:
+        - Bearer: []
+  /api/CannedReplies/delete/{id}:
+    post:
+      tags:
+        - CannedReplies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+      security:
+        - Bearer: []
   /api/RequestApplications/paged:
     post:
       tags:
@@ -2367,6 +2543,165 @@ paths:
                 $ref: "#/components/schemas/ApiResponseOfObject"
       security:
         - Bearer: []
+  /api/SupportReports/performance:
+    post:
+      tags:
+        - SupportReports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportPerformanceReportRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/SupportPerformanceReportRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/SupportPerformanceReportRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfSupportPerformanceReportResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfSupportPerformanceReportResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfSupportPerformanceReportResponse"
+      security:
+        - Bearer: []
+  /api/UserRequests/{id}/history:
+    get:
+      tags:
+        - UserRequestActivity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfUserRequestHistoryResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfUserRequestHistoryResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfUserRequestHistoryResponse"
+      security:
+        - Bearer: []
+  /api/UserRequests/{id}/messages/mark-read:
+    post:
+      tags:
+        - UserRequestActivity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfMarkMessagesReadResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfMarkMessagesReadResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfMarkMessagesReadResponse"
+      security:
+        - Bearer: []
+  /api/UserRequests/{id}/confirm-resolution:
+    post:
+      tags:
+        - UserRequestActivity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmResolutionRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmResolutionRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ConfirmResolutionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+      security:
+        - Bearer: []
+  /api/UserRequests/{id}/reopen:
+    post:
+      tags:
+        - UserRequestActivity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReopenUserRequestRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ReopenUserRequestRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ReopenUserRequestRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+      security:
+        - Bearer: []
   /api/UserRequests/paged:
     post:
       tags:
@@ -2588,6 +2923,9 @@ paths:
                   type: array
                   items:
                     $ref: "#/components/schemas/IFormFile"
+                PriorityId:
+                  type: string
+                  format: uuid
         required: true
       responses:
         "200":
@@ -2802,6 +3140,8 @@ paths:
                   type: string
                 File:
                   $ref: "#/components/schemas/IFormFile"
+                IsInternal:
+                  type: boolean
         required: true
       responses:
         "200":
@@ -4488,6 +4828,42 @@ components:
         sortDescending:
           type: boolean
           default: false
+    ApiResponseOfAppLogDetailResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/AppLogDetailResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfAuthResponse:
       type: object
       properties:
@@ -4607,6 +4983,42 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/BulkRoleUserResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfCannedReplyResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/CannedReplyResponse"
         dataCount:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
@@ -4971,6 +5383,44 @@ components:
             - array
           items:
             $ref: "#/components/schemas/AwsS3SettingResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfListOfCannedReplyResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/CannedReplyResponse"
         dataCount:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
@@ -5602,6 +6052,44 @@ components:
           type:
             - "null"
             - string
+    ApiResponseOfListOfUserRequestHistoryResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/UserRequestHistoryResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfUserRequestMessageResponse:
       type: object
       properties:
@@ -5691,6 +6179,42 @@ components:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/MailSettingResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfMarkMessagesReadResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/MarkMessagesReadResponse"
         dataCount:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
@@ -5868,6 +6392,42 @@ components:
             - string
           format: int32
         data: {}
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfPagedResultOfAppLogResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/PagedResultOfAppLogResponse"
         dataCount:
           pattern: ^-?(?:0|[1-9]\d*)$
           type:
@@ -6575,6 +7135,42 @@ components:
           type:
             - "null"
             - string
+    ApiResponseOfSupportPerformanceReportResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/SupportPerformanceReportResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfUserRequestMessageResponse:
       type: object
       properties:
@@ -6755,6 +7351,163 @@ components:
           type:
             - "null"
             - string
+    AppLogDetailResponse:
+      required:
+        - id
+        - level
+        - message
+        - stackTrace
+        - source
+        - requestPath
+        - requestMethod
+        - queryString
+        - statusCode
+        - userIp
+        - createdDate
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        level:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+        stackTrace:
+          type:
+            - "null"
+            - string
+        source:
+          type:
+            - "null"
+            - string
+        requestPath:
+          type:
+            - "null"
+            - string
+        requestMethod:
+          type:
+            - "null"
+            - string
+        queryString:
+          type:
+            - "null"
+            - string
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        userIp:
+          type:
+            - "null"
+            - string
+        createdDate:
+          type: string
+          format: date-time
+    AppLogPagedRequest:
+      type: object
+      properties:
+        pageNumber:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+          default: 1
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+          default: 50
+        searchTerm:
+          type:
+            - "null"
+            - string
+        level:
+          type:
+            - "null"
+            - string
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        startDate:
+          type:
+            - "null"
+            - string
+          format: date-time
+        endDate:
+          type:
+            - "null"
+            - string
+          format: date-time
+    AppLogResponse:
+      required:
+        - id
+        - level
+        - message
+        - source
+        - requestPath
+        - requestMethod
+        - queryString
+        - statusCode
+        - userIp
+        - createdDate
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        level:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+        source:
+          type:
+            - "null"
+            - string
+        requestPath:
+          type:
+            - "null"
+            - string
+        requestMethod:
+          type:
+            - "null"
+            - string
+        queryString:
+          type:
+            - "null"
+            - string
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        userIp:
+          type:
+            - "null"
+            - string
+        createdDate:
+          type: string
+          format: date-time
     AuthResponse:
       required:
         - userId
@@ -6896,6 +7649,51 @@ components:
             - array
           items:
             type: string
+    CannedReplyResponse:
+      required:
+        - id
+        - title
+        - text
+        - order
+        - isBlocked
+        - createdByUserId
+        - createdByUserName
+        - createdDate
+        - updatedDate
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type:
+            - "null"
+            - string
+        text:
+          type:
+            - "null"
+            - string
+        order:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        isBlocked:
+          type: boolean
+        createdByUserId:
+          type: string
+          format: uuid
+        createdByUserName:
+          type:
+            - "null"
+            - string
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
     CityResponse:
       required:
         - id
@@ -7107,6 +7905,22 @@ components:
         updatedDate:
           type: string
           format: date-time
+    ConfirmResolutionRequest:
+      required:
+        - rating
+        - comment
+      type: object
+      properties:
+        rating:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: uint8
+        comment:
+          type:
+            - "null"
+            - string
     CountryResponse:
       required:
         - id
@@ -7179,6 +7993,27 @@ components:
             - array
           items:
             $ref: "#/components/schemas/CreateRoleUserRequest"
+    CreateCannedReplyRequest:
+      required:
+        - title
+        - text
+      type: object
+      properties:
+        title:
+          type:
+            - "null"
+            - string
+        text:
+          type:
+            - "null"
+            - string
+        order:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+          default: 0
     CreateCityRequest:
       required:
         - countryId
@@ -7503,6 +8338,11 @@ components:
             - integer
             - string
           format: int32
+        applicationId:
+          type:
+            - "null"
+            - string
+          format: uuid
     CreateRequestPriorityRequest:
       required:
         - name
@@ -7527,6 +8367,13 @@ components:
         isDefault:
           type: boolean
           default: false
+        targetHours:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
     CreateRequestStatusRequest:
       required:
         - name
@@ -7662,6 +8509,9 @@ components:
           type:
             - "null"
             - string
+        isInternal:
+          type: boolean
+          default: false
     CreateUserRequestRequest:
       required:
         - userId
@@ -7695,6 +8545,11 @@ components:
           type:
             - "null"
             - string
+        priorityId:
+          type:
+            - "null"
+            - string
+          format: uuid
     CreateUserRequestWithFilesResponse:
       required:
         - request
@@ -7865,6 +8720,17 @@ components:
         updatedDate:
           type: string
           format: date-time
+    MarkMessagesReadResponse:
+      required:
+        - markedCount
+      type: object
+      properties:
+        markedCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
     MenuResponse:
       required:
         - id
@@ -8077,6 +8943,51 @@ components:
           type:
             - "null"
             - string
+    PagedResultOfAppLogResponse:
+      required:
+        - items
+        - pageNumber
+        - pageSize
+        - totalCount
+        - totalPages
+        - hasPreviousPage
+        - hasNextPage
+      type: object
+      properties:
+        items:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/AppLogResponse"
+        pageNumber:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalPages:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
     PagedResultOfCompanyResponse:
       required:
         - items
@@ -8657,6 +9568,15 @@ components:
           type:
             - "null"
             - string
+    ReopenUserRequestRequest:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type:
+            - "null"
+            - string
     RequestApplicationResponse:
       required:
         - id
@@ -8732,6 +9652,15 @@ components:
         updatedDate:
           type: string
           format: date-time
+        applicationId:
+          type:
+            - "null"
+            - string
+          format: uuid
+        applicationName:
+          type:
+            - "null"
+            - string
     RequestPriorityResponse:
       required:
         - id
@@ -8771,6 +9700,13 @@ components:
         updatedDate:
           type: string
           format: date-time
+        targetHours:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
     RequestResponsibleAssignmentResponse:
       required:
         - applicationId
@@ -9036,6 +9972,184 @@ components:
           items:
             type: string
             format: uuid
+    SupportPerformanceGroupItem:
+      required:
+        - userId
+        - name
+        - openCount
+        - closedCount
+        - averageResolutionMinutes
+        - averageSatisfaction
+      type: object
+      properties:
+        userId:
+          type:
+            - "null"
+            - string
+          format: uuid
+        name:
+          type:
+            - "null"
+            - string
+        openCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        closedCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        averageResolutionMinutes:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+        averageSatisfaction:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+    SupportPerformanceReportRequest:
+      required:
+        - startDate
+        - endDate
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+    SupportPerformanceReportResponse:
+      required:
+        - startDate
+        - endDate
+        - openedCount
+        - closedCount
+        - answeredCount
+        - averageFirstResponseMinutes
+        - medianFirstResponseMinutes
+        - averageResolutionMinutes
+        - openCount
+        - awaitingManagerReplyCount
+        - awaitingCustomerReplyCount
+        - overdueOpenCount
+        - closedWithinTargetCount
+        - closedWithTargetCount
+        - averageSatisfaction
+        - ratedCount
+        - byManager
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        openedCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        closedCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        answeredCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        averageFirstResponseMinutes:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+        medianFirstResponseMinutes:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+        averageResolutionMinutes:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+        openCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        awaitingManagerReplyCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        awaitingCustomerReplyCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        overdueOpenCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        closedWithinTargetCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        closedWithTargetCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        averageSatisfaction:
+          pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$
+          type:
+            - "null"
+            - number
+            - string
+          format: double
+        ratedCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        byManager:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/SupportPerformanceGroupItem"
     UpdateAwsS3SettingRequest:
       required:
         - region
@@ -9064,6 +10178,30 @@ components:
             - string
         isActive:
           type: boolean
+        isBlocked:
+          type: boolean
+    UpdateCannedReplyRequest:
+      required:
+        - title
+        - text
+        - order
+        - isBlocked
+      type: object
+      properties:
+        title:
+          type:
+            - "null"
+            - string
+        text:
+          type:
+            - "null"
+            - string
+        order:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
         isBlocked:
           type: boolean
     UpdateCityRequest:
@@ -9412,6 +10550,11 @@ components:
           format: int32
         isBlocked:
           type: boolean
+        applicationId:
+          type:
+            - "null"
+            - string
+          format: uuid
     UpdateRequestPriorityRequest:
       required:
         - name
@@ -9439,6 +10582,13 @@ components:
           type: boolean
         isBlocked:
           type: boolean
+        targetHours:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
     UpdateRequestStatusRequest:
       required:
         - name
@@ -9673,6 +10823,46 @@ components:
         sortDescending:
           type: boolean
           default: false
+    UserRequestHistoryResponse:
+      required:
+        - id
+        - requestId
+        - userId
+        - userName
+        - fieldName
+        - oldValue
+        - newValue
+        - createdDate
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        requestId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type:
+            - "null"
+            - string
+        fieldName:
+          type:
+            - "null"
+            - string
+        oldValue:
+          type:
+            - "null"
+            - string
+        newValue:
+          type:
+            - "null"
+            - string
+        createdDate:
+          type: string
+          format: date-time
     UserRequestMessageResponse:
       required:
         - id
@@ -9728,6 +10918,12 @@ components:
           type:
             - "null"
             - string
+        isFromManager:
+          type: boolean
+          default: false
+        isInternal:
+          type: boolean
+          default: false
     UserRequestPagedRequest:
       required:
         - userId
@@ -9896,6 +11092,43 @@ components:
           type:
             - "null"
             - string
+        lastMessageDate:
+          type:
+            - "null"
+            - string
+          format: date-time
+        lastMessageFromManager:
+          type:
+            - "null"
+            - boolean
+        unreadCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+          default: 0
+        satisfactionRating:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: uint8
+        satisfactionComment:
+          type:
+            - "null"
+            - string
+        priorityTargetHours:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        isOverdue:
+          type: boolean
+          default: false
     UserRequestStatusSummaryItemResponse:
       required:
         - statusName
@@ -10072,11 +11305,15 @@ tags:
   - name: Users
   - name: Notifications
   - name: FileUpload
+  - name: AppLogs
+  - name: CannedReplies
   - name: RequestApplications
   - name: RequestCategories
   - name: RequestPriorities
   - name: RequestResponsibles
   - name: RequestStatuses
+  - name: SupportReports
+  - name: UserRequestActivity
   - name: UserRequests
   - name: UserTypes
   - name: AwsS3Settings

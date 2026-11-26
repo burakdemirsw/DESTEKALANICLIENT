@@ -29,6 +29,7 @@
                                 <tr>
                                     <th>Kategori Adı</th>
                                     <th>Açıklama</th>
+                                    <th>Uygulama</th>
                                     <th>Sıra</th>
                                     <th>Renk Kodu</th>
                                     <th>Durum</th>
@@ -44,6 +45,7 @@
                                                 {{ item.description }}
                                             </span>
                                         </td>
+                                        <td [class.text-muted]="!item.applicationId">{{ getApplicationName(item) }}</td>
                                         <td>{{ item.order }}</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
@@ -65,7 +67,7 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="6" class="text-center text-muted">Kategori bulunamadı.</td></tr>
+                                    <tr><td colspan="7" class="text-center text-muted">Kategori bulunamadı.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -122,6 +124,16 @@
                         <div class="mb-3">
                             <label class="form-label">Açıklama</label>
                             <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="categoryApplication">Uygulama</label>
+                            <select id="categoryApplication" class="form-select" [(ngModel)]="form.applicationId" name="applicationId">
+                                <option value="">Tüm uygulamalar</option>
+                                @for (application of applications; track application.id) {
+                                    <option [value]="application.id">{{ application.applicationName }}</option>
+                                }
+                            </select>
+                            <div class="form-text">Bir uygulama seçilirse kategori talep açarken yalnız o uygulamada listelenir.</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Sıra</label>

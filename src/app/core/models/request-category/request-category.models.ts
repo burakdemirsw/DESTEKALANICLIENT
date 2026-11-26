@@ -7,6 +7,9 @@ export interface RequestCategoryResponse {
     isBlocked: boolean;
     createdDate: string;
     updatedDate: string;
+    // Kategorinin bağlı olduğu talep uygulaması; boşsa her uygulamada seçilir
+    applicationId?: string | null;
+    applicationName?: string | null;
 }
 
 export interface CreateRequestCategoryRequest {
@@ -14,6 +17,7 @@ export interface CreateRequestCategoryRequest {
     description: string;
     colorCode?: string | null;
     order: number;
+    applicationId?: string | null;
 }
 
 export interface UpdateRequestCategoryRequest {
@@ -22,4 +26,5 @@ export interface UpdateRequestCategoryRequest {
     colorCode?: string | null;
     order: number;
     isBlocked: boolean;
+    applicationId?: string | null;
 }
