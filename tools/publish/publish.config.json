@@ -1,0 +1,7 @@
+{
+    "clientUrl": "https://destek.raftakip.com",
+    "apiRepoDir": "../../DESTEKALANIAPI",
+    "apiPublishDir": "../../DESTEKALANIAPI/Presentation/Api/bin/Release/net10.0/publish",
+    "apiMainDll": "Api.dll",
+    "deployKeyFile": "~/.destekalani/deploy-key.json"
+}

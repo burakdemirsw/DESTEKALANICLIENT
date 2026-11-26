@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { CompaniesService } from '@/app/core/services/companies.service';
 import { AddressesService } from '@/app/core/services/addresses.service';
 import { NeighbourhoodsService } from '@/app/core/services/neighbourhoods.service';
@@ -37,7 +38,9 @@ interface UserFormModel {
     templateUrl: './company-detail.html',
     styleUrls: ['./company-detail.scss'],
 })
-export class CompanyDetailPage implements OnInit {
+// /admin/company-detail: giriş yapanın kendi şirketi. /admin/companies/:id: destek yöneticisinin Şirketler listesinden
+// açtığı şirket (bilgi, kullanıcı ve ayar işlemleri o şirkette yapılır; başka şirket için yetkiyi API verir).
+export class CompanyDetailPage implements OnInit, OnDestroy {
     // Aktif sekme
     activeTab: 'company' | 'users' | 'settings' = 'company';
 
@@ -111,9 +114,13 @@ export class CompanyDetailPage implements OnInit {
     };
 
     private companyId = '';
+    // Adresteki şirket (yalnız /admin/companies/:id); boşsa sayfa kendi şirketini gösterir
+    private managedCompanyId = '';
+    private routeSub: Subscription | null = null;
 
     constructor(
         private router: Router,
+        private route: ActivatedRoute,
         private companiesService: CompaniesService,
         private addressesService: AddressesService,
         private neighbourhoodsService: NeighbourhoodsService,
@@ -123,14 +130,46 @@ export class CompanyDetailPage implements OnInit {
     ) {}
 
     ngOnInit(): void {
-        this.companyId = this.authStateService.profile?.companyId || '';
-        if (this.companyId) {
-            this.loadCompany(this.companyId);
-            this.loadUsers();
-            this.loadSettings();
-        } else {
-            this.errorMessage = 'Şirket bilgisi bulunamadı.';
-        }
+        // Bir şirketin detayından başkasınınkine geçilince bileşen yeniden kullanılır; her şirkette sayfa baştan yüklenir
+        this.routeSub = this.route.paramMap.subscribe(params => {
+            this.managedCompanyId = params.get('id') ?? '';
+            this.resetState();
+            this.companyId = this.managedCompanyId || this.authStateService.profile?.companyId || '';
+            if (this.companyId) {
+                this.loadCompany(this.companyId);
+                this.loadUsers();
+                this.loadSettings();
+            } else {
+                this.errorMessage = 'Şirket bilgisi bulunamadı.';
+            }
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.routeSub?.unsubscribe();
+    }
+
+    /** Sayfa Şirketler listesinden seçilen bir şirket için mi açıldı (yönetici)? */
+    get isManagedCompany(): boolean {
+        return !!this.managedCompanyId;
+    }
+
+    private resetState(): void {
+        this.activeTab = 'company';
+        this.company = null;
+        this.editMode = false;
+        this.errorMessage = '';
+        this.successMessage = '';
+        this.users = [];
+        this.filteredUsers = [];
+        this.pagedUsers = [];
+        this.userFilterText = '';
+        this.usersCurrentPage = 1;
+        this.showUserModal = false;
+        this.setting = null;
+        this.settingsForm = { isTwoFactorAuthEnabled: false };
+        this.settingsSuccessMessage = '';
+        this.settingsErrorMessage = '';
     }
 
     async loadCompany(id: string): Promise<void> {
@@ -217,7 +256,6 @@ export class CompanyDetailPage implements OnInit {
                 postalCode: this.editForm.postalCode || null,
                 isBlocked: this.editForm.isBlocked,
             };
-            console.log('Update body:', JSON.stringify(body));
             await this.companiesService.update(this.company.id, body);
             this.successMessage = 'Şirket bilgileri başarıyla güncellendi.';
             this.editMode = false;
@@ -389,8 +427,9 @@ export class CompanyDetailPage implements OnInit {
         }
     }
 
+    // Şirketler listesinden açıldıysa listeye, kendi şirketinde (şirket kullanıcısı listeyi açamaz) anasayfaya döner
     goBack(): void {
-        this.router.navigate(['/admin/companies']);
+        this.router.navigate([this.isManagedCompany ? '/admin/companies' : '/dashboard']);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -506,7 +545,8 @@ export class CompanyDetailPage implements OnInit {
                     password: this.userForm.password,
                     gender: this.userForm.gender,
                 };
-                await this.usersService.create(req);
+                // Yönetici başka şirketi yönetiyorsa kullanıcı o şirkete eklenir; yoksa kendi şirketine
+                await this.usersService.create(req, this.managedCompanyId || undefined);
                 this.successMessage = 'Kullanıcı başarıyla oluşturuldu.';
             } else {
                 if (!this.selectedUser) return;

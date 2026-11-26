@@ -4,6 +4,9 @@
 :host {
   display: block;
   min-height: 100dvh;
+  // app.scss'teki .app-router-container'ın 12px üst boşluğu siyah zeminin üstünde beyaz şerit
+  // bırakıyordu; sayfa o boşluğun üstüne çekilir (diğer sayfaların boşluğu değişmez).
+  margin-top: -12px;
   background: #000;
 }
 
@@ -165,99 +168,6 @@
   color: var(--muted);
 }
 
-/* ───────────── Referanslar ───────────── */
-
-.home-refs {
-  padding: clamp(36px, 7vh, 80px) var(--pad-x) clamp(28px, 5vh, 56px);
-  border-top: 1px solid var(--line);
-}
-
-.refs-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 40px;
-  margin-bottom: clamp(20px, 4vh, 40px);
-}
-
-.refs-title {
-  margin: 0;
-  max-width: 24ch;
-  font-size: clamp(1.5rem, 3vw, 2.4rem);
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: var(--fg);
-}
-
-.refs-count {
-  margin: 0;
-  max-width: 34ch;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--muted);
-
-  b {
-    display: block;
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    color: var(--fg);
-  }
-}
-
-.refs-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 24px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-bottom: 1px solid var(--line);
-}
-
-.ref {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  height: 100%;
-  padding: 14px 0;
-  border-top: 1px solid var(--line);
-  color: var(--fg);
-  text-decoration: none;
-}
-
-a.ref:hover {
-  color: var(--fg);
-
-  .ref-name i {
-    color: var(--accent);
-  }
-}
-
-.ref-name {
-  font-size: 0.98rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  overflow-wrap: anywhere;
-
-  i {
-    margin-inline-start: 8px;
-    font-size: 0.62rem;
-    vertical-align: 0.15em;
-    color: var(--muted);
-    transition: color 250ms ease;
-  }
-}
-
-.ref-cat {
-  font-size: 0.8rem;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
 /* ───────────── Alt çubuk ───────────── */
 
 .home-foot {
@@ -281,12 +191,6 @@ a.ref:hover {
 
 /* ───────────── Duyarlılık ───────────── */
 
-@media (max-width: 1199.98px) {
-  .refs-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 991.98px) {
   .steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -298,13 +202,6 @@ a.ref:hover {
 
   .step:nth-child(n + 3) {
     border-top: 1px solid var(--line);
-  }
-}
-
-@media (max-width: 767.98px) {
-  .refs-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 16px;
   }
 }
 

@@ -86,6 +86,13 @@ export const ADMIN_ROUTES: Routes = [
         data: { title: 'Şirketler' },
         canActivate: [AuthGuard],
     },
+    // Yöneticinin seçtiği şirketi yönettiği detay; guard :id'yi atar, yetki "Şirketler" menüsünden gelir
+    {
+        path: 'admin/companies/:id',
+        component: CompanyDetailPage,
+        data: { title: 'Şirket Detayı' },
+        canActivate: [AuthGuard],
+    },
 
     // ── Sistem Yönetimi ─────────────────────────────────────────────────────
     {

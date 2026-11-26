@@ -38,6 +38,14 @@ export class CompaniesService {
         return this.http.post<any>({ controller: 'Companies' }, request);
     }
 
+    /** Kaynak şirketi kopyalar: yeni şirket istekteki bilgilerle açılır, kaynağın ayarları aktarılır. Yalnız destek yöneticisi. */
+    copy(sourceId: string, request: CreateCompanyRequest): Promise<ApiResponse<Company>> {
+        return this.http.post<Company>(
+            { controller: 'Companies', action: `copy/${sourceId}` },
+            request,
+        );
+    }
+
     update(
         id: string,
         request: UpdateCompanyRequest,

@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { appName, currentYear } from '@/app/constants';
-import { CUSTOMER_REFERENCES } from '@core/data/customer-references.data';
 import { AuthStateService } from '@core/services/auth-state.service';
 
 /** "Nasıl çalışır" bölümündeki adım */
@@ -11,8 +10,8 @@ interface SupportStep {
 }
 
 /**
- * Herkese açık tanıtım sayfası (/home): uygulamanın amacını, talep sürecini ve referansları
- * anlatır. BGZHUB anasayfasının (hub.raftakip.com/home) sade düzeni kullanılır: siyah zemin,
+ * Herkese açık tanıtım sayfası (/home): uygulamanın amacını ve talep sürecini anlatır.
+ * BGZHUB anasayfasının (hub.raftakip.com/home) sade düzeni kullanılır: siyah zemin,
  * ince ayırıcı çizgiler, tek vurgu rengi. Guard ve yan menü yoktur.
  */
 @Component({
@@ -24,7 +23,6 @@ interface SupportStep {
 export class LandingPage {
   readonly appName = appName;
   readonly year = currentYear;
-  readonly references = CUSTOMER_REFERENCES;
   /** Oturum açıksa üstteki düğme doğrudan panele götürür */
   readonly isSignedIn = !!inject(AuthStateService).profile;
 

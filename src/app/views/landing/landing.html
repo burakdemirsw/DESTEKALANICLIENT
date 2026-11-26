@@ -32,37 +32,6 @@
       </ol>
     </section>
 
-    <section class="home-refs" aria-label="Referanslar">
-      <div class="refs-head">
-        <div>
-          <p class="eyebrow">Referanslar</p>
-          <h2 class="refs-title">Depolarını Raf Takip WMS ile yöneten markalar.</h2>
-        </div>
-        <p class="refs-count">
-          <b>{{ references.length }}</b>
-          marka; streetwear, tesettür, çocuk giyim, aksesuar, kırtasiye ve ecza deposu.
-        </p>
-      </div>
-
-      <ul class="refs-grid">
-        @for (reference of references; track reference.name) {
-          <li>
-            @if (reference.url) {
-              <a class="ref" [href]="reference.url" target="_blank" rel="noopener" [title]="reference.name + ' sitesini aç'">
-                <span class="ref-name">{{ reference.name }}<i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-                <span class="ref-cat">{{ reference.category }}</span>
-              </a>
-            } @else {
-              <div class="ref">
-                <span class="ref-name">{{ reference.name }}</span>
-                <span class="ref-cat">{{ reference.category }}</span>
-              </div>
-            }
-          </li>
-        }
-      </ul>
-    </section>
-
   </main>
 
   <footer class="home-foot">

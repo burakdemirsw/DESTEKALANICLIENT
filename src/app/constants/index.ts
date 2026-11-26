@@ -8,8 +8,8 @@ export const currency: CurrencyType = '$'
 export const currentYear = new Date().getFullYear()
 
 export const credits = {
-    website: 'https://raftakip.com/',
-    name: 'Destek Alanı',
+    website: 'https://bogazicisoft.com/',
+    name: 'Boğaziçi Soft',
 };
 
 export const appName = 'Destek Alanı'

@@ -1,0 +1,27 @@
+Sürüm 2.0.0.2 - 26.11.2026 20:46
+
+Tanıtım Sayfası
+- Sayfanın üstünde görünen ince beyaz şerit kaldırıldı.
+- Referanslar bölümü kaldırıldı; sayfada yalnız tanıtım ve talep sürecinin adımları yer alıyor.
+
+Genel
+- Sayfaların alt bilgisinde, giriş, kayıt ve hata sayfalarında uygulamayı geliştiren firma olarak Boğaziçi Soft yazıyor;
+  giriş ve kayıt sayfalarındaki firma adı Boğaziçi Soft sitesini açıyor.
+- Yan menüde logonun altındaki "Pre-Alpha" yazısı kaldırıldı.
+
+Şirketler
+- Listede artık tüm şirketler görünüyor; arama şirket adı ve vergi numarasının yanında telefon ve e-postada da yapılıyor.
+- Şirket adına ya da "Detay" düğmesine tıklayınca o şirketin sayfası açılıyor: şirket bilgileri düzenlenebiliyor,
+  şirkete kullanıcı eklenip düzenlenebiliyor ve şirket ayarları (iki faktörlü doğrulama) değiştirilebiliyor.
+- Yeni "Kopyala" düğmesiyle bir şirketin bilgileri ve ayarları dolu gelen formla yeni bir şirkete kopyalanabiliyor;
+  kullanıcılar kopyalanmıyor.
+- Silme işlemi sayfa içinde açılan onay penceresiyle yapılıyor; işlem sonuçları ekranın köşesinde kısa bildirimle
+  gösteriliyor.
+- Kaydederken düğme pasif oluyor, çift tıklamayla iki kayıt açılmıyor; ülke, şehir ya da ilçe seçmeden de şirket
+  kaydedilebiliyor.
+- Düzenlenen şirketin mahalle bilgisi artık silinmiyor.
+- Arama ve sayfa adreste tutuluyor; sayfa yenilenince aynı arama ile açılıyor.
+- Telefonda liste ve form ekrana sığıyor.
+
+Şirket Bilgileri
+- Sayfanın üstündeki geri düğmesi kaldırıldı (bu sayfa menüden açılıyor).

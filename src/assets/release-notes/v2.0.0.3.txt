@@ -1,0 +1,6 @@
+Sürüm 2.0.0.3 - 26.11.2026 21:13
+
+Genel
+- Destek Alanı'nın logosu yenilendi: yan menüde, şifre ve hata sayfalarında ve tarayıcı sekmesinde yeni logo
+  görünüyor.
+- Yan menüdeki daralt / genişlet düğmesinin üzerine gelince çıkan yazı düzeltildi.

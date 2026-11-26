@@ -36,7 +36,14 @@ export class UsersService {
     return this.http.get<UserResponse>({ controller: 'Users' }, id);
   }
 
-  create(request: CreateUserRequest): Promise<ApiResponse<UserResponse>> {
+  /**
+   * Kullanıcı ekler. companyId verilmezse isteği yapanın şirketine eklenir; verilirse o şirkete eklenir
+   * (yalnız destek yöneticisi, Şirketler > şirket detayı).
+   */
+  create(request: CreateUserRequest, companyId?: string): Promise<ApiResponse<UserResponse>> {
+    if (companyId) {
+      return this.http.post<UserResponse>({ controller: 'Users', action: `company/${companyId}` }, request);
+    }
     return this.http.post<UserResponse>({ controller: 'Users' }, request);
   }
 

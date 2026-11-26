@@ -56,20 +56,6 @@
     color: var(--ct-primary, #3762ea);
     margin-left: 2px;
   }
-
-  .logo-brand-version {
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    background: linear-gradient(90deg, #3762ea, #e040fb, #00e5ff, #3762ea);
-    background-size: 300% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: pre-alpha-shimmer 3s ease-in-out infinite;
-  }
 }
 
 .sidebar-toggle-btn {
@@ -98,10 +84,6 @@
 }
 
 :host-context(html[data-sidenav-size="condensed"]) {
-  .logo-brand-version {
-    display: none;
-  }
-  
   .logo-wrapper {
     padding: 0;
     flex-direction: column;
@@ -151,10 +133,4 @@
   .logo-brand-text-wrapper {
     display: none;
   }
-}
-
-@keyframes pre-alpha-shimmer {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }

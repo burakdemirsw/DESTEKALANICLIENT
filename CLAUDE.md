@@ -18,7 +18,7 @@ değiştirilmez.
   - Kalan sayfalar: Anasayfa (`/dashboard`); Destek Merkezi (`/admin/user-requests`, `/admin/user-requests/all`,
     `/admin/user-requests/:id`, `/admin/request-applications`, `/admin/request-categories`,
     `/admin/request-responsibles`, `/admin/request-statuses`, `/admin/request-priorities`); Şirket Bilgileri
-    (`/admin/company-detail`); Sistem Yönetimi (`/admin/companies`, `/admin/user-types`, `/admin/roles`,
+    (`/admin/company-detail`); Sistem Yönetimi (`/admin/companies`, `/admin/companies/:id`, `/admin/user-types`, `/admin/roles`,
     `/admin/role-assignments`, `/admin/menus`, `/admin/role-menus`, `/admin/mail-settings`, `/admin/aws-s3-settings`,
     `/admin/cloudinary-settings`, `/admin/app-logs`); profil (`/users/profile`), sürüm notları, auth ve hata sayfaları.
   - **Destek talebi yapısını bozacak hiçbir alan kaldırılmaz.** Talep, talep mesajı / dosya eki, talep uygulaması,
@@ -83,6 +83,15 @@ değiştirilmez.
     girer; yayında assets klasörü atılmasa da görünür. Bu dosya elle düzenlenmez; elle doldurulan eski bir not sonraki
     build'de sayfaya girer.
 
+## Yayın (Sunucuya Gönderme)
+
+- **"Yayınla" denince client ve / veya API `destek-publish` skill'iyle `tools/publish` üzerinden gönderilir**
+  (`client.js`: `dist/ubold-ng`, `api.js`: API'nin publish klasörü). İstekler API'nin `Deploy` uçlarına
+  (`X-Deploy-Key` ile) gider; client'ı da API, sunucudaki client klasörüne açar. Komutlar build almaz; build kuralları
+  ("Build ve Yerel Sunucu") aynen geçerlidir.
+  - Anahtar yalnız bu bilgisayarda (`~/.destekalani/deploy-key.json`) ve sunucudaki API'nin `appsettings.json`'unda
+    (`Deploy:Key`) durur; repoya, yanıta, commit'e yazılmaz. Sunucudaki ilk kurulum adımları skill'dedir.
+
 ## Backend (DESTEKALANIAPI)
 
 - **Backend reposuna (`source/repos/DESTEKALANIAPI`) erişmeden önce kullanıcıya sorulur.** Backend dosyası okumak,
@@ -129,7 +138,8 @@ değiştirilmez.
 
 - **Sayfada detay sayfası olan bir kayıt (destek talebi vb.) gösteriliyorsa ilgili detay sayfasına bağlantı verilir**;
   değer düz metin bırakılmaz. Kural yalnız listeler için değil; kart, başlık ve dialog için de geçerlidir.
-  - Destek talebi → `/admin/user-requests/:id`. Yeni detay sayfası eklendikçe buraya yazılır.
+  - Destek talebi → `/admin/user-requests/:id`; şirket → `/admin/companies/:id` (yalnız yönetici; şirket kullanıcısının
+    kendi şirketi `/admin/company-detail`). Yeni detay sayfası eklendikçe buraya yazılır.
   - `<a [routerLink]="[...]">` kullanılır; düz tık aynı sekmede açar, Ctrl/Cmd/Shift + tıkı tarayıcı yeni sekmede açar.
   - Bağlantı metni kaydın numarası / adıdır; ID metin olarak gösterilmez (bkz. "HTML'de ID gösterme yasağı"), yalnız
     route'ta kullanılır.

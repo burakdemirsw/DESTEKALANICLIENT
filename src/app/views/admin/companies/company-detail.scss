@@ -99,3 +99,24 @@
         margin-top: 0.15rem;
     }
 }
+
+// Başlık çubuğu: uzun şirket adı satırı taşırmaz, geri düğmesi dokunmaya yetecek büyüklükte
+.min-w-0 {
+    min-width: 0;
+}
+
+.back-btn {
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// iPhone Safari odaklanınca sayfayı yakınlaştırmasın
+@media (max-width: 575.98px) {
+    .form-control,
+    .form-select {
+        font-size: 16px;
+    }
+}

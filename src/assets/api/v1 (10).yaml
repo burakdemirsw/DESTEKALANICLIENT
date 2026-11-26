@@ -1031,6 +1031,44 @@ paths:
                 $ref: "#/components/schemas/ApiResponseOfUserResponse"
       security:
         - Bearer: []
+  /api/Users/company/{companyId}:
+    post:
+      tags:
+        - Users
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserResponse"
+      security:
+        - Bearer: []
   /api/Users/update/{id}:
     post:
       tags:
@@ -4560,6 +4598,44 @@ paths:
     post:
       tags:
         - Companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCompanyRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateCompanyRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateCompanyRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCompanyResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCompanyResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCompanyResponse"
+      security:
+        - Bearer: []
+  /api/Companies/copy/{id}:
+    post:
+      tags:
+        - Companies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
