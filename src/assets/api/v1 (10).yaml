@@ -943,6 +943,37 @@ paths:
                 $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfUserResponse"
       security:
         - Bearer: []
+  /api/Users/admin-paged:
+    post:
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminPaginationRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/AdminPaginationRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/AdminPaginationRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfUserResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfUserResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfUserResponse"
+      security:
+        - Bearer: []
   /api/Users/{id}:
     get:
       tags:
@@ -954,6 +985,37 @@ paths:
           schema:
             type: string
             format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserResponse"
+      security:
+        - Bearer: []
+  /api/Users:
+    post:
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+        required: true
       responses:
         "200":
           description: OK
@@ -2039,6 +2101,120 @@ paths:
                 $ref: "#/components/schemas/ApiResponseOfObject"
       security:
         - Bearer: []
+  /api/RequestResponsibles:
+    get:
+      tags:
+        - RequestResponsibles
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfRequestResponsibleAssignmentResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfRequestResponsibleAssignmentResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfRequestResponsibleAssignmentResponse"
+      security:
+        - Bearer: []
+  /api/RequestResponsibles/candidates:
+    get:
+      tags:
+        - RequestResponsibles
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfRequestResponsibleUserResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfRequestResponsibleUserResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfRequestResponsibleUserResponse"
+      security:
+        - Bearer: []
+  /api/RequestResponsibles/application/{applicationId}:
+    post:
+      tags:
+        - RequestResponsibles
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetRequestResponsiblesRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/SetRequestResponsiblesRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/SetRequestResponsiblesRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+      security:
+        - Bearer: []
+  /api/RequestResponsibles/category/{categoryId}:
+    post:
+      tags:
+        - RequestResponsibles
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetRequestResponsiblesRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/SetRequestResponsiblesRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/SetRequestResponsiblesRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+      security:
+        - Bearer: []
   /api/RequestStatuses/paged:
     post:
       tags:
@@ -2388,6 +2564,46 @@ paths:
                 $ref: "#/components/schemas/ApiResponseOfUserRequestResponse"
       security:
         - Bearer: []
+  /api/UserRequests/with-files:
+    post:
+      tags:
+        - UserRequests
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                ApplicationId:
+                  type: string
+                  format: uuid
+                CategoryId:
+                  type: string
+                  format: uuid
+                Subject:
+                  type: string
+                Description:
+                  type: string
+                Files:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/IFormFile"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCreateUserRequestWithFilesResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCreateUserRequestWithFilesResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCreateUserRequestWithFilesResponse"
+      security:
+        - Bearer: []
   /api/UserRequests/update/{id}:
     post:
       tags:
@@ -2486,13 +2702,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AdminPaginationRequest"
+              $ref: "#/components/schemas/UserRequestAdminPagedRequest"
           text/json:
             schema:
-              $ref: "#/components/schemas/AdminPaginationRequest"
+              $ref: "#/components/schemas/UserRequestAdminPagedRequest"
           application/*+json:
             schema:
-              $ref: "#/components/schemas/AdminPaginationRequest"
+              $ref: "#/components/schemas/UserRequestAdminPagedRequest"
         required: true
       responses:
         "200":
@@ -2600,6 +2816,22 @@ paths:
             text/json:
               schema:
                 $ref: "#/components/schemas/ApiResponseOfUserRequestMessageResponse"
+      security:
+        - Bearer: []
+  /api/UserRequests/messages/{messageId}/file:
+    get:
+      tags:
+        - UserRequests
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
       security:
         - Bearer: []
   /api/UserTypes/paged:
@@ -4288,6 +4520,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfAwsS3SettingResponse:
       type: object
       properties:
@@ -4320,6 +4556,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfboolean:
       type: object
       properties:
@@ -4347,6 +4587,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4382,6 +4626,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfCityResponse:
       type: object
       properties:
@@ -4411,6 +4659,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4446,6 +4698,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfCompanyResponse:
       type: object
       properties:
@@ -4475,6 +4731,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4510,6 +4770,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfCountryResponse:
       type: object
       properties:
@@ -4539,6 +4803,46 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfCreateUserRequestWithFilesResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/CreateUserRequestWithFilesResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4574,6 +4878,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfFileUploadResult:
       type: object
       properties:
@@ -4603,6 +4911,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4640,6 +4952,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfAwsS3SettingResponse:
       type: object
       properties:
@@ -4671,6 +4987,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4708,6 +5028,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfCloudinarySettingResponse:
       type: object
       properties:
@@ -4739,6 +5063,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4776,6 +5104,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfDistrictResponse:
       type: object
       properties:
@@ -4807,6 +5139,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4844,6 +5180,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfMailSettingResponse:
       type: object
       properties:
@@ -4875,6 +5215,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4912,6 +5256,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfNeighbourhoodResponse:
       type: object
       properties:
@@ -4943,6 +5291,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -4980,6 +5332,86 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfListOfRequestResponsibleAssignmentResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RequestResponsibleAssignmentResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
+    ApiResponseOfListOfRequestResponsibleUserResponse:
+      type: object
+      properties:
+        statusCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/RequestResponsibleUserResponse"
+        dataCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - "null"
+            - integer
+            - string
+          format: int32
+        traceId:
+          type:
+            - "null"
+            - string
+        errorCode:
+          type:
+            - "null"
+            - string
+        innerError:
+          type:
+            - "null"
+            - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfRoleMenuResponse:
       type: object
       properties:
@@ -5011,6 +5443,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5048,6 +5484,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfRoleUserResponse:
       type: object
       properties:
@@ -5079,6 +5519,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5116,6 +5560,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfUserMenuResponse:
       type: object
       properties:
@@ -5147,6 +5595,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5184,6 +5636,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfListOfUserRequestResponse:
       type: object
       properties:
@@ -5215,6 +5671,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5250,6 +5710,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfMenuResponse:
       type: object
       properties:
@@ -5279,6 +5743,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5314,6 +5782,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfNeighbourhoodResponse:
       type: object
       properties:
@@ -5343,6 +5815,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5378,6 +5854,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfObject:
       type: object
       properties:
@@ -5404,6 +5884,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5439,6 +5923,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfPagedResultOfNeighbourhoodResponse:
       type: object
       properties:
@@ -5468,6 +5956,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5503,6 +5995,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfPagedResultOfRequestApplicationResponse:
       type: object
       properties:
@@ -5532,6 +6028,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5567,6 +6067,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfPagedResultOfRequestPriorityResponse:
       type: object
       properties:
@@ -5596,6 +6100,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5631,6 +6139,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfPagedResultOfUserRequestResponse:
       type: object
       properties:
@@ -5660,6 +6172,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5695,6 +6211,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfPaginatedResponseOfUserResponse:
       type: object
       properties:
@@ -5724,6 +6244,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5759,6 +6283,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfRequestApplicationResponse:
       type: object
       properties:
@@ -5788,6 +6316,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5823,6 +6355,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfRequestPriorityResponse:
       type: object
       properties:
@@ -5852,6 +6388,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5887,6 +6427,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfRoleMenuResponse:
       type: object
       properties:
@@ -5916,6 +6460,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -5951,6 +6499,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfRoleUserResponse:
       type: object
       properties:
@@ -5980,6 +6532,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -6015,6 +6571,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfUserRequestMessageResponse:
       type: object
       properties:
@@ -6044,6 +6604,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -6079,6 +6643,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfUserRequestStatusSummaryReportResponse:
       type: object
       properties:
@@ -6108,6 +6676,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -6143,6 +6715,10 @@ components:
           type:
             - "null"
             - string
+        message:
+          type:
+            - "null"
+            - string
     ApiResponseOfUserTypeResponse:
       type: object
       properties:
@@ -6172,6 +6748,10 @@ components:
             - "null"
             - string
         innerError:
+          type:
+            - "null"
+            - string
+        message:
           type:
             - "null"
             - string
@@ -6923,11 +7503,6 @@ components:
             - integer
             - string
           format: int32
-        relatedTargetCompanyId:
-          type:
-            - "null"
-            - string
-          format: uuid
     CreateRequestPriorityRequest:
       required:
         - name
@@ -7023,6 +7598,43 @@ components:
         userId:
           type: string
           format: uuid
+    CreateUserRequest:
+      required:
+        - name
+        - lastName
+        - email
+        - password
+        - gender
+      type: object
+      properties:
+        name:
+          type:
+            - "null"
+            - string
+        lastName:
+          type:
+            - "null"
+            - string
+        email:
+          type:
+            - "null"
+            - string
+        password:
+          type:
+            - "null"
+            - string
+        gender:
+          type:
+            - "null"
+            - string
+        photoUrl:
+          type:
+            - "null"
+            - string
+        phoneNumber:
+          type:
+            - "null"
+            - string
     CreateUserRequestMessageRequest:
       required:
         - requestId
@@ -7083,6 +7695,20 @@ components:
           type:
             - "null"
             - string
+    CreateUserRequestWithFilesResponse:
+      required:
+        - request
+        - failedFiles
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/UserRequestResponse"
+        failedFiles:
+          type:
+            - "null"
+            - array
+          items:
+            type: string
     CreateUserTypeRequest:
       required:
         - name
@@ -8106,11 +8732,6 @@ components:
         updatedDate:
           type: string
           format: date-time
-        relatedTargetCompanyId:
-          type:
-            - "null"
-            - string
-          format: uuid
     RequestPriorityResponse:
       required:
         - id
@@ -8150,6 +8771,59 @@ components:
         updatedDate:
           type: string
           format: date-time
+    RequestResponsibleAssignmentResponse:
+      required:
+        - applicationId
+        - categoryId
+        - userId
+        - fullName
+        - email
+      type: object
+      properties:
+        applicationId:
+          type:
+            - "null"
+            - string
+          format: uuid
+        categoryId:
+          type:
+            - "null"
+            - string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        fullName:
+          type:
+            - "null"
+            - string
+        email:
+          type:
+            - "null"
+            - string
+    RequestResponsibleUserResponse:
+      required:
+        - userId
+        - fullName
+        - email
+        - companyName
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        fullName:
+          type:
+            - "null"
+            - string
+        email:
+          type:
+            - "null"
+            - string
+        companyName:
+          type:
+            - "null"
+            - string
     RequestStatusResponse:
       required:
         - id
@@ -8350,6 +9024,18 @@ components:
         companyId:
           type: string
           format: uuid
+    SetRequestResponsiblesRequest:
+      required:
+        - userIds
+      type: object
+      properties:
+        userIds:
+          type:
+            - "null"
+            - array
+          items:
+            type: string
+            format: uuid
     UpdateAwsS3SettingRequest:
       required:
         - region
@@ -8726,11 +9412,6 @@ components:
           format: int32
         isBlocked:
           type: boolean
-        relatedTargetCompanyId:
-          type:
-            - "null"
-            - string
-          format: uuid
     UpdateRequestPriorityRequest:
       required:
         - name
@@ -8961,6 +9642,37 @@ components:
             - "null"
             - string
           format: uuid
+    UserRequestAdminPagedRequest:
+      type: object
+      properties:
+        onlyMine:
+          type: boolean
+          default: false
+        pageNumber:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+          default: 1
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+          default: 20
+        searchTerm:
+          type:
+            - "null"
+            - string
+        sortBy:
+          type:
+            - "null"
+            - string
+        sortDescending:
+          type: boolean
+          default: false
     UserRequestMessageResponse:
       required:
         - id
@@ -9311,6 +10023,15 @@ components:
         updatedDate:
           type: string
           format: date-time
+        companyId:
+          type:
+            - "null"
+            - string
+          format: uuid
+        companyName:
+          type:
+            - "null"
+            - string
     UserTypeResponse:
       required:
         - id
@@ -9354,6 +10075,7 @@ tags:
   - name: RequestApplications
   - name: RequestCategories
   - name: RequestPriorities
+  - name: RequestResponsibles
   - name: RequestStatuses
   - name: UserRequests
   - name: UserTypes

@@ -10,6 +10,25 @@
                 </button>
             </div>
             <div class="card-body">
+                <ul class="nav nav-tabs mb-3">
+                    <li class="nav-item">
+                        <button type="button" class="nav-link" [class.active]="scope === 'mine'" (click)="setScope('mine')"
+                                title="Sorumlusu olduğunuz uygulama ve kategorilerdeki, size atanan ve sorumlusu olmayan talepler">
+                            Bana Düşenler
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="nav-link" [class.active]="scope === 'all'" (click)="setScope('all')">
+                            Tümü
+                        </button>
+                    </li>
+                </ul>
+                @if (scope === 'mine') {
+                    <p class="small text-muted mb-3">
+                        Sorumlusu olduğunuz uygulama ve kategorilerdeki talepler, size atanan talepler ve sorumlusu
+                        olmayan talepler. Sorumlular Destek Merkezi &gt; Talep Sorumluları'ndan ayarlanır.
+                    </p>
+                }
                 <div class="row g-2 mb-3 align-items-center">
                     <div class="col-md-4">
                         <input
@@ -98,7 +117,15 @@
                                         </td>
                                     </tr>
                                 } @empty {
-                                    <tr><td colspan="11" class="text-center text-muted">Talep bulunamadı.</td></tr>
+                                    <tr>
+                                        <td colspan="11" class="text-center text-muted">
+                                            @if (scope === 'mine' && !filterText) {
+                                                Size düşen talep yok.
+                                            } @else {
+                                                Talep bulunamadı.
+                                            }
+                                        </td>
+                                    </tr>
                                 }
                             </tbody>
                         </table>
@@ -204,10 +231,11 @@
                                     <label class="form-label">Atanan Kişi</label>
                                     <select class="form-select" [(ngModel)]="form.assignedUserId" name="assignedUserId">
                                         <option value="">Atanmadı</option>
-                                        @for (user of users; track $index) {
-                                            <option [value]="user.id">{{ user.name }} {{ user.lastName }}</option>
+                                        @for (manager of managers; track manager.userId) {
+                                            <option [value]="manager.userId">{{ manager.fullName }}</option>
                                         }
                                     </select>
+                                    <div class="form-text">Yalnız destek yöneticileri listelenir.</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <div class="form-check form-switch mt-4">
@@ -220,10 +248,28 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" (click)="closeModal()">İptal</button>
-                    <button type="button" class="btn btn-primary" (click)="save()">{{ editMode ? 'Güncelle' : 'Kaydet' }}</button>
+                    <button type="button" class="btn btn-light" [disabled]="saving" (click)="closeModal()">İptal</button>
+                    <button type="button" class="btn btn-primary" [disabled]="saving" (click)="save()">
+                        @if (saving) {
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        }
+                        {{ editMode ? 'Güncelle' : 'Kaydet' }}
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+}
+
+@if (pendingAction) {
+    <app-confirm-modal
+        [title]="pendingAction.kind === 'close' ? 'Talebi Kapat' : 'Talebi Sil'"
+        [message]="pendingAction.kind === 'close'
+            ? '“' + pendingAction.request.subject + '” talebi kapatılacak ve durumu Tamamlandı olacak.'
+            : '“' + pendingAction.request.subject + '” talebi ve tüm mesajları kalıcı olarak silinecek. Bu işlem geri alınamaz.'"
+        [confirmText]="pendingAction.kind === 'close' ? 'Talebi Kapat' : 'Talebi Sil'"
+        [danger]="true"
+        [busy]="actionBusy"
+        (confirmed)="confirmPendingAction()"
+        (cancelled)="cancelPendingAction()" />
 }

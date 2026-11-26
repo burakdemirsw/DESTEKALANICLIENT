@@ -1,8 +1,7 @@
 <div class="sidenav-user-bottom">
     <div class="d-flex align-items-center">
         <!-- Profile Avatar & Name -->
-        <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white fw-bold flex-shrink-0 sidenav-profile-avatar"
-             style="width: 36px; height: 36px; font-size: 14px;">
+        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 sidenav-profile-avatar">
             {{ authState.initials || '?' }}
         </div>
         <div class="ms-2 overflow-hidden sidenav-profile-text">
@@ -21,16 +20,6 @@
                     </span>
                 }
             </a>
-
-            <!-- Dark/Light Mode Toggle -->
-            <button class="btn btn-link p-0 link-reset text-muted sidenav-action-btn"
-                    (click)="toggleTheme()" title="{{ isDark ? 'Açık Mod' : 'Koyu Mod' }}">
-                @if (isDark) {
-                    <ng-icon name="tablerSun" size="20" class="align-middle"/>
-                } @else {
-                    <ng-icon name="tablerMoon" size="20" class="align-middle"/>
-                }
-            </button>
 
             <!-- Dropdown Menu -->
             <div ngbDropdown [placement]="'top-end'" container="body">

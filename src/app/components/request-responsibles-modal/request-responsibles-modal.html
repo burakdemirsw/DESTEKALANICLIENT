@@ -1,0 +1,66 @@
+<div class="modal fade show d-block responsibles-backdrop" tabindex="-1" role="dialog" aria-modal="true" (click)="cancel()">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title">{{ title }}</h5>
+                    @if (targetName) {
+                        <div class="small text-muted text-break">{{ targetName }}</div>
+                    }
+                </div>
+                <button type="button" class="btn-close" aria-label="Kapat" [disabled]="saving" (click)="cancel()"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="small text-muted mb-3">
+                    Bu {{ targetLabel }} açılan talepler seçilen yöneticilerin "Bana Düşenler" listesine düşer ve onlara
+                    e-posta gider. Kimse seçilmezse talep tüm destek yöneticilerine düşer.
+                </p>
+
+                <input #searchInput type="text" class="form-control form-control-sm mb-2" placeholder="Ad, e-posta ya da şirket ara..."
+                       [(ngModel)]="searchText" (ngModelChange)="applyFilter()" name="responsibleSearch">
+
+                @if (loading) {
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <span class="ms-2 text-muted small">Yükleniyor...</span>
+                    </div>
+                } @else if (loadError) {
+                    <div class="text-danger small py-3">{{ loadError }}</div>
+                } @else {
+                    <div class="list-group responsibles-list">
+                        @for (user of filteredUsers; track user.userId) {
+                            <label class="list-group-item d-flex align-items-start gap-2 responsibles-item">
+                                <input class="form-check-input mt-1 flex-shrink-0" type="checkbox"
+                                       [checked]="isSelected(user.userId)" (change)="toggle(user.userId)">
+                                <span class="min-w-0">
+                                    <span class="d-block fw-semibold text-truncate">{{ user.fullName }}</span>
+                                    <span class="d-block small text-muted text-truncate">
+                                        {{ user.email }}@if (user.companyName) { · {{ user.companyName }} }
+                                    </span>
+                                </span>
+                            </label>
+                        } @empty {
+                            <div class="text-muted small py-3 text-center">
+                                @if (users.length) { Aramaya uyan yönetici yok. } @else { Destek yöneticisi rolünde kullanıcı yok. }
+                            </div>
+                        }
+                    </div>
+                    <div class="small text-muted mt-2">
+                        Yalnız "Destek Alanı Yönetici" rolündeki kullanıcılar listelenir · Seçili: {{ selected.size }}
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" [disabled]="saving" (click)="cancel()">Vazgeç</button>
+                <button type="button" class="btn btn-primary" [disabled]="saving || loading || !!loadError" (click)="save()">
+                    @if (saving) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    Sorumluları Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

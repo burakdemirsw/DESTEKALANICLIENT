@@ -1,0 +1,16 @@
+.responsibles-backdrop {
+    background: rgba(9, 9, 11, 0.55);
+}
+
+.responsibles-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.responsibles-item {
+    cursor: pointer;
+}
+
+.min-w-0 {
+    min-width: 0;
+}

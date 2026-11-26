@@ -303,6 +303,15 @@
     flex-shrink: 0;
     overflow: hidden;
 
+    // Baş harf avatarı: vurgu rengi yerine yan menünün gri tonu (koyu ve açık menüde okunur)
+    .sidenav-profile-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        color: $sidenav-item-color;
+        background-color: rgba(161, 161, 170, 0.22);
+    }
+
     .sidenav-action-btn {
         width: 32px;
         height: 32px;

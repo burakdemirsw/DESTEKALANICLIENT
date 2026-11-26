@@ -10,6 +10,15 @@
                 <i class="fa-solid me-2" [class.fa-filter]="!showFilters" [class.fa-filter-circle-xmark]="showFilters"></i>
                 {{ showFilters ? 'Filtreleri Gizle' : 'Filtreleri Göster' }}
             </button>
+            <button type="button" class="btn btn-light" [disabled]="exporting || loading || !totalCount" (click)="exportCsv()"
+                    title="Süzülmüş listeyi Excel'de açılan dosya olarak indir">
+                @if (exporting) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                } @else {
+                    <i class="fa-solid fa-file-arrow-down me-2"></i>
+                }
+                Excel'e Aktar
+            </button>
             <button type="button" class="btn btn-primary" (click)="openCreate()">
                 <i class="fa-solid fa-plus me-2"></i>Yeni Talep
             </button>
@@ -38,8 +47,9 @@
                             type="search"
                             class="form-control"
                             aria-label="Taleplerde ara"
-                            placeholder="Ara: konu, açıklama..."
+                            placeholder="Ara: talep no, konu, açıklama..."
                             [(ngModel)]="filters.searchTerm"
+                            (ngModelChange)="onSearchInput()"
                             (keyup.enter)="onFilterChange()">
                     </div>
                     <div class="col-12 col-sm-6 col-lg">
@@ -67,7 +77,7 @@
                         </select>
                     </div>
                     <div class="col-12 col-sm-6 col-lg-auto d-grid">
-                        <button type="button" class="btn btn-light" (click)="clearFilters()">Temizle</button>
+                        <button type="button" class="btn btn-light" [disabled]="!hasActiveFilters" (click)="clearFilters()">Temizle</button>
                     </div>
                 </div>
             </div>
@@ -76,6 +86,13 @@
         @if (loading) {
             <div class="sa-empty">
                 <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Talepler yükleniyor...
+            </div>
+        } @else if (loadError) {
+            <div class="sa-empty">
+                <p class="mb-2">Talepler yüklenemedi.</p>
+                <button type="button" class="btn btn-light btn-sm" (click)="loadRequests()">
+                    <i class="fa-solid fa-rotate-right me-1"></i>Tekrar Dene
+                </button>
             </div>
         } @else {
             <div class="table-responsive">
@@ -90,12 +107,18 @@
                             <th class="d-none d-md-table-cell">Öncelik</th>
                             <th>Durum</th>
                             <th class="d-none d-md-table-cell">Aktiflik</th>
-                            <th class="d-none d-md-table-cell">Tarih</th>
+                            <th class="d-none d-md-table-cell" [attr.aria-sort]="sortDirection === 'desc' ? 'descending' : 'ascending'">
+                                <button type="button" class="ur-sort-btn" (click)="toggleDateSort()"
+                                        [title]="sortDirection === 'desc' ? 'Eskiden yeniye sırala' : 'Yeniden eskiye sırala'">
+                                    Tarih
+                                    <i class="fa-solid ms-1" [class.fa-arrow-down-long]="sortDirection === 'desc'" [class.fa-arrow-up-long]="sortDirection === 'asc'"></i>
+                                </button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (item of filteredRequests; track item.id) {
-                            <tr>
+                        @for (item of requests; track item.id) {
+                            <tr [class.ur-row-closed]="isClosed(item)">
                                 <td class="text-nowrap">
                                     <a class="sa-mono" [routerLink]="['/admin/user-requests', item.id]">{{ item.requestNo || 'Talep' }}</a>
                                 </td>
@@ -104,13 +127,12 @@
                                     @if (item.applicationName) {
                                         <div class="sa-cell-sub">{{ item.applicationName }}</div>
                                     }
+                                    <div class="sa-cell-sub d-md-none">{{ getRelativeTimeLabel(item.createdDate) }}</div>
                                 </td>
-                                <td class="d-none d-lg-table-cell">
-                                    {{ item.userName ? (item.userName + ' ' + (item.userLastName || '')) : getUserFullName(item.userId) }}
-                                </td>
+                                <td class="d-none d-lg-table-cell">{{ getOwnerName(item) }}</td>
                                 <td class="d-none d-lg-table-cell">
                                     @if (item.assignedUserId) {
-                                        {{ item.assignedUserName ? (item.assignedUserName + ' ' + (item.assignedUserLastName || '')) : getUserFullName(item.assignedUserId) }}
+                                        {{ getAssignedName(item) }}
                                     } @else {
                                         <span class="sa-muted">Atanmadı</span>
                                     }
@@ -125,11 +147,19 @@
                                         <span class="badge bg-success-subtle text-success">Aktif</span>
                                     }
                                 </td>
-                                <td class="d-none d-md-table-cell sa-muted text-nowrap">{{ formatDate(item.createdDate) }}</td>
+                                <td class="d-none d-md-table-cell text-nowrap">
+                                    <div class="sa-muted">{{ formatDate(item.createdDate) }}</div>
+                                    <div class="sa-cell-sub">{{ getRelativeTimeLabel(item.createdDate) }}</div>
+                                </td>
                             </tr>
                         } @empty {
                             <tr>
-                                <td colspan="9" class="sa-empty">Talep bulunamadı.</td>
+                                <td colspan="9" class="sa-empty">
+                                    Talep bulunamadı.
+                                    @if (hasActiveFilters) {
+                                        <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" (click)="clearFilters()">Filtreleri temizle</button>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -166,31 +196,35 @@
     </div>
 </div>
 
-<!-- Create / Edit Modal -->
+<!-- Yeni Talep -->
 @if (showModal) {
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true" style="background: rgba(9, 9, 11, 0.55)">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
+            <div class="modal-content ur-create" [class.is-dragging]="dragActive"
+                 (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ editMode ? 'Talep Düzenle' : 'Yeni Talep' }}</h5>
-                    <button type="button" class="btn-close" (click)="closeModal()"></button>
+                    <h5 class="modal-title">Yeni Talep</h5>
+                    <button type="button" class="btn-close" aria-label="Kapat" [disabled]="saving" (click)="closeModal()"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info border mb-3" role="alert">
-                        <div class="fw-semibold mb-1">Form Kuralları</div>
-                        <ul class="mb-0 ps-3 small">
-                            <li>Konu, Uygulama, Kategori ve Açıklama alanları zorunludur.</li>
-                            <li>Talep açıklaması en az 20 karakter olmalıdır.</li>
-                            <li>Düzenleme modunda ayrıca Öncelik ve Durum seçimi zorunludur.</li>
-                        </ul>
+                    @if (draftRestoredAt) {
+                        <div class="ur-note mb-3">
+                            <i class="fa-regular fa-floppy-disk me-2"></i>Kaydedilmemiş taslağınız geri yüklendi ({{ draftRestoredAt }}).
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" (click)="clearDraft()">Taslağı temizle</button>
+                        </div>
+                    }
+                    <div class="ur-note mb-3">
+                        Uygulama, kategori, konu ve açıklama zorunludur; açıklama en az {{ minDescriptionLength }} karakter olmalıdır.
+                        Yazdıklarınız taslak olarak saklanır, pencereyi kapatsanız da kaybolmaz.
                     </div>
-                    <form>
+                    <form (ngSubmit)="save()">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Uygulama</label>
-                                <select class="form-select" [class.is-invalid]="shouldShowErrorFor('applicationId')" [(ngModel)]="form.applicationId" name="applicationId" required>
+                                <label class="form-label" for="createApplication">Uygulama</label>
+                                <select id="createApplication" class="form-select" [class.is-invalid]="shouldShowErrorFor('applicationId')"
+                                        [(ngModel)]="form.applicationId" (ngModelChange)="onApplicationChange()" name="applicationId" required>
                                     <option value="">Seçiniz...</option>
-                                    @for (application of applications; track $index) {
+                                    @for (application of activeApplications; track application.id) {
                                         <option [value]="application.id">{{ application.applicationName }}</option>
                                     }
                                 </select>
@@ -199,10 +233,11 @@
                                 }
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Kategori</label>
-                                <select class="form-select" [class.is-invalid]="shouldShowErrorFor('categoryId')" [disabled]="!canSelectCategory()" [(ngModel)]="form.categoryId" name="categoryId" required>
+                                <label class="form-label" for="createCategory">Kategori</label>
+                                <select id="createCategory" class="form-select" [class.is-invalid]="shouldShowErrorFor('categoryId')"
+                                        [disabled]="!canSelectCategory()" [(ngModel)]="form.categoryId" (ngModelChange)="onFormChange()" name="categoryId" required>
                                     <option value="">Seçiniz...</option>
-                                    @for (category of categories; track $index) {
+                                    @for (category of activeCategories; track category.id) {
                                         <option [value]="category.id">{{ category.name }}</option>
                                     }
                                 </select>
@@ -210,75 +245,99 @@
                                     <div class="invalid-feedback d-block">Kategori seçimi zorunludur.</div>
                                 }
                             </div>
-                            @if (editMode) {
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Öncelik</label>
-                                    <select class="form-select" [class.is-invalid]="shouldShowErrorFor('priorityId')" [(ngModel)]="form.priorityId" name="priorityId" required>
-                                        <option value="">Seçiniz...</option>
-                                        @for (priority of priorities; track $index) {
-                                            <option [value]="priority.id">{{ priority.name }}</option>
-                                        }
-                                    </select>
-                                    @if (shouldShowErrorFor('priorityId')) {
-                                        <div class="invalid-feedback d-block">Öncelik seçimi zorunludur.</div>
-                                    }
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Durum</label>
-                                    <select class="form-select" [class.is-invalid]="shouldShowErrorFor('statusId')" [(ngModel)]="form.statusId" name="statusId" required>
-                                        <option value="">Seçiniz...</option>
-                                        @for (status of statuses; track $index) {
-                                            <option [value]="status.id">{{ status.name }}</option>
-                                        }
-                                    </select>
-                                    @if (shouldShowErrorFor('statusId')) {
-                                        <div class="invalid-feedback d-block">Durum seçimi zorunludur.</div>
-                                    }
-                                </div>
-                            }  
                         </div>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Konu</label>
-                                <input type="text" class="form-control" [class.is-invalid]="shouldShowErrorFor('subject')" [disabled]="!canEnterSubject()" [(ngModel)]="form.subject" name="subject" required placeholder="Talep konusu">
-                                @if (shouldShowErrorFor('subject')) {
-                                    <div class="invalid-feedback d-block">Konu zorunludur.</div>
-                                }
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Açıklama</label>
-                                <textarea class="form-control" [class.is-invalid]="shouldShowErrorFor('description')" [disabled]="!canEnterDescription()" [(ngModel)]="form.description" name="description" rows="4" minlength="20" required placeholder="Talep açıklaması"></textarea>
-                                @if (shouldShowErrorFor('description')) {
-                                    <div class="invalid-feedback d-block">Talep açıklaması en az 20 karakter olmalıdır.</div>
-                                }
-                            </div>
-                        </div>
-                        <div class="row">
-                            @if (editMode) {
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Atanan Kişi</label>
-                                    <select class="form-select" [(ngModel)]="form.assignedUserId" name="assignedUserId">
-                                        <option value="">Atanmadı</option>
-                                        @for (user of users; track $index) {
-                                            <option [value]="user.id">{{ user.name }} {{ user.lastName }}</option>
-                                        }
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="form-check form-switch mt-4">
-                                        <input class="form-check-input" type="checkbox" [(ngModel)]="form.isBlocked" name="isBlocked" id="isBlockedSwitch">
-                                        <label class="form-check-label" for="isBlockedSwitch">Pasif (Engelli)</label>
-                                    </div>
-                                </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="createSubject">Konu</label>
+                            <input id="createSubject" type="text" class="form-control" maxlength="200" [class.is-invalid]="shouldShowErrorFor('subject')"
+                                   [disabled]="!canEnterSubject()" [(ngModel)]="form.subject" (ngModelChange)="onSubjectChange()"
+                                   name="subject" required placeholder="Talep konusu">
+                            @if (shouldShowErrorFor('subject')) {
+                                <div class="invalid-feedback d-block">Konu zorunludur.</div>
                             }
                         </div>
+
+                        @if (similarRequests.length) {
+                            <div class="ur-similar mb-3">
+                                <div class="ur-similar-title">
+                                    <i class="fa-regular fa-lightbulb me-1"></i>Bu konuda açık talep var; yeni talep yerine oraya yazabilirsiniz:
+                                </div>
+                                @for (item of similarRequests; track item.id) {
+                                    <a class="ur-similar-item" [routerLink]="['/admin/user-requests', item.id]">
+                                        <span class="sa-mono">{{ item.requestNo || 'Talep' }}</span>
+                                        <span class="ur-similar-subject">{{ item.subject }}</span>
+                                        <span class="sa-pill">{{ item.statusName || getStatusName(item.statusId) }}</span>
+                                    </a>
+                                }
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label" for="createDescription">Açıklama</label>
+                            @if (selectedCategoryHint) {
+                                <div class="ur-hint mb-2"><i class="fa-regular fa-circle-question me-1"></i>{{ selectedCategoryHint }}</div>
+                            }
+                            <textarea id="createDescription" class="form-control" [class.is-invalid]="shouldShowErrorFor('description')"
+                                      [disabled]="!canEnterDescription()" [(ngModel)]="form.description" (ngModelChange)="onFormChange()"
+                                      (paste)="onPaste($event)" name="description" rows="5" required
+                                      placeholder="Hangi ekranda ne yaptınız, ne bekliyordunuz, ne oldu? Ekran görüntüsünü Ctrl+V ile yapıştırabilirsiniz."></textarea>
+                            <div class="d-flex flex-wrap justify-content-between gap-2 mt-1">
+                                @if (shouldShowErrorFor('description')) {
+                                    <div class="invalid-feedback d-block m-0">Açıklama en az {{ minDescriptionLength }} karakter olmalıdır.</div>
+                                } @else {
+                                    <span></span>
+                                }
+                                <span class="ur-hint" [class.text-danger]="saveAttempted && descriptionLength < minDescriptionLength">
+                                    {{ descriptionLength }} / {{ minDescriptionLength }}+
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-1">
+                            <label class="form-label" for="createAttachment">
+                                Dosya Ekleri <span class="sa-muted fw-normal">(isteğe bağlı, en çok {{ maxAttachments }})</span>
+                            </label>
+                            <div class="ur-attach">
+                                <input #createFileInput id="createAttachment" type="file" class="d-none" multiple [accept]="attachmentAccept" (change)="onAttachmentSelected($event)" />
+                                <button type="button" class="btn btn-light" [disabled]="saving || attachmentFiles.length >= maxAttachments" (click)="createFileInput.click()">
+                                    <i class="fa-solid fa-paperclip me-1"></i>Dosya Seç
+                                </button>
+                                <span class="ur-hint">Ekran görüntüsünü yapıştırabilir ya da dosyaları bu pencereye sürükleyebilirsiniz.</span>
+                            </div>
+                            @if (attachmentFiles.length) {
+                                <ul class="ur-attach-list">
+                                    @for (file of attachmentFiles; track $index) {
+                                        <li>
+                                            <i class="fa-regular fa-file sa-muted"></i>
+                                            <span class="ur-attach-name" [title]="file.name">{{ file.name }}</span>
+                                            <span class="ur-hint text-nowrap">{{ formatFileSize(file.size) }}</span>
+                                            <button type="button" class="btn btn-sm btn-light ur-attach-remove" [disabled]="saving"
+                                                    [attr.aria-label]="file.name + ' dosyasını kaldır'" (click)="removeAttachment($index)">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            @for (error of attachmentErrors; track $index) {
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            }
+                            <div class="ur-hint mt-1">{{ attachmentRulesText }}</div>
+                        </div>
                     </form>
+
+                    @if (dragActive) {
+                        <div class="ur-drop-hint"><i class="fa-solid fa-file-arrow-up me-2"></i>Dosyayı bırakın</div>
+                    }
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" (click)="closeModal()">İptal</button>
-                    <button type="button" class="btn btn-primary" (click)="save()">{{ editMode ? 'Güncelle' : 'Kaydet' }}</button>
+                <div class="modal-footer flex-wrap">
+                    <button type="button" class="btn btn-light" [disabled]="saving" (click)="closeModal()">Vazgeç</button>
+                    <button type="button" class="btn btn-primary" [disabled]="saving" (click)="save()">
+                        @if (saving) {
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>Gönderiliyor...
+                        } @else {
+                            <i class="fa-solid fa-paper-plane me-1"></i>Talebi Gönder
+                        }
+                    </button>
                 </div>
             </div>
         </div>

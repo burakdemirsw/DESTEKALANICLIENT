@@ -1,11 +1,10 @@
-import {Component, computed, CUSTOM_ELEMENTS_SCHEMA, OnInit} from '@angular/core';
+import {Component, CUSTOM_ELEMENTS_SCHEMA, OnInit} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {NgbCollapseModule, NgbDropdown, NgbDropdownMenu, NgbDropdownToggle} from '@ng-bootstrap/ng-bootstrap';
 import {NgIcon} from '@ng-icons/core';
 import {userDropdownItems} from '@layouts/components/data';
 import {AuthStateService} from '@/app/core/services/auth-state.service';
 import {UserService} from '@/app/core/services/user.service';
-import {LayoutStoreService} from '@core/services/layout-store.service';
 import {NotificationsService} from '@core/services/notifications.service';
 
 @Component({
@@ -25,12 +24,10 @@ import {NotificationsService} from '@core/services/notifications.service';
 export class UserProfile implements OnInit {
   menuItems = userDropdownItems;
   unreadCount = 0;
-  theme = computed(() => this.layout.state().theme);
 
   constructor(
     public authState: AuthStateService,
     private userService: UserService,
-    public layout: LayoutStoreService,
     private notificationsService: NotificationsService
   ) {}
 
@@ -54,15 +51,6 @@ export class UserProfile implements OnInit {
     } catch {
       this.unreadCount = 0;
     }
-  }
-
-  toggleTheme(): void {
-    const current = this.layout.theme;
-    this.layout.setTheme(current === 'dark' ? 'light' : 'dark');
-  }
-
-  get isDark(): boolean {
-    return this.layout.theme === 'dark';
   }
 
   onItemClick(item: any, event: Event): void {

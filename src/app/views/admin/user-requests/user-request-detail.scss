@@ -135,6 +135,15 @@
     overflow-wrap: anywhere;
 }
 
+.td-attachment-download {
+    flex: 0 0 auto;
+    min-height: 36px;
+}
+
+.td-attachment-loading {
+    max-width: 240px;
+}
+
 .td-attachment-image {
     display: block;
     margin-top: 0.625rem;
@@ -160,7 +169,160 @@
     font-size: 0.8125rem;
 }
 
-// ── Pencereler (yanıtla / düzenle) ──
+// Küçük simge düğmesi (kopyala, sil); dokunma alanı 36px
+.td-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ins-secondary-color);
+
+    &:hover {
+        background: var(--ins-tertiary-bg);
+        color: var(--ins-body-color);
+    }
+}
+
+// Sıradaki yanıtın kimden beklendiği
+.td-waiting {
+    color: var(--ins-body-color);
+    font-weight: 500;
+}
+
+// Talep açıklaması (akışın ilk kaydı)
+.td-msg--origin {
+    border-left: 3px solid var(--ins-primary);
+}
+
+// ── Yanıt kutusu (akışın altında) ──
+.td-composer {
+    position: relative;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--ins-border-color);
+    background: var(--ins-body-bg);
+
+    &.is-dragging {
+        outline: 2px dashed var(--ins-primary);
+        outline-offset: -6px;
+    }
+}
+
+.td-composer-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.td-composer-input {
+    resize: vertical;
+    min-height: 84px;
+}
+
+.td-composer-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.td-composer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.td-drop-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(250, 250, 250, 0.85);
+    color: var(--ins-body-color);
+    font-weight: 600;
+    pointer-events: none;
+}
+
+[data-bs-theme="dark"] .td-drop-hint {
+    background: rgba(9, 9, 11, 0.8);
+}
+
+// Hazır yanıtlar
+.td-canned {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--ins-border-color);
+    border-radius: 8px;
+    background: var(--ins-secondary-bg);
+    max-height: 260px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.td-canned-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border-top: 1px solid var(--ins-border-color);
+
+    &:first-child {
+        border-top: 0;
+    }
+}
+
+.td-canned-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 36px;
+    padding: 0.5rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--ins-body-color);
+    font-size: 0.8125rem;
+    text-align: left;
+    overflow-wrap: anywhere;
+
+    &:hover {
+        color: var(--ins-link-color);
+    }
+}
+
+// ── Sağ panelden hızlı değişiklik ──
+.sa-info > .td-quick-row {
+    align-items: center;
+
+    dd {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-width: 0;
+        max-width: 65%;
+    }
+}
+
+.td-quick-select {
+    max-width: 100%;
+    text-align: left;
+}
+
+.td-quick-saving {
+    padding: 0.5rem 1.25rem;
+    border-top: 1px solid var(--ins-border-color);
+    color: var(--ins-secondary-color);
+    font-size: 0.8125rem;
+}
+
+// ── Pencereler (düzenle / resim önizleme) ──
 .modal-backdrop-modern,
 .image-preview-backdrop {
     position: fixed;
@@ -251,22 +413,6 @@
     gap: 0.5rem;
 }
 
-.reply-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.reply-textarea {
-    resize: vertical;
-}
-
-.reply-attachment-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
 .selected-file-chip {
     display: flex;
     align-items: center;
@@ -277,14 +423,6 @@
     border-radius: 8px;
     font-size: 0.8125rem;
     overflow-wrap: anywhere;
-}
-
-.reply-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
 }
 
 .reply-hint {
@@ -336,7 +474,20 @@
         font-size: 16px;
     }
 
-    .reply-footer .btn {
+    .td-composer {
+        padding: 0.875rem 1rem;
+    }
+
+    .td-composer-input,
+    .td-quick-select {
+        font-size: 16px;
+    }
+
+    .td-composer-foot > .btn {
         width: 100%;
+    }
+
+    .sa-info > .td-quick-row dd {
+        max-width: 60%;
     }
 }

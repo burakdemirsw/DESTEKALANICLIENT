@@ -1,10 +1,15 @@
 import { isAllowedAttachment, sanitizeAttachmentFileName } from './file-security';
 
 // Talep açarken ve yanıt yazarken eklenen dosyanın ortak kuralları: dosya seçme, Ctrl+V ile yapıştırma ve
-// sürükleyip bırakma aynı denetimden geçer. İzin verilen türler file-security.ts'tedir.
+// sürükleyip bırakma aynı denetimden geçer. İzin verilen türler file-security.ts'tedir; sınırlar sunucudaki
+// AttachmentFilePolicy ile aynıdır (dosya başına 5 MB, yeni talepte en çok 5 dosya).
 export const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
-export const ATTACHMENT_ACCEPT = 'image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.zip,.rar,.7z';
-export const ATTACHMENT_RULES_TEXT = 'Resim (JPG, PNG, WEBP, GIF, BMP, SVG) ya da ZIP / RAR / 7Z, en çok 5 MB.';
+export const MAX_REQUEST_ATTACHMENTS = 5;
+// iPhone'da fotoğraf seçilince HEIC'in JPEG'e çevrilmesi için resim türleri MIME olarak da yazılır.
+export const ATTACHMENT_ACCEPT =
+    'image/jpeg,image/png,image/gif,image/webp,image/bmp,.jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.docx,.xlsx,.pptx,.txt,.csv,.log,.zip';
+export const ATTACHMENT_RULES_TEXT =
+    'Resim (JPG, PNG, WEBP, GIF, BMP), PDF, Word / Excel / PowerPoint (DOCX, XLSX, PPTX), metin (TXT, CSV, LOG) ya da ZIP; dosya başına en çok 5 MB. EXE gibi çalıştırılabilir dosyalar eklenemez.';
 
 export type AttachmentCheck = { file: File; error: null } | { file: null; error: string };
 
@@ -15,10 +20,13 @@ export function prepareAttachment(file: File): AttachmentCheck {
     const sanitizedName = sanitizeAttachmentFileName(fileName);
 
     if (!isAllowedAttachment(file.type || '', sanitizedName)) {
-        return { file: null, error: `Bu dosya türü eklenemez. ${ATTACHMENT_RULES_TEXT}` };
+        return { file: null, error: `${sanitizedName}: bu dosya türü eklenemez. ${ATTACHMENT_RULES_TEXT}` };
+    }
+    if (file.size === 0) {
+        return { file: null, error: `${sanitizedName}: dosya boş.` };
     }
     if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
-        return { file: null, error: 'Dosya boyutu 5 MB\'ı geçemez.' };
+        return { file: null, error: `${sanitizedName}: dosya boyutu 5 MB'ı geçemez.` };
     }
 
     return {
@@ -37,6 +45,37 @@ export function getClipboardFiles(event: ClipboardEvent): File[] {
         .filter(item => item.kind === 'file')
         .map(item => item.getAsFile())
         .filter((file): file is File => !!file);
+}
+
+// Yetkili uçtan indirilen eki kullanıcının bilgisayarına kaydettirir.
+export function saveAttachmentBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Ek indirme hatasının kullanıcıya gösterilecek metni. Yanıt Blob beklendiği için sunucunun hata mesajı Blob içinde gelir.
+export async function describeAttachmentDownloadError(err: unknown): Promise<string> {
+    const httpError = err as { status?: number; error?: unknown } | null;
+    if (httpError?.status === 0) return 'Sunucuya bağlanılamadı.';
+
+    if (httpError?.error instanceof Blob) {
+        try {
+            const body = JSON.parse(await httpError.error.text()) as { message?: string };
+            if (body?.message) return body.message;
+        } catch {
+            // Gövde JSON değilse durum koduna göre metin verilir.
+        }
+    }
+
+    if (httpError?.status === 404) return 'Dosya bulunamadı.';
+    if (httpError?.status === 403) return 'Bu dosyayı açma yetkiniz yok.';
+    return 'Dosya indirilemedi.';
 }
 
 export function getDroppedFiles(event: DragEvent): File[] {

@@ -1,0 +1,326 @@
+// Tanıtım sayfası (/home) — BGZHUB anasayfasının sade dili: siyah zemin, ince ayırıcı
+// çizgiler, büyük tipografi; renk yalnız vurguda (tema renginin koyu zeminde okunan tonu).
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #000;
+}
+
+.dl-home {
+  --fg: #fff;
+  --muted: #9aa0a6;
+  --line: rgba(255, 255, 255, 0.13);
+  --accent: #a39beb; // tema rengi #6658dd'nin siyah zeminde okunan tonu
+  --pad-x: clamp(18px, 4vw, 56px);
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+
+  main {
+    flex: 1 0 auto;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 clamp(10px, 1.6vh, 18px);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ───────────── Üst çubuk ───────────── */
+
+.home-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(12px, 2vh, 20px) var(--pad-x);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  text-decoration: none;
+
+  span {
+    color: var(--accent);
+  }
+}
+
+.nav-cta,
+.foot-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  color: var(--fg);
+  font-weight: 500;
+  text-decoration: none;
+
+  i {
+    font-size: 0.7rem;
+    color: var(--accent);
+    transition: transform 250ms ease;
+  }
+
+  &:hover i {
+    transform: translateX(3px);
+  }
+}
+
+.nav-cta {
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  transition: border-color 250ms ease, background-color 250ms ease;
+
+  &:hover {
+    color: var(--fg);
+    border-color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* ───────────── Giriş ───────────── */
+
+.home-lead {
+  padding: clamp(32px, 8vh, 96px) var(--pad-x) clamp(28px, 6vh, 72px);
+}
+
+.lead-title {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--fg);
+
+  em {
+    font-style: normal;
+    color: var(--accent);
+  }
+}
+
+.lead-copy {
+  margin: clamp(14px, 2vh, 24px) 0 0;
+  max-width: 62ch;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* ───────────── Nasıl çalışır ───────────── */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.step {
+  padding: clamp(20px, 3vh, 36px) var(--pad-x);
+
+  & + & {
+    border-inline-start: 1px solid var(--line);
+  }
+}
+
+.step-no {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.step-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+.step-copy {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* ───────────── Referanslar ───────────── */
+
+.home-refs {
+  padding: clamp(36px, 7vh, 80px) var(--pad-x) clamp(28px, 5vh, 56px);
+  border-top: 1px solid var(--line);
+}
+
+.refs-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 40px;
+  margin-bottom: clamp(20px, 4vh, 40px);
+}
+
+.refs-title {
+  margin: 0;
+  max-width: 24ch;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--fg);
+}
+
+.refs-count {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+
+  b {
+    display: block;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--fg);
+  }
+}
+
+.refs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.ref {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+a.ref:hover {
+  color: var(--fg);
+
+  .ref-name i {
+    color: var(--accent);
+  }
+}
+
+.ref-name {
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+
+  i {
+    margin-inline-start: 8px;
+    font-size: 0.62rem;
+    vertical-align: 0.15em;
+    color: var(--muted);
+    transition: color 250ms ease;
+  }
+}
+
+.ref-cat {
+  font-size: 0.8rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* ───────────── Alt çubuk ───────────── */
+
+.home-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px var(--pad-x);
+  border-top: 1px solid var(--line);
+}
+
+.foot-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.foot-link {
+  font-size: 0.82rem;
+}
+
+/* ───────────── Duyarlılık ───────────── */
+
+@media (max-width: 1199.98px) {
+  .refs-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991.98px) {
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .step:nth-child(odd) {
+    border-inline-start: 0;
+  }
+
+  .step:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .refs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .step + .step {
+    border-inline-start: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-home * {
+    transition-duration: 1ms !important;
+  }
+}

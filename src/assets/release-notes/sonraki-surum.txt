@@ -13,14 +13,60 @@ Genel Görünüm
 Anasayfa
 - Sayfa sadeleştirildi: durum özeti tek şeritte sayı ve oranıyla, günlük açılan talepler sütun grafikle gösterilir.
 - Son talepler tablo olarak listelenir; talep numarasına ya da konusuna tıklanınca talebin detayı açılır.
+- Dönem seçimi Bugün, 7 Gün, 30 Gün, 90 Gün ve özel tarih aralığı olarak yenilendi; durum özeti, grafik ve
+  dağılımlar seçilen döneme göre hesaplanır, seçilen dönem sayfa adresinde saklanır.
+- Durum kartına ya da öncelik, uygulama, kategori satırına tıklanınca talep listesi o seçime göre süzülmüş açılır.
+- Grafik açılan ve kapanan talepleri yan yana gösterir; açılan talep sayısı bir önceki dönemle karşılaştırılır.
+- İş durumu kartları eklendi: yönetici için atanmamış, kendisine atanan, bugün açılan ve kapanan talepler; talep açan
+  kullanıcı için açık talepleri, dönemde açılan ve kapanan talepler.
+- "En Uzun Süredir Açık" listesi eklendi; her talebin ne kadar süredir açık olduğu yazar.
+- Yöneticinin anasayfası tüm şirketlerin taleplerini gösterir; şirkete göre dağılım ve temsilci yükü eklendi.
+- Talep açan kullanıcı için Hızlı Talep: uygulama ve konu seçilince talep formu dolu açılır. "Yeni Talep Oluştur"
+  düğmesi formu doğrudan açar.
+- Sayfa açıkken veriler iki dakikada bir kendiliğinden yenilenir, son güncelleme saati görünür; veri alınamazsa
+  "Tekrar dene" bağlantısı çıkar.
+- Son güncellemede nelerin değiştiği sayfada kısaca gösterilir.
+- Girişteki karşılama ekranı tıklanınca ya da bir tuşa basılınca kapanır, süresi kısaldı.
 
 Kullanıcı Talepleri
 - Talepler kart yerine tablo olarak listelenir; talep numarasına ya da konusuna tıklanınca detay açılır.
 - Listenin üstündeki durum sekmeleriyle talepler tek tıkla duruma göre süzülür.
+- Arama, filtreler, sayfa ve sıralama sayfa adresinde saklanır; sayfa yenilenince ya da bağlantı paylaşılınca aynı
+  liste açılır. Arama yazılırken kendiliğinden yapılır.
+- Tarih başlığına tıklanarak talepler yeniden eskiye ya da eskiden yeniye sıralanır; her talebin ne kadar önce
+  açıldığı yazar, kapanan talepler soluk görünür.
+- "Excel'e Aktar" ile süzülmüş liste Excel'de açılan dosya olarak indirilir.
+- Yeni talep açarken dosya eklenebilir: ekran görüntüsü Ctrl+V ile yapıştırılır, dosya pencereye sürüklenir ya da
+  seçilir.
+- Yeni talebe en çok 5 dosya eklenebilir: resim, PDF, Word, Excel, PowerPoint, metin dosyası ve ZIP (dosya başına en
+  çok 5 MB). Eklenen dosyalar adı ve boyutuyla listelenir, tek tek kaldırılabilir.
+- Güvenlik için EXE gibi çalıştırılabilir dosyalar, içeriği uzantısıyla uyuşmayan dosyalar (adı değiştirilmiş program
+  gibi) ve makrolu Office dosyaları eklenemez; ZIP içindeki dosyalar da denetlenir. Uygun olmayan dosya varsa talep
+  açılmadan nedeni gösterilir. RAR / 7Z arşivleri ve SVG resimleri artık eklenemez, yerine ZIP kullanılabilir.
+- Yeni talep formunda yazılanlar taslak olarak saklanır; pencere kapansa ya da sayfadan çıkılsa da kaybolmaz.
+- Seçilen kategorinin açıklaması formda yol gösterici olarak görünür; konu yazılırken aynı konuda açık talep varsa
+  listelenir.
+- Gönder düğmesine iki kez tıklanınca iki talep açılmaz; hata olursa anlaşılır bir mesaj gösterilir.
 
 Talep Detayı
 - Sayfa yeniden düzenlendi: yanıtlar tek akışta, talep bilgileri (talep sahibi, atanan kişi, uygulama, kategori,
   öncelik) sağdaki panelde gösterilir.
+- Talebin açıklaması yanıtların en üstünde gösterilir.
+- Yanıtlar eskiden yeniye sıralanır; sayfa açılınca ve yeni yanıt gelince en yeni yanıt görünür.
+- Yanıt penceresi kaldırıldı, yanıt kutusu yanıtların altında durur; ekran görüntüsü Ctrl+V ile yapıştırılabilir,
+  dosya sürüklenip bırakılabilir.
+- Başlıkta sıradaki yanıtın kimden beklendiği yazar.
+- Talep numarası ve talebin bağlantısı tek tıkla kopyalanır.
+- Yönetici durum, öncelik ve atanan kişiyi sağdaki panelden doğrudan değiştirir; "Üstlen" düğmesiyle talebi kendine
+  atar. Atanan kişi listesinde yalnız yöneticiler görünür.
+- Yönetici için hazır yanıtlar: sık kullanılan metinler tek tıkla eklenir, yazılan metin hazır yanıt olarak
+  saklanabilir.
+- Talep kapatılırken onay penceresi açılır. Kapanan talepte "Benzer Yeni Talep Aç" düğmesi aynı uygulama, kategori ve
+  konuyla yeni talep formunu açar.
+- Sekme arka plandayken gelen yeni mesajların sayısı sekme başlığında görünür.
+- Talep ekleri yalnız talebi görme yetkisi olan kullanıcılara açılır; dosyalar bağlantıyla dışarıdan açılamaz.
+  Resimler yanıtın içinde gösterilir, diğer dosyalar "İndir" düğmesiyle indirilir.
+- Yanıta eklenen dosyalar da yeni talepteki güvenlik denetiminden geçer.
 
 Menü
 - Uygulama yalnız destek merkezi olarak sadeleştirildi: yan menüde Anasayfa, Destek Merkezi, Şirket Bilgileri ve
@@ -28,9 +74,19 @@ Menü
 - Destek Merkezi'ne Talep Uygulamaları eklendi; talep açarken seçilen uygulamalar buradan tanımlanır.
 - Mesajlaşma, yapay zeka asistanı, sipariş, ürün, müşteri, entegrasyon, sosyal medya, takım ve abonelik ekranları
   kaldırıldı.
+- Yan menünün altındaki gece / gündüz (koyu / açık görünüm) düğmesi kaldırıldı; uygulama her zaman açık görünümle
+  açılır, daha önce koyu görünümü seçenlerde de.
+- Yan menünün altındaki profil simgesi mor yerine menünün gri tonlarıyla gösterilir.
 
 Giriş ve Kayıt
 - Ekranlardaki tanıtım metinleri destek merkezine göre güncellendi.
+- Giriş ekranı uygulamanın yeni görünümüne uyarlandı: sade koyu tanıtım paneli ve tek vurgu renkli giriş formu.
 
 Şirket Bilgileri
 - Ayarlar sekmesinden otomatik yanıt ve çalışma saatleri seçenekleri kaldırıldı.
+
+Tanıtım Sayfası (yeni sayfa)
+- Uygulamanın adresi açılınca, giriş yapmadan önce sade bir tanıtım sayfası gelir: destek merkezinin ne işe yaradığı,
+  talebin dört adımda nasıl ilerlediği ve Raf Takip WMS kullanan markalar (referanslar) gösterilir.
+- Sağ üstteki "Panele Giriş" düğmesi giriş ekranını açar; oturumu açık olan kullanıcı "Panele Git" ile doğrudan
+  Anasayfa'ya geçer.

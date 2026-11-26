@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import { CreateUserRequest, UpdateUserRequest, UserResponse } from '../models/user/user.models';
 import { ApiResponse } from '../models/api-response.model';
-import { PaginationRequest, buildPaginationRequest, PagedResult } from '../models/pagination.model';
+import {
+  AdminPaginationRequest,
+  PaginationRequest,
+  buildAdminPaginationRequest,
+  buildPaginationRequest,
+  PagedResult,
+} from '../models/pagination.model';
 import { RegisterWithCompanyRequest } from '../models/auth/auth.models';
 
 @Injectable({
@@ -15,6 +21,14 @@ export class UsersService {
     return this.http.post<PagedResult<UserResponse>>(
       { controller: 'Users', action: 'paged' },
       buildPaginationRequest(req),
+    );
+  }
+
+  /** Tüm şirketlerin kullanıcıları (şirket adıyla). Yalnız destek yöneticisi çağırabilir. */
+  adminGetAll(req?: AdminPaginationRequest): Promise<ApiResponse<PagedResult<UserResponse>>> {
+    return this.http.post<PagedResult<UserResponse>>(
+      { controller: 'Users', action: 'admin-paged' },
+      buildAdminPaginationRequest(req),
     );
   }
 

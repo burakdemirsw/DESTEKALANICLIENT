@@ -1,0 +1,205 @@
+<app-page-title title="Sistem Logları" subTitle="Sistem Yönetimi" />
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h4 class="card-title mb-1">Sistem Logları</h4>
+                    <p class="text-muted small mb-0">
+                        API hataları ve her isteğin kaydı. Bağlantı adresindeki oturum anahtarları gizlenir.
+                    </p>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <input type="text" class="form-control form-control-sm search-input" placeholder="Mesaj, adres, kaynak ya da IP ara..."
+                           [(ngModel)]="filterText" (ngModelChange)="onFilterChange()" name="logSearch">
+                    <button type="button" class="btn btn-light btn-sm" (click)="showFilters = !showFilters">
+                        <i class="fa-solid fa-filter me-1"></i>{{ showFilters ? 'Filtreleri Gizle' : 'Filtreleri Göster' }}
+                        @if (!showFilters && hasActiveFilters) {
+                            <span class="text-muted">(etkin)</span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-light btn-sm" [disabled]="loading" (click)="applyFilterAndPaging()" title="Yenile">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                @if (showFilters) {
+                    <form class="filter-panel mb-3" (ngSubmit)="search()">
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="form-label small text-muted mb-1" for="logLevel">Seviye</label>
+                                <select id="logLevel" class="form-select form-select-sm" [(ngModel)]="level" name="level">
+                                    @for (option of levelOptions; track option.value) {
+                                        <option [value]="option.value">{{ option.label }}</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="form-label small text-muted mb-1" for="logStatus">Durum kodu</label>
+                                <input id="logStatus" type="number" class="form-control form-control-sm" min="100" max="599"
+                                       placeholder="örn. 500" [(ngModel)]="statusCode" name="statusCode">
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="form-label small text-muted mb-1" for="logFrom">Başlangıç tarihi</label>
+                                <input id="logFrom" type="date" class="form-control form-control-sm" [(ngModel)]="startDate" name="startDate">
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="form-label small text-muted mb-1" for="logTo">Bitiş tarihi</label>
+                                <input id="logTo" type="date" class="form-control form-control-sm" [(ngModel)]="endDate" name="endDate">
+                                @if (dateRangeInvalid) {
+                                    <div class="small text-danger mt-1">Bitiş tarihi başlangıçtan önce olamaz.</div>
+                                }
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button type="button" class="btn btn-light btn-sm" [disabled]="loading" (click)="clearFilters()">Temizle</button>
+                            <button type="submit" class="btn btn-primary btn-sm" [disabled]="loading || dateRangeInvalid">Filtrele</button>
+                        </div>
+                    </form>
+                }
+
+                @if (loading && !pagedItems.length) {
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Yükleniyor...</p>
+                    </div>
+                } @else if (loadError) {
+                    <div class="text-center py-4">
+                        <p class="text-danger mb-2">{{ loadError }}</p>
+                        <button type="button" class="btn btn-light btn-sm" (click)="applyFilterAndPaging()">Tekrar Dene</button>
+                    </div>
+                } @else {
+                    <div class="table-responsive" [class.opacity-50]="loading">
+                        <table class="table table-centered table-hover mb-0 log-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Seviye</th>
+                                    <th>İstek</th>
+                                    <th>Durum</th>
+                                    <th>Mesaj</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (log of pagedItems; track log.id) {
+                                    <tr class="log-row" (click)="openDetail(log)">
+                                        <td class="text-nowrap small">{{ log.createdDate | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+                                        <td class="text-nowrap">
+                                            <span [class.text-danger]="log.level === 'Error'" [class.text-muted]="log.level !== 'Error'">
+                                                {{ levelLabel(log.level) }}
+                                            </span>
+                                        </td>
+                                        <td class="small">
+                                            @if (log.requestMethod || log.requestPath) {
+                                                <span class="font-monospace text-break">{{ log.requestMethod }} {{ log.requestPath }}</span>
+                                            } @else {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                        <td class="text-nowrap">
+                                            @if (log.statusCode) {
+                                                <span [class.text-danger]="log.statusCode >= 500">{{ log.statusCode }}</span>
+                                            } @else {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                        <td class="small">
+                                            <span class="d-inline-block text-truncate message-cell" [title]="log.message ?? ''">{{ log.message }}</span>
+                                        </td>
+                                        <td class="text-nowrap small text-muted">{{ log.userIp || '—' }}</td>
+                                    </tr>
+                                } @empty {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Kayıt bulunamadı.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                        <div class="d-flex align-items-center gap-2 small text-muted">
+                            <span>Toplam: {{ filteredItems.length ? totalCount : 0 }} kayıt | Sayfa {{ currentPage }} / {{ totalPages }}</span>
+                            <select class="form-select form-select-sm w-auto" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()" name="pageSize"
+                                    aria-label="Sayfa başına kayıt">
+                                @for (size of pageSizeOptions; track size) {
+                                    <option [ngValue]="size">{{ size }} / sayfa</option>
+                                }
+                            </select>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <button class="page-link" (click)="setPage(1)" [disabled]="currentPage === 1" title="İlk Sayfa">&laquo;&laquo;</button>
+                                </li>
+                                <li class="page-item" [class.disabled]="currentPage === 1">
+                                    <button class="page-link" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">&laquo;</button>
+                                </li>
+                                @for (p of totalPagesArray; track p) {
+                                    <li class="page-item" [class.active]="p === currentPage">
+                                        <button class="page-link" (click)="setPage(p)">{{ p }}</button>
+                                    </li>
+                                }
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <button class="page-link" (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages">&raquo;</button>
+                                </li>
+                                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                    <button class="page-link" (click)="setPage(totalPages)" [disabled]="currentPage === totalPages" title="Son Sayfa">&raquo;&raquo;</button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (detail) {
+    <div class="modal fade show d-block log-backdrop" tabindex="-1" role="dialog" aria-modal="true" (click)="closeDetail()">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" (click)="$event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title">Log Ayrıntısı</h5>
+                        <div class="small text-muted">{{ detail.createdDate | date: 'dd.MM.yyyy HH:mm:ss' }} · {{ levelLabel(detail.level) }}</div>
+                    </div>
+                    <button type="button" class="btn-close" aria-label="Kapat" (click)="closeDetail()"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row small mb-3">
+                        <dt class="col-sm-3 text-muted fw-normal">İstek</dt>
+                        <dd class="col-sm-9 font-monospace text-break">{{ detail.requestMethod }} {{ detail.requestPath || '—' }}</dd>
+                        <dt class="col-sm-3 text-muted fw-normal">Sorgu</dt>
+                        <dd class="col-sm-9 font-monospace text-break">{{ detail.queryString || '—' }}</dd>
+                        <dt class="col-sm-3 text-muted fw-normal">Durum kodu</dt>
+                        <dd class="col-sm-9">{{ detail.statusCode ?? '—' }}</dd>
+                        <dt class="col-sm-3 text-muted fw-normal">Kaynak</dt>
+                        <dd class="col-sm-9 text-break">{{ detail.source || '—' }}</dd>
+                        <dt class="col-sm-3 text-muted fw-normal">IP</dt>
+                        <dd class="col-sm-9">{{ detail.userIp || '—' }}</dd>
+                    </dl>
+
+                    <div class="small text-muted mb-1">Mesaj</div>
+                    <pre class="log-pre mb-3">{{ detail.message || '—' }}</pre>
+
+                    @if (detailLoading) {
+                        <div class="small text-muted"><span class="spinner-border spinner-border-sm me-1"></span>Ayrıntı yükleniyor...</div>
+                    } @else if (detailError) {
+                        <div class="small text-danger">{{ detailError }}</div>
+                    } @else if (detail.stackTrace) {
+                        <div class="small text-muted mb-1">Hata yığını</div>
+                        <pre class="log-pre log-pre-tall mb-0">{{ detail.stackTrace }}</pre>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" (click)="closeDetail()">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

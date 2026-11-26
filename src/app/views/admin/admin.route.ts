@@ -16,6 +16,8 @@ import { UserRequestDetailPage } from './user-requests/user-request-detail';
 import { CompaniesPage } from './companies/companies';
 import { CompanyDetailPage } from './companies/company-detail';
 import { UserTypesPage } from './user-types/user-types';
+import { RequestResponsiblesPage } from './request-responsibles/request-responsibles';
+import { AppLogsPage } from './app-logs/app-logs';
 import { Profile } from '@/app/views/apps/users/profile/profile';
 import { ReleaseNotesPage } from '@/app/views/release-notes/release-notes';
 import { AuthGuard } from '@/app/core/guards/auth.guard';
@@ -50,6 +52,12 @@ export const ADMIN_ROUTES: Routes = [
         path: 'admin/request-categories',
         component: RequestCategoriesPage,
         data: { title: 'Talep Kategorileri' },
+        canActivate: [AuthGuard],
+    },
+    {
+        path: 'admin/request-responsibles',
+        component: RequestResponsiblesPage,
+        data: { title: 'Talep Sorumluları' },
         canActivate: [AuthGuard],
     },
     {
@@ -126,6 +134,12 @@ export const ADMIN_ROUTES: Routes = [
         path: 'admin/cloudinary-settings',
         component: CloudinarySettingsPage,
         data: { title: 'Cloudinary Ayarları' },
+        canActivate: [AuthGuard],
+    },
+    {
+        path: 'admin/app-logs',
+        component: AppLogsPage,
+        data: { title: 'Sistem Logları' },
         canActivate: [AuthGuard],
     },
 

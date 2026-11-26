@@ -28,6 +28,8 @@ export interface UserResponse {
   phoneNumber: string | null;
   createdDate: string;
   updatedDate: string;
+  companyId?: string | null;
+  companyName?: string | null;
 }
 
 /** @deprecated UserResponse kullanın */

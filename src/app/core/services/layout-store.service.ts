@@ -40,7 +40,8 @@ export class LayoutStoreService {
     private loadInitialState(): LayoutState {
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : defaultState;
+            // Uygulama yalnız açık temayla çalışır; daha önce saklanmış koyu / sistem teması yok sayılır.
+            return stored ? {...JSON.parse(stored), theme: 'light'} : defaultState;
         } catch {
             return defaultState;
         }

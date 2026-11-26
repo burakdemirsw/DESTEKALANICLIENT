@@ -1,93 +1,132 @@
-import { Component, OnInit, AfterViewChecked, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
 import { UserRequestsService } from '@/app/core/services/user-requests.service';
 import { RequestCategoriesService } from '@/app/core/services/request-categories.service';
 import { RequestPrioritiesService } from '@/app/core/services/request-priorities.service';
 import { RequestStatusesService } from '@/app/core/services/request-statuses.service';
 import { UsersService } from '@/app/core/services/users.service';
 import { UserMenuService } from '@/app/core/services/user-menu.service';
-import { RolesService } from '@/app/core/services/roles.service';
+import { SupportRoleService } from '@/app/core/services/support-role.service';
+import { CannedRepliesService, CannedReply } from '@/app/core/services/canned-replies.service';
+import { ClipboardService } from '@/app/core/services/clipboard.service';
+import { UserRequestSignalRService } from '@/app/core/services/user-request-signalr.service';
+import { AuthStateService } from '@core/services/auth-state.service';
 import {
     UserRequest,
-    UserRequestMessage,
     UserRequestMessageResponse,
     CreateUserRequestMessageRequest,
+    UpdateUserRequestRequest,
 } from '@/app/core/models/user-request/user-request.models';
 import { RequestCategoryResponse } from '@/app/core/models/request-category/request-category.models';
 import { RequestPriorityResponse } from '@/app/core/models/request-priority/request-priority.models';
 import { RequestStatusResponse } from '@/app/core/models/request-status/request-status.models';
 import { User } from '@/app/core/models/user/user.models';
-import { RoleUserResponse } from '@/app/core/models/role/role.models';
-import { AuthStateService } from '@core/services/auth-state.service';
-import { isAllowedAttachment, recordAttachmentAccess, sanitizeAttachmentFileName } from '@/app/utils/file-security';
-import { UserRequestSignalRService } from '@/app/core/services/user-request-signalr.service';
-import { Subscription } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ConfirmModal } from '@app/components/confirm-modal';
+import { sanitizeAttachmentFileName } from '@/app/utils/file-security';
+import {
+    ATTACHMENT_ACCEPT,
+    ATTACHMENT_RULES_TEXT,
+    describeAttachmentDownloadError,
+    getClipboardFiles,
+    getDroppedFiles,
+    isFileDrag,
+    prepareAttachment,
+    saveAttachmentBlob,
+} from '@/app/utils/request-attachment';
+import { formatDateTime, fullName, getRelativeTimeLabel, isRequestClosed, toTime } from '@/app/utils/support-request.utils';
 
-interface MessageGroup {
-    senderKey: string;
-    dateKey: string;
-    messages: UserRequestMessageResponse[];
-}
+// Sağ panelden doğrudan değiştirilen alanlar (yalnız yönetici)
+type QuickField = 'statusId' | 'priorityId' | 'assignedUserId';
 
-interface GroupedMessageSection {
-    dateKey: string;
-    dateLabel: string;
-    groups: MessageGroup[];
-}
+const QUICK_FIELD_LABELS: Record<QuickField, string> = {
+    statusId: 'Durum',
+    priorityId: 'Öncelik',
+    assignedUserId: 'Atanan kişi',
+};
 
 @Component({
     selector: 'app-user-request-detail-page',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, ConfirmModal],
     templateUrl: './user-request-detail.html',
     styleUrl: './user-request-detail.scss',
 })
-export class UserRequestDetailPage implements OnInit, AfterViewChecked {
-    private static readonly MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
+export class UserRequestDetailPage implements OnInit, AfterViewChecked, OnDestroy {
     private static readonly MIN_REPLY_MESSAGE_LENGTH = 10;
     private incomingMessageSound = new Audio('assets/sounds/incoming-message-sound.mp3');
 
-    @ViewChild('chatBody') private chatBodyRef!: ElementRef<HTMLDivElement>;
+    @ViewChild('chatBody') private chatBodyRef?: ElementRef<HTMLDivElement>;
     @ViewChild('messageFileInput') private messageFileInputRef?: ElementRef<HTMLInputElement>;
     @ViewChild('replyTextarea') private replyTextareaRef?: ElementRef<HTMLTextAreaElement>;
     private shouldScrollToBottom = false;
     private signalRSubscription: Subscription | null = null;
     private realtimeRefreshInProgress = false;
     private pendingRealtimeRefresh = false;
+    private baseDocumentTitle: string | null = null;
+    private unseenMessageCount = 0;
+
+    readonly attachmentAccept = ATTACHMENT_ACCEPT;
+    readonly attachmentRulesText = ATTACHMENT_RULES_TEXT;
+
     requestId = '';
+    currentUserId = '';
     request: UserRequest | null = null;
     messages: UserRequestMessageResponse[] = [];
-    groupedMessageSections: GroupedMessageSection[] = [];
     categories: RequestCategoryResponse[] = [];
     priorities: RequestPriorityResponse[] = [];
     statuses: RequestStatusResponse[] = [];
     users: User[] = [];
-    userRoles: RoleUserResponse[] = [];
+    assigneeOptions: User[] = [];
     hasAdminRole = false;
     isCustomerRole = false;
     loading = false;
     messagesLoading = false;
+    messagesLoaded = false;
+
+    // Yanıt kutusu
     newMessage = '';
     attachmentFile: File | null = null;
     attachmentFileName: string | null = null;
+    attachmentError = '';
+    replyAttempted = false;
+    sending = false;
+    dragActive = false;
+
+    // Hazır yanıtlar (yönetici)
+    cannedReplies: CannedReply[] = [];
+    showCannedReplies = false;
+
+    // Sağ panelden hızlı değişiklik (yönetici)
+    quickForm: Record<QuickField, string> = { statusId: '', priorityId: '', assignedUserId: '' };
+    quickSaving: QuickField | null = null;
+
+    // "Benzer yeni talep aç" bağlantısının adres parametreleri
+    similarRequestQuery: Params = {};
+
     previewImageUrl: string | null = null;
     previewImageName: string | null = null;
-    replyAttempted = false;
+
+    // Ekler herkese açık adreste durmaz; yetkili uçtan Blob olarak indirilir. Resimler blob: adresiyle gösterilir
+    // (mesaj id → adres), sayfadan çıkılınca adresler bırakılır.
+    attachmentImageUrls: Record<string, string> = {};
+    failedAttachmentIds = new Set<string>();
+    downloadingAttachmentId: string | null = null;
+    private loadingAttachmentIds = new Set<string>();
+    private destroyed = false;
     showEditModal = false;
-    showReplyModal = false;
-    showDetailsSidebar = true;
-    collapsedSections: Record<string, boolean> = {};
-    editForm: any = {
+    editSaving = false;
+    editAttempted = false;
+    editForm = {
         categoryId: '',
-        statusId: '',
-        priorityId: '',
-        assignedUserId: '',
         subject: '',
         description: '',
         isBlocked: false,
     };
+    showCloseConfirm = false;
+    closing = false;
 
     constructor(
         private route: ActivatedRoute,
@@ -98,10 +137,26 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         private statusService: RequestStatusesService,
         private usersService: UsersService,
         private userMenuService: UserMenuService,
-        private rolesService: RolesService,
+        private supportRoleService: SupportRoleService,
+        private cannedRepliesService: CannedRepliesService,
+        private clipboardService: ClipboardService,
         private authStateService: AuthStateService,
         private userRequestSignalRService: UserRequestSignalRService,
     ) {}
+
+    ngOnInit(): void {
+        this.requestId = this.route.snapshot.paramMap.get('id') ?? '';
+        this.currentUserId = this.userMenuService.getUserIdFromToken() ?? '';
+        if (this.requestId) {
+            this.loadCurrentUserRoles();
+            this.loadRequest();
+            this.loadMessages();
+            this.loadCategories();
+            this.loadPriorities();
+            this.loadStatuses();
+            this.initializeSignalR();
+        }
+    }
 
     ngAfterViewChecked(): void {
         if (this.shouldScrollToBottom) {
@@ -110,33 +165,36 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         }
     }
 
-    private scrollToBottom(): void {
-        try {
-            const el = this.chatBodyRef?.nativeElement;
-            if (el) {
-                el.scrollTop = el.scrollHeight;
-            }
-        } catch (_) {}
+    ngOnDestroy(): void {
+        this.destroyed = true;
+        this.cleanupSignalR();
+        this.resetTitleCounter();
+        Object.values(this.attachmentImageUrls).forEach(url => URL.revokeObjectURL(url));
+        this.attachmentImageUrls = {};
     }
 
-    ngOnInit(): void {
-        this.requestId = this.route.snapshot.paramMap.get('id') ?? '';
-        if (this.requestId) {
-            this.loadCurrentUserRoles();
-            this.loadRequest();
-            this.loadMessages();    
-            this.loadCategories();
-            this.loadPriorities();
-            this.loadStatuses();
-            this.loadUsers();
-            this.initializeSignalR();
+    @HostListener('document:visibilitychange')
+    onVisibilityChange(): void {
+        if (!document.hidden) this.resetTitleCounter();
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscape(): void {
+        if (this.previewImageUrl) {
+            this.closeImagePreview();
+        } else if (this.showEditModal && !this.editSaving) {
+            this.closeEditModal();
+        } else if (this.showCannedReplies) {
+            this.showCannedReplies = false;
         }
     }
 
-    ngOnDestroy(): void {
-        this.cleanupSignalR();
+    private scrollToBottom(): void {
+        const el = this.chatBodyRef?.nativeElement;
+        if (el) el.scrollTop = el.scrollHeight;
     }
 
+    // ── Anlık mesaj (SignalR) ──
     private async initializeSignalR(): Promise<void> {
         const currentRequestId = this.normalizeRequestId(this.requestId);
         if (!currentRequestId) return;
@@ -148,33 +206,44 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
             const incomingRequestId = this.normalizeRequestId(message?.requestId || '');
             if (!incomingRequestId || incomingRequestId !== currentRequestId) return;
 
-            this.showIncomingMessageToast(message);
+            this.notifyIncomingMessage(message);
             this.triggerRealtimeMessagesRefresh();
         });
     }
 
-    private showIncomingMessageToast(message: UserRequestMessageResponse): void {
-        const currentUserId = this.userMenuService.getUserIdFromToken();
-        if (currentUserId && message.senderUserId === currentUserId) {
-            return;
-        }
+    private notifyIncomingMessage(message: UserRequestMessageResponse): void {
+        if (this.currentUserId && message.senderUserId === this.currentUserId) return;
 
         this.incomingMessageSound.currentTime = 0;
         this.incomingMessageSound.play().catch(() => {});
+        this.bumpTitleCounter();
 
         const sender = message.senderUserName?.trim() || 'Yeni mesaj';
         const preview = message.message?.trim() || 'Mesaj içeriği yok';
-
         Swal.fire({
             toast: true,
             position: 'top-end',
             icon: 'info',
-            title: `${sender}`,
+            title: sender,
             text: preview.length > 90 ? `${preview.slice(0, 90)}...` : preview,
             showConfirmButton: false,
             timer: 2800,
             timerProgressBar: true,
         });
+    }
+
+    // Sekme arka plandayken gelen mesaj sayısı sekme başlığında gösterilir: "(2) Destek Alanı"
+    private bumpTitleCounter(): void {
+        if (!document.hidden) return;
+        if (this.baseDocumentTitle === null) this.baseDocumentTitle = document.title;
+        this.unseenMessageCount++;
+        document.title = `(${this.unseenMessageCount}) ${this.baseDocumentTitle}`;
+    }
+
+    private resetTitleCounter(): void {
+        if (this.baseDocumentTitle !== null) document.title = this.baseDocumentTitle;
+        this.baseDocumentTitle = null;
+        this.unseenMessageCount = 0;
     }
 
     private async triggerRealtimeMessagesRefresh(): Promise<void> {
@@ -188,7 +257,6 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
             await this.loadMessages();
         } finally {
             this.realtimeRefreshInProgress = false;
-
             if (this.pendingRealtimeRefresh) {
                 this.pendingRealtimeRefresh = false;
                 await this.triggerRealtimeMessagesRefresh();
@@ -211,245 +279,174 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return (requestId || '').trim().toLowerCase();
     }
 
+    // ── Veri yükleme ──
     async loadRequest(): Promise<void> {
-        this.loading = true;
+        this.loading = !this.request;
         try {
             const response = await this.requestService.getById(this.requestId);
             this.request = response?.data ?? null;
-        } catch (err) {
-            console.error('Request load error:', err);
+            this.syncQuickForm();
+            this.similarRequestQuery = this.buildSimilarRequestQuery();
+        } catch {
+            // İlk yüklemede hata olursa "Talep bulunamadı" görünür; yenilemede eldeki bilgi korunur.
         } finally {
             this.loading = false;
         }
     }
 
+    // Mesajlar eskiden yeniye sıralanır, sayfa en yeni mesaja (en alta) kayar. Yenilemede liste yerinde kalır,
+    // yükleniyor yazısı yalnız ilk yüklemede gösterilir.
     async loadMessages(): Promise<void> {
         this.messagesLoading = true;
         try {
             const response = await this.requestService.getMessages(this.requestId);
-            this.messages = (this.extractArray(response?.data) as UserRequestMessageResponse[])
-                .sort((left, right) => {
-                    const leftTime = left.createdDate ? new Date(left.createdDate).getTime() : 0;
-                    const rightTime = right.createdDate ? new Date(right.createdDate).getTime() : 0;
-                    return rightTime - leftTime;
-                });
-            this.groupedMessageSections = this.buildGroupedMessageSections(this.messages);
+            this.messages = this.extractArray<UserRequestMessageResponse>(response?.data)
+                .sort((left, right) => toTime(left.createdDate) - toTime(right.createdDate));
+            this.messagesLoaded = true;
+            this.loadImageAttachments();
             this.shouldScrollToBottom = true;
-        } catch (err) {
-            console.error('Messages load error:', err);
+        } catch {
+            if (!this.messagesLoaded) this.toast('error', 'Mesajlar yüklenemedi.');
         } finally {
             this.messagesLoading = false;
         }
     }
 
-    async loadCategories(): Promise<void> {
+    private async loadCategories(): Promise<void> {
         try {
-            const response = await this.categoryService.getPaged({ companyId: this.authStateService.profile?.companyId ?? '', pageNumber: 1, pageSize: 1000 });
-            const paged = response?.data;
-            this.categories = paged?.items ?? [];
-        } catch (err) {
-            console.error('Categories load error:', err);
+            const response = await this.categoryService.getPaged({ companyId: this.companyId, pageNumber: 1, pageSize: 1000 });
+            this.categories = response?.data?.items ?? [];
+        } catch {
+            this.categories = [];
         }
     }
 
-    async loadPriorities(): Promise<void> {
+    private async loadPriorities(): Promise<void> {
         try {
-            const response = await this.priorityService.getPaged({ companyId: this.authStateService.profile?.companyId ?? '', pageNumber: 1, pageSize: 1000 });
-            const paged = response?.data;
-            this.priorities = paged?.items ?? [];
-        } catch (err) {
-            console.error('Priorities load error:', err);
+            const response = await this.priorityService.getPaged({ companyId: this.companyId, pageNumber: 1, pageSize: 1000 });
+            this.priorities = response?.data?.items ?? [];
+        } catch {
+            this.priorities = [];
         }
     }
 
-    async loadStatuses(): Promise<void> {
+    private async loadStatuses(): Promise<void> {
         try {
-            const response = await this.statusService.getPaged({ companyId: this.authStateService.profile?.companyId ?? '', pageNumber: 1, pageSize: 1000 });
-            const paged = response?.data;
-            this.statuses = paged?.items ?? [];
-        } catch (err) {
-            console.error('Statuses load error:', err);
+            const response = await this.statusService.getPaged({ companyId: this.companyId, pageNumber: 1, pageSize: 1000 });
+            this.statuses = response?.data?.items ?? [];
+        } catch {
+            this.statuses = [];
         }
     }
 
-    async loadUsers(): Promise<void> {
-        try {
-            const response = await this.usersService.getAll();
-            this.users = this.extractArray(response?.data);
-        } catch (err) {
-            console.error('Users load error:', err);
+    private async loadCurrentUserRoles(): Promise<void> {
+        const roles = await this.supportRoleService.getCurrentRoles();
+        this.hasAdminRole = roles.isAdmin;
+        this.isCustomerRole = roles.isCustomer;
+
+        // Kullanıcı listesi yalnız yöneticinin atama seçimi için gerekir; talep açan kullanıcıya yüklenmez.
+        if (this.hasAdminRole) {
+            this.cannedReplies = this.cannedRepliesService.getAll(this.currentUserId);
+            await this.loadAssignees();
         }
     }
 
-    async loadCurrentUserRoles(): Promise<void> {
+    // Atanan kişi seçiminde yalnız "Destek Alanı Yönetici" rolündekiler listelenir; rol okunamazsa tüm kullanıcılar.
+    private async loadAssignees(): Promise<void> {
         try {
-            const userId = this.userMenuService.getUserIdFromToken();
-            if (!userId) {
-                this.userRoles = [];
-                this.hasAdminRole = false;
-                this.isCustomerRole = false;
-                return;
-            }
-
-            const response = await this.rolesService.getRolesByUser(userId);
-            this.userRoles = this.extractArray(response?.data) as RoleUserResponse[];
-            this.hasAdminRole = this.userRoles.some(role => {
-                const roleName = (role.roleDescription || '').toLowerCase();
-                return roleName === 'admin' || roleName === 'destek alanı yönetici';
-            });
-            this.isCustomerRole = this.userRoles.some(role => {
-                const roleName = (role.roleDescription || '').toLowerCase();
-                return roleName === 'customer' || roleName === 'destek alanı';
-            });
-        } catch (err) {
-            console.error('User roles load error:', err);
-            this.userRoles = [];
-            this.hasAdminRole = false;
-            this.isCustomerRole = false;
+            const [usersResponse, adminIds] = await Promise.all([
+                this.usersService.getAll(),
+                this.supportRoleService.getAdminUserIds(),
+            ]);
+            this.users = this.extractArray<User>(usersResponse?.data);
+            const adminIdSet = new Set(adminIds);
+            this.assigneeOptions = adminIdSet.size
+                ? this.users.filter(user => adminIdSet.has(user.id))
+                : [...this.users];
+            this.assigneeOptions.sort((left, right) => this.userLabel(left).localeCompare(this.userLabel(right), 'tr'));
+        } catch {
+            this.users = [];
+            this.assigneeOptions = [];
         }
     }
 
-    private extractArray(response: any): any[] {
-        if (Array.isArray(response)) return response;
-        if (response?.$values) return response.$values;
-        if (response?.data) return Array.isArray(response.data) ? response.data : [response.data];
-        if (response?.items) return response.items;
-        if (response?.result) return Array.isArray(response.result) ? response.result : [response.result];
-        // If a single object is passed directly (not wrapped in ApiResponse), wrap it into an array
-        if (response && typeof response === 'object') return [response];
+    private get companyId(): string {
+        return this.authStateService.profile?.companyId ?? '';
+    }
+
+    private extractArray<T>(response: unknown): T[] {
+        if (Array.isArray(response)) return response as T[];
+        const wrapped = response as { $values?: T[]; items?: T[]; data?: T[] | T; result?: T[] | T } | null;
+        if (wrapped?.$values) return wrapped.$values;
+        if (wrapped?.items) return wrapped.items;
+        if (wrapped?.data) return Array.isArray(wrapped.data) ? wrapped.data : [wrapped.data];
+        if (wrapped?.result) return Array.isArray(wrapped.result) ? wrapped.result : [wrapped.result];
         return [];
     }
 
-    // ── Yardımcı Fonksiyonlar ──
-    getCategoryName(id?: string): string {
+    // ── Görünüm yardımcıları ──
+    getCategoryName(id?: string | null): string {
         if (!id) return '-';
         return this.categories.find(c => c.id === id)?.name ?? '-';
     }
 
-    getPriorityName(id?: string): string {
+    getPriorityName(id?: string | null): string {
         if (!id) return '-';
         return this.priorities.find(p => p.id === id)?.name ?? '-';
     }
 
-    getStatusName(id?: string): string {
+    getStatusName(id?: string | null): string {
         if (!id) return '-';
         return this.statuses.find(s => s.id === id)?.name ?? '-';
     }
 
-    getStatusBadgeBackground(colorCode?: string | null): string {
-        return this.normalizeHexColor(colorCode) ?? '#dbeafe';
+    userLabel(user: User): string {
+        return fullName(user.name, user.lastName) || user.email || '-';
     }
 
-    getStatusBadgeBorderColor(colorCode?: string | null): string {
-        return this.adjustHexColor(this.normalizeHexColor(colorCode) ?? '#93c5fd', -18);
-    }
-
-    getStatusBadgeTextColor(colorCode?: string | null): string {
-        const normalized = this.normalizeHexColor(colorCode);
-        if (!normalized) return '#1e3a8a';
-
-        const hex = normalized.slice(1);
-        const red = parseInt(hex.slice(0, 2), 16);
-        const green = parseInt(hex.slice(2, 4), 16);
-        const blue = parseInt(hex.slice(4, 6), 16);
-        const luminance = (red * 0.299 + green * 0.587 + blue * 0.114) / 255;
-
-        return luminance > 0.68 ? '#10233f' : '#ffffff';
-    }
-
-    getUserFullName(id?: string): string {
+    getUserFullName(id?: string | null): string {
         if (!id) return '-';
         const user = this.users.find(u => u.id === id);
-        return user ? `${user.name} ${user.lastName}` : '-';
+        return user ? this.userLabel(user) : '-';
     }
 
-    getCurrentUserRoleName(): string {
-        if (this.hasAdminRole) return 'admin';
-        if (this.isCustomerRole) return 'customer';
-        return '';
+    get ownerName(): string {
+        if (!this.request) return '-';
+        return fullName(this.request.userName, this.request.userLastName) || this.getUserFullName(this.request.userId);
     }
 
-    private normalizeHexColor(colorCode?: string | null): string | null {
-        if (!colorCode) return null;
-
-        const value = colorCode.trim();
-        if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
-
-        if (/^#[0-9a-fA-F]{3}$/.test(value)) {
-            return `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
-        }
-
-        return null;
+    get assignedName(): string {
+        if (!this.request?.assignedUserId) return 'Atanmadı';
+        return fullName(this.request.assignedUserName, this.request.assignedUserLastName)
+            || this.getUserFullName(this.request.assignedUserId);
     }
 
-    private adjustHexColor(hexColor: string, amount: number): string {
-        const hex = hexColor.replace('#', '');
-        const channels = [0, 2, 4].map(index => {
-            const channel = parseInt(hex.slice(index, index + 2), 16);
-            return Math.max(0, Math.min(255, channel + amount));
-        });
-
-        return `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+    // Pasif durum / öncelik seçimde gösterilmez; talebin mevcut değeri pasif olsa da listede kalır.
+    get statusOptions(): RequestStatusResponse[] {
+        return this.statuses.filter(status => !status.isBlocked || status.id === this.request?.statusId);
     }
 
-    toggleSection(section: string): void {
-        this.collapsedSections[section] = !this.collapsedSections[section];
+    get priorityOptions(): RequestPriorityResponse[] {
+        return this.priorities.filter(priority => !priority.isBlocked || priority.id === this.request?.priorityId);
     }
 
-    isSectionOpen(section: string): boolean {
-        return !this.collapsedSections[section];
+    get isAssignedToMe(): boolean {
+        return !!this.currentUserId && this.request?.assignedUserId === this.currentUserId;
     }
 
-    canEditRequest(): boolean {
-        return this.hasAdminRole;
+    // Talebe atanmış kişi yönetici listesinde yoksa (rolü değişmiş vb.) seçimde yine görünsün
+    get isAssigneeMissingFromOptions(): boolean {
+        const assignedUserId = this.request?.assignedUserId;
+        return !!assignedUserId && !this.assigneeOptions.some(user => user.id === assignedUserId);
     }
 
-    canCloseRequest(): boolean {
-        return this.hasAdminRole && !!this.request && !this.request.isBlocked;
+    get closeConfirmMessage(): string {
+        const name = this.request?.subject || this.request?.requestNo || 'Talep';
+        return `"${name}" talebi kapatılacak. Kapanan talebe yanıt yazılamaz.`;
     }
 
-    private getLatestMessage(): UserRequestMessageResponse | null {
-        if (!this.messages.length) return null;
-
-        return [...this.messages].sort((left, right) => {
-            const leftTime = left.createdDate ? new Date(left.createdDate).getTime() : 0;
-            const rightTime = right.createdDate ? new Date(right.createdDate).getTime() : 0;
-            return leftTime - rightTime;
-        }).at(-1) ?? null;
-    }
-
-    canComposeMessage(): boolean {
-        if (this.isRequestCompleted()) return false;
-
-        const currentRole = this.getCurrentUserRoleName();
-
-        if (currentRole === 'admin') {
-            return true;
-        }
-
-        if (currentRole === 'customer') {
-            return true;
-        }
-
-        return false;
-    }
-
-    isRequestCompleted(): boolean {
-        if (!this.request) return false;
-        const statusName = (this.request.statusName || this.getStatusName(this.request.statusId)).toLowerCase();
-        return statusName === 'tamamlandı' || statusName === 'completed' || statusName === 'closed';
-    }
-
-    isOutgoingMessage(message: UserRequestMessageResponse): boolean {
-        const currentUserId = this.userMenuService.getUserIdFromToken();
-
-        if (currentUserId && message.senderUserId) {
-            return message.senderUserId === currentUserId;
-        }
-
-        const messageRole = (message.from || '').toLowerCase();
-        const currentRole = this.getCurrentUserRoleName();
-        return !!messageRole && !!currentRole && messageRole === currentRole;
+    isStaffMessage(message: UserRequestMessageResponse): boolean {
+        return (message.from || '').toLowerCase() === 'admin';
     }
 
     isRequestOwnerMessage(message: UserRequestMessageResponse): boolean {
@@ -457,117 +454,88 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return this.request.userId === message.senderUserId;
     }
 
-    getMessageAlignment(message: UserRequestMessageResponse): string {
-        return this.isOutgoingMessage(message) ? 'justify-content-end' : 'justify-content-start';
-    }
-
-    getMessageBubbleClass(message: UserRequestMessageResponse): string {
-        return this.isOutgoingMessage(message)
-            ? 'bg-primary-subtle text-primary'
-            : 'bg-light text-body';
-    }
-
     getMessageSenderLabel(message: UserRequestMessageResponse): string {
-        return message.senderUserName || this.getUserFullName(message.senderUserId);
+        return message.senderUserName?.trim() || this.getUserFullName(message.senderUserId) || 'Kullanıcı';
     }
 
-    getMessageGroupClass(group: MessageGroup): string {
-        const firstMessage = group.messages[0];
-        if (!firstMessage) return '';
+    getInitial(name: string): string {
+        return (name || '?').trim().charAt(0).toLocaleUpperCase('tr-TR') || '?';
+    }
 
-        if ((firstMessage.from || '').toLowerCase() === 'admin') {
-            return 'is-admin';
+    // Sıradaki yanıtın kimden beklendiği; kapalı talepte gösterilmez.
+    get waitingLabel(): string {
+        if (!this.request || !this.messagesLoaded || this.isRequestCompleted()) return '';
+        const lastMessage = this.messages.at(-1);
+        const supportRepliedLast = !!lastMessage && this.isStaffMessage(lastMessage);
+        if (this.hasAdminRole) {
+            return supportRepliedLast ? 'Müşterinin yanıtı bekleniyor' : 'Yanıtınız bekleniyor';
         }
+        return supportRepliedLast ? 'Yanıtınız bekleniyor' : 'Destek ekibinin yanıtı bekleniyor';
+    }
 
-        if (this.isRequestOwnerMessage(firstMessage)) {
-            return 'is-owner';
+    isRequestCompleted(): boolean {
+        if (!this.request) return false;
+        return isRequestClosed(this.request, this.request.statusName || this.getStatusName(this.request.statusId));
+    }
+
+    canEditRequest(): boolean {
+        return this.hasAdminRole;
+    }
+
+    canCloseRequest(): boolean {
+        return this.hasAdminRole && !!this.request && !this.request.isBlocked && !this.isRequestCompleted();
+    }
+
+    canComposeMessage(): boolean {
+        return !this.isRequestCompleted() && (this.hasAdminRole || this.isCustomerRole);
+    }
+
+    formatDate(dateStr?: string | null): string {
+        return formatDateTime(dateStr);
+    }
+
+    getRelativeTimeLabel(dateStr?: string | null): string {
+        return getRelativeTimeLabel(dateStr);
+    }
+
+    // ── Kopyalama ──
+    async copyRequestNo(): Promise<void> {
+        if (!this.request?.requestNo) return;
+        await this.copy(this.request.requestNo, 'Talep numarası kopyalandı.');
+    }
+
+    async copyRequestLink(): Promise<void> {
+        const url = window.location.origin + this.router.serializeUrl(this.router.createUrlTree(['/admin/user-requests', this.requestId]));
+        await this.copy(url, 'Talep bağlantısı kopyalandı.');
+    }
+
+    private async copy(value: string, successText: string): Promise<void> {
+        try {
+            await this.clipboardService.copyText(value);
+            this.toast('success', successText);
+        } catch {
+            this.toast('error', 'Kopyalanamadı.');
         }
-
-        return 'is-replier';
     }
 
-    getGroupLatestDate(group: MessageGroup): string {
-        if (!group.messages.length) return '-';
-
-        const latestMessage = group.messages.reduce((latest, current) => {
-            const latestTime = latest.createdDate ? new Date(latest.createdDate).getTime() : 0;
-            const currentTime = current.createdDate ? new Date(current.createdDate).getTime() : 0;
-            return currentTime > latestTime ? current : latest;
-        });
-
-        return this.formatDate(latestMessage.createdDate);
+    // Kapalı talepte "Benzer yeni talep aç": yeni talep formu bu talebin uygulaması, kategorisi ve konusuyla açılır
+    // (parametre adları Talepler sayfasındaki NEW_REQUEST_QUERY ile aynıdır).
+    private buildSimilarRequestQuery(): Params {
+        if (!this.request) return {};
+        const query: Params = { yeni: 1 };
+        if (this.request.applicationId) query['yeniUygulama'] = this.request.applicationId;
+        if (this.request.categoryId) query['yeniKategori'] = this.request.categoryId;
+        if (this.request.subject) query['yeniKonu'] = this.request.subject;
+        if (this.request.requestNo) query['ilgili'] = this.request.requestNo;
+        return query;
     }
 
-    getGroupLatestRelativeDate(group: MessageGroup): string {
-        if (!group.messages.length) return '';
-
-        const latestMessage = group.messages.reduce((latest, current) => {
-            const latestTime = latest.createdDate ? new Date(latest.createdDate).getTime() : 0;
-            const currentTime = current.createdDate ? new Date(current.createdDate).getTime() : 0;
-            return currentTime > latestTime ? current : latest;
-        });
-
-        return this.getRelativeTimeLabel(latestMessage.createdDate);
-    }
-
-    private buildGroupedMessageSections(messages: UserRequestMessageResponse[]): GroupedMessageSection[] {
-        const sections: GroupedMessageSection[] = [];
-
-        for (const message of messages) {
-            const dateKey = this.getMessageDateKey(message.createdDate);
-            const senderKey = this.getMessageSenderKey(message);
-
-            const lastSection = sections.at(-1);
-            if (!lastSection || lastSection.dateKey !== dateKey) {
-                sections.push({
-                    dateKey,
-                    dateLabel: this.getMessageDateLabel(message.createdDate),
-                    groups: [{ senderKey, dateKey, messages: [message] }],
-                });
-                continue;
-            }
-
-            const lastGroup = lastSection.groups.at(-1);
-            if (lastGroup && lastGroup.senderKey === senderKey) {
-                lastGroup.messages.push(message);
-            } else {
-                lastSection.groups.push({ senderKey, dateKey, messages: [message] });
-            }
-        }
-
-        return sections;
-    }
-
-    getMessageDateKey(dateStr?: string): string {
-        if (!dateStr) return 'unknown';
-        const date = new Date(dateStr);
-        if (Number.isNaN(date.getTime())) return 'unknown';
-
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    private getMessageDateLabel(dateStr?: string): string {
-        if (!dateStr) return 'Tarih bilinmiyor';
-
-        const date = new Date(dateStr);
-        if (Number.isNaN(date.getTime())) return 'Tarih bilinmiyor';
-
-        return date.toLocaleDateString('tr-TR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-        });
-    }
-
-    getMessageSenderKey(message: UserRequestMessageResponse): string {
-        return `${message.senderUserId || ''}|${(message.from || '').toLowerCase()}`;
-    }
-
-    canSendReply(): boolean {
-        return this.hasMinReplyMessageLength();
+    // ── Yanıt kutusu ──
+    focusComposer(): void {
+        const textarea = this.replyTextareaRef?.nativeElement;
+        if (!textarea) return;
+        textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        textarea.focus({ preventScroll: true });
     }
 
     getReplyMessageLength(): number {
@@ -582,103 +550,250 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
         return this.replyAttempted && !this.hasMinReplyMessageLength();
     }
 
-    openReplyModal(): void {
-        if (!this.canComposeMessage()) return;
-        this.replyAttempted = false;
-        this.showReplyModal = true;
-
-        setTimeout(() => {
-            this.replyTextareaRef?.nativeElement.focus();
-        });
-    }  
- 
-    closeReplyModal(): void {
-        this.replyAttempted = false;
-        this.showReplyModal = false;
+    onMessageKeydown(event: KeyboardEvent): void {
+        if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+            event.preventDefault();
+            this.sendMessage();
+        }
     }
 
     onAttachmentSelected(event: Event): void {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
+        if (file) {
+            this.setAttachment(file);
+        }
+        input.value = '';
+    }
 
-        if (!file) {
-            this.clearAttachment();
+    // Ctrl+V ile ekran görüntüsü yapıştırma; panoda dosya yoksa metin normal yapıştırılır.
+    onPaste(event: ClipboardEvent): void {
+        const files = getClipboardFiles(event);
+        if (!files.length) return;
+        event.preventDefault();
+        this.setAttachment(files[0]);
+    }
+
+    onDragOver(event: DragEvent): void {
+        if (!isFileDrag(event) || this.sending) return;
+        event.preventDefault();
+        this.dragActive = true;
+    }
+
+    onDragLeave(event: DragEvent): void {
+        const container = event.currentTarget as HTMLElement | null;
+        if (container && event.relatedTarget instanceof Node && container.contains(event.relatedTarget)) return;
+        this.dragActive = false;
+    }
+
+    onDrop(event: DragEvent): void {
+        if (!isFileDrag(event)) return;
+        event.preventDefault();
+        this.dragActive = false;
+        const files = getDroppedFiles(event);
+        if (files.length) this.setAttachment(files[0]);
+    }
+
+    private setAttachment(file: File): void {
+        const result = prepareAttachment(file);
+        if (result.error !== null) {
+            this.attachmentError = result.error;
             return;
         }
-
-        const sanitizedName = sanitizeAttachmentFileName(file.name);
-        if (!isAllowedAttachment(file.type || '', sanitizedName)) {
-            this.clearAttachment();
-            alert('Sadece resim dosyaları ve zipli resim arşivi yüklenebilir. Desteklenen formatlar: JPG, PNG, WEBP, GIF, BMP, SVG, ZIP, RAR, 7Z.');
-            return;
-        }
-
-        if (file.size > UserRequestDetailPage.MAX_ATTACHMENT_SIZE_BYTES) {
-            this.clearAttachment();
-            alert('Dosya boyutu 5 MB\'ı geçemez.');
-            return;
-        }
-
-        const safeFile = new File([file], sanitizedName, {
-            type: file.type || 'application/octet-stream',
-            lastModified: file.lastModified,
-        });
-
-        this.attachmentFile = safeFile;
-        this.attachmentFileName = safeFile.name;
+        this.attachmentError = '';
+        this.attachmentFile = result.file;
+        this.attachmentFileName = result.file.name;
     }
 
     clearAttachment(): void {
         this.attachmentFile = null;
         this.attachmentFileName = null;
-
+        this.attachmentError = '';
         if (this.messageFileInputRef?.nativeElement) {
             this.messageFileInputRef.nativeElement.value = '';
         }
     }
 
+    async sendMessage(): Promise<void> {
+        if (this.sending || !this.canComposeMessage()) return;
+        this.replyAttempted = true;
+        if (!this.hasMinReplyMessageLength()) return;
+
+        if (!this.currentUserId) {
+            this.toast('error', 'Kullanıcı bilgisi alınamadı. Lütfen tekrar giriş yapın.');
+            return;
+        }
+
+        this.sending = true;
+        try {
+            if (this.attachmentFile) {
+                await this.requestService.createMessageWithFile({
+                    requestId: this.requestId,
+                    senderUserId: this.currentUserId,
+                    message: this.newMessage.trim(),
+                    file: this.attachmentFile,
+                });
+            } else {
+                const req: CreateUserRequestMessageRequest = {
+                    requestId: this.requestId,
+                    senderUserId: this.currentUserId,
+                    message: this.newMessage.trim(),
+                };
+                await this.requestService.createMessage(req);
+            }
+
+            this.newMessage = '';
+            this.clearAttachment();
+            this.replyAttempted = false;
+            this.showCannedReplies = false;
+            await Promise.all([this.loadRequest(), this.loadMessages()]);
+        } catch (err) {
+            this.toast('error', 'Mesaj gönderilemedi. ' + this.describeError(err));
+        } finally {
+            this.sending = false;
+        }
+    }
+
+    // ── Hazır yanıtlar ──
+    toggleCannedReplies(): void {
+        this.showCannedReplies = !this.showCannedReplies;
+    }
+
+    insertCannedReply(reply: CannedReply): void {
+        const current = this.newMessage.trimEnd();
+        this.newMessage = current ? `${current}\n\n${reply.text}` : reply.text;
+        this.showCannedReplies = false;
+        setTimeout(() => this.replyTextareaRef?.nativeElement.focus());
+    }
+
+    saveCannedReply(): void {
+        if (!this.newMessage.trim()) return;
+        this.cannedReplies = this.cannedRepliesService.add(this.currentUserId, this.newMessage);
+        this.toast('success', 'Hazır yanıt kaydedildi.');
+    }
+
+    removeCannedReply(reply: CannedReply): void {
+        this.cannedReplies = this.cannedRepliesService.remove(this.currentUserId, reply.id);
+    }
+
+    // ── Sağ panelden hızlı değişiklik (durum / öncelik / atanan) ──
+    private syncQuickForm(): void {
+        this.quickForm = {
+            statusId: this.request?.statusId ?? '',
+            priorityId: this.request?.priorityId ?? '',
+            assignedUserId: this.request?.assignedUserId ?? '',
+        };
+    }
+
+    async saveQuickField(field: QuickField, value: string): Promise<void> {
+        if (!this.request || !this.hasAdminRole || this.quickSaving) return;
+        const previous = this.quickForm[field];
+        this.quickForm[field] = value;
+        if ((field === 'statusId' || field === 'priorityId') && !value) {
+            this.quickForm[field] = previous;
+            return;
+        }
+
+        this.quickSaving = field;
+        try {
+            const override: Partial<UpdateUserRequestRequest> = field === 'assignedUserId'
+                ? { assignedUserId: value || null }
+                : { [field]: value };
+            await this.requestService.update(this.request.id, this.buildUpdateBody(override));
+            await this.loadRequest();
+            this.toast('success', `${QUICK_FIELD_LABELS[field]} güncellendi.`);
+        } catch (err) {
+            this.quickForm[field] = previous;
+            this.toast('error', `${QUICK_FIELD_LABELS[field]} güncellenemedi. ${this.describeError(err)}`);
+        } finally {
+            this.quickSaving = null;
+        }
+    }
+
+    // "Üstlen": talebi giriş yapan yöneticiye atar.
+    async assignToMe(): Promise<void> {
+        if (!this.currentUserId) return;
+        await this.saveQuickField('assignedUserId', this.currentUserId);
+    }
+
+    private buildUpdateBody(override: Partial<UpdateUserRequestRequest>): UpdateUserRequestRequest {
+        const request = this.request!;
+        return {
+            assignedUserId: request.assignedUserId || null,
+            applicationId: request.applicationId || null,
+            categoryId: request.categoryId,
+            statusId: request.statusId,
+            priorityId: request.priorityId,
+            subject: request.subject ?? '',
+            description: request.description ?? '',
+            isBlocked: request.isBlocked ?? false,
+            ...override,
+        };
+    }
+
+    // ── Ekler ──
     hasMessageAttachment(message: UserRequestMessageResponse): boolean {
         return !!message.fileUrl;
     }
 
+    // SVG resim olarak gösterilmez (içinde betik olabilir); dosya olarak indirilir.
     isImageAttachment(message: UserRequestMessageResponse): boolean {
         const fileType = (message.fileType || '').toLowerCase();
-        return fileType.startsWith('image/');
+        return fileType.startsWith('image/') && !fileType.includes('svg');
     }
 
+    // Dosya adı FileUrl'in son parçasıdır (yeni eklerde dosyanın asıl adı, eski eklerde sunucunun verdiği ad).
     getAttachmentFileName(message: UserRequestMessageResponse): string {
         const fileUrl = message.fileUrl || '';
         if (!fileUrl) return 'Ek dosya';
 
-        const normalized = fileUrl.replace(/\\/g, '/');
-        const lastSlashIndex = normalized.lastIndexOf('/');
-        const rawName = lastSlashIndex >= 0 ? normalized.slice(lastSlashIndex + 1) : normalized;
-        return sanitizeAttachmentFileName(rawName || 'Ek dosya');
+        const normalized = fileUrl.replace(/\\/g, '/').split(/[?#]/)[0];
+        const rawName = normalized.slice(normalized.lastIndexOf('/') + 1);
+        let decoded = rawName;
+        try {
+            decoded = decodeURIComponent(rawName);
+        } catch {
+            // Kodlaması bozuk adda olduğu gibi kullanılır.
+        }
+        return sanitizeAttachmentFileName(decoded || 'Ek dosya');
     }
 
-    openAttachmentAccessLog(message: UserRequestMessageResponse, action: 'view' | 'download' = 'view'): void {
-        const userId = this.userMenuService.getUserIdFromToken();
-        if (!this.requestId || !userId) {
-            return;
+    // Henüz yüklenmemiş resim eklerini indirir; hata alan ek dosya satırı olarak gösterilir (İndir ile nedeni görülür).
+    private loadImageAttachments(): void {
+        for (const message of this.messages) {
+            const id = message.id;
+            if (!this.hasMessageAttachment(message) || !this.isImageAttachment(message)) continue;
+            if (this.attachmentImageUrls[id] || this.loadingAttachmentIds.has(id) || this.failedAttachmentIds.has(id)) continue;
+
+            this.loadingAttachmentIds.add(id);
+            this.requestService.downloadMessageFile(id)
+                .then(blob => {
+                    if (this.destroyed) return;
+                    this.attachmentImageUrls = { ...this.attachmentImageUrls, [id]: URL.createObjectURL(blob) };
+                })
+                .catch(() => this.failedAttachmentIds.add(id))
+                .finally(() => this.loadingAttachmentIds.delete(id));
         }
+    }
 
-        const accessLog = recordAttachmentAccess({
-            requestId: this.requestId,
-            fileName: this.getAttachmentFileName(message),
-            userId,
-            mimeType: message.fileType || 'application/octet-stream',
-            action,
-        });
-
-        console.info('Attachment access logged', accessLog);
+    async downloadAttachment(message: UserRequestMessageResponse): Promise<void> {
+        if (this.downloadingAttachmentId) return;
+        this.downloadingAttachmentId = message.id;
+        try {
+            const blob = await this.requestService.downloadMessageFile(message.id);
+            saveAttachmentBlob(blob, this.getAttachmentFileName(message));
+        } catch (err) {
+            this.toast('error', await describeAttachmentDownloadError(err));
+        } finally {
+            this.downloadingAttachmentId = null;
+        }
     }
 
     openImagePreview(message: UserRequestMessageResponse): void {
-        if (!message.fileUrl) return;
-
-        this.previewImageUrl = message.fileUrl;
+        const url = this.attachmentImageUrls[message.id];
+        if (!url) return;
+        this.previewImageUrl = url;
         this.previewImageName = this.getAttachmentFileName(message);
-        this.openAttachmentAccessLog(message, 'view');
     }
 
     closeImagePreview(): void {
@@ -688,22 +803,22 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
 
     getAttachmentTypeLabel(message: UserRequestMessageResponse): string {
         const fileType = (message.fileType || '').toLowerCase();
-        if (fileType.startsWith('image/')) return 'Gorsel';
+        if (fileType.startsWith('image/')) return 'Görsel';
         if (fileType.includes('pdf')) return 'PDF';
         if (fileType.includes('word') || fileType.includes('officedocument.word')) return 'Word';
         if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'Excel';
-        if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return 'Arsiv';
+        if (fileType.includes('presentation') || fileType.includes('powerpoint')) return 'PowerPoint';
+        if (fileType.includes('zip') || fileType.includes('rar') || fileType.includes('7z')) return 'Arşiv';
+        if (fileType.startsWith('text/')) return 'Metin';
         return 'Dosya';
     }
 
+    // ── Düzenleme (konu, açıklama, kategori, aktiflik) ──
     openEditModal(): void {
         if (!this.request || !this.canEditRequest()) return;
-
+        this.editAttempted = false;
         this.editForm = {
             categoryId: this.request.categoryId ?? '',
-            statusId: this.request.statusId ?? '',
-            priorityId: this.request.priorityId ?? '',
-            assignedUserId: this.request.assignedUserId ?? '',
             subject: this.request.subject ?? '',
             description: this.request.description ?? '',
             isBlocked: this.request.isBlocked ?? false,
@@ -712,146 +827,68 @@ export class UserRequestDetailPage implements OnInit, AfterViewChecked {
     }
 
     closeEditModal(): void {
+        if (this.editSaving) return;
         this.showEditModal = false;
     }
 
+    isEditFormValid(): boolean {
+        return !!(this.editForm.categoryId && this.editForm.subject.trim());
+    }
+
     async saveEdit(): Promise<void> {
-        if (!this.request || !this.canEditRequest()) return;
+        if (!this.request || !this.canEditRequest() || this.editSaving) return;
+        this.editAttempted = true;
+        if (!this.isEditFormValid()) return;
 
+        this.editSaving = true;
         try {
-            const requestBody = {
-                assignedUserId: this.editForm.assignedUserId || null,
-                applicationId: this.request.applicationId || null,
+            await this.requestService.update(this.request.id, this.buildUpdateBody({
                 categoryId: this.editForm.categoryId,
-                statusId: this.editForm.statusId,
-                priorityId: this.editForm.priorityId,
-                subject: this.editForm.subject,
-                description: this.editForm.description,
+                subject: this.editForm.subject.trim(),
+                description: this.editForm.description.trim(),
                 isBlocked: this.editForm.isBlocked,
-            };
-
-            await this.requestService.update(this.request.id, requestBody);
+            }));
             this.showEditModal = false;
             await this.loadRequest();
+            this.toast('success', 'Talep güncellendi.');
         } catch (err) {
-            console.error('Request update error:', err);
-            alert('Talep güncellenemedi.');
+            this.toast('error', 'Talep güncellenemedi. ' + this.describeError(err));
+        } finally {
+            this.editSaving = false;
         }
     }
 
-    formatDate(dateStr?: string): string {
-        if (!dateStr) return '-';
+    // ── Talebi kapat ──
+    openCloseConfirm(): void {
+        if (this.canCloseRequest()) this.showCloseConfirm = true;
+    }
+
+    async confirmCloseRequest(): Promise<void> {
+        if (!this.request || this.closing) return;
+        this.closing = true;
         try {
-            return new Date(dateStr).toLocaleDateString('tr-TR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-        } catch {
-            return dateStr;
-        }
-    }
-
-    getRelativeTimeLabel(dateStr?: string): string {
-        if (!dateStr) return '';
-
-        const date = new Date(dateStr);
-        const time = date.getTime();
-        if (Number.isNaN(time)) return '';
-
-        const diffMs = Date.now() - time;
-        if (diffMs < 0) return 'az once';
-
-        const minuteMs = 60 * 1000;
-        const hourMs = 60 * minuteMs;
-        const dayMs = 24 * hourMs;
-
-        const days = Math.floor(diffMs / dayMs);
-        if (days > 0) {
-            return `${days} gun once`;
-        }
-
-        const hours = Math.floor(diffMs / hourMs);
-        if (hours > 0) {
-            return `${hours} saat once`;
-        }
-
-        const minutes = Math.max(1, Math.floor(diffMs / minuteMs));
-        return `${minutes} dk once`;
-    }
-
-    // ── Mesaj Gönderme ──
-    async sendMessage(): Promise<void> {
-        this.replyAttempted = true;
-
-        if (!this.canSendReply()) {
-            return;
-        }
-
-        const userId = this.userMenuService.getUserIdFromToken();
-        if (!userId) {
-            alert('Kullanıcı bilgisi alınamadı. Lütfen tekrar giriş yapın.');
-            return;
-        }
-
-        try {
-            if (this.attachmentFile) {
-                await this.requestService.createMessageWithFile({
-                    requestId: this.requestId,
-                    senderUserId: userId,
-                    message: this.newMessage.trim(),
-                    file: this.attachmentFile,
-                });
-            } else {
-                const req: CreateUserRequestMessageRequest = {
-                    requestId: this.requestId,
-                    senderUserId: userId,
-                    message: this.newMessage.trim(),
-                };
-                await this.requestService.createMessage(req);
-            }
-
-            this.newMessage = '';
-            this.clearAttachment();
-            this.replyAttempted = false;
-            this.showReplyModal = false;
+            await this.requestService.close(this.requestId);
+            this.showCloseConfirm = false;
             await this.loadRequest();
-            await this.loadMessages();
-            this.shouldScrollToBottom = true;
-        } catch (err: any) {
-            console.error('Message send error:', err);
-            const msg = err.status === 0
-                ? `Sunucuya bağlanılamadı.`
-                : `Hata ${err.status}: ${err.error?.message || err.error?.title || JSON.stringify(err.error)}`;
-            alert('Mesaj gönderilemedi:\n' + msg);
-        }
-    }
-
-    onMessageKeydown(event: KeyboardEvent): void {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            this.sendMessage();
-        }
-    }
-
-    // ── Talebi Kapat ──
-    async closeRequest(): Promise<void> {
-        const request = this.request;
-        if (!request || !this.canCloseRequest()) return;
-
-        if (confirm(`"${request.subject}" talebini kapatmak istediğinize emin misiniz?`)) {
-            try {
-                await this.requestService.close(this.requestId);
-                await this.loadRequest();
-            } catch (err) {
-                console.error('Close error:', err);
-            }
+            this.toast('success', 'Talep kapatıldı.');
+        } catch (err) {
+            this.toast('error', 'Talep kapatılamadı. ' + this.describeError(err));
+        } finally {
+            this.closing = false;
         }
     }
 
     goBack(): void {
         this.router.navigate(['/admin/user-requests']);
+    }
+
+    private toast(icon: 'success' | 'error' | 'info' | 'warning', title: string): void {
+        Swal.fire({ toast: true, position: 'top-end', icon, title, showConfirmButton: false, timer: icon === 'error' ? 4000 : 2200 });
+    }
+
+    private describeError(err: unknown): string {
+        const httpError = err as { status?: number; error?: { message?: string; title?: string } } | null;
+        if (httpError?.status === 0) return 'Sunucuya bağlanılamadı.';
+        return httpError?.error?.message || httpError?.error?.title || '';
     }
 }

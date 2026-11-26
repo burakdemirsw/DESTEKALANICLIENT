@@ -4,13 +4,14 @@ import {MainLayout} from '@layouts/main-layout/main-layout';
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'home',
         pathMatch: 'full',
     },
+    /** Herkese açık tanıtım sayfası — guard ve yan menü yok; panel /dashboard'dadır. */
     {
         path: 'home',
-        redirectTo: 'dashboard',
-        pathMatch: 'full',
+        loadComponent: () => import('./views/landing/landing').then((mod) => mod.LandingPage),
+        data: {title: 'Destek Merkezi'},
     },
     {
         path: '',

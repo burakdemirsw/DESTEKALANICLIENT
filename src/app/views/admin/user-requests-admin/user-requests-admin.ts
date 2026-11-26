@@ -1,14 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import Swal from 'sweetalert2';
 import { PageTitle } from '@app/components/page-title';
+import { ConfirmModal } from '@app/components/confirm-modal';
+import { RequestResponsiblesService } from '@/app/core/services/request-responsibles.service';
+import { UrlQueryStateService } from '@/app/core/services/url-query-state.service';
+import { RequestResponsibleUser } from '@/app/core/models/request-responsible/request-responsible.models';
 import { UserRequestsService } from '@/app/core/services/user-requests.service';
 import { RequestCategoriesService } from '@/app/core/services/request-categories.service';
 import { RequestApplicationsService } from '@/app/core/services/request-applications.service';
 import { RequestPrioritiesService } from '@/app/core/services/request-priorities.service';
 import { RequestStatusesService } from '@/app/core/services/request-statuses.service';
-import { UsersService } from '@/app/core/services/users.service';
 import { UserMenuService } from '@/app/core/services/user-menu.service';
 import {
     UserRequestResponse,
@@ -19,15 +23,19 @@ import { RequestCategoryResponse } from '@/app/core/models/request-category/requ
 import { RequestApplicationResponse } from '@/app/core/models/request-application/request-application.models';
 import { RequestPriorityResponse } from '@/app/core/models/request-priority/request-priority.models';
 import { RequestStatusResponse } from '@/app/core/models/request-status/request-status.models';
-import { User } from '@/app/core/models/user/user.models';
 import { AuthStateService } from '@core/services/auth-state.service';
 
 @Component({
     selector: 'app-user-requests-admin-page',
-    imports: [CommonModule, FormsModule, RouterModule, PageTitle],
+    imports: [CommonModule, FormsModule, RouterModule, PageTitle, ConfirmModal],
     templateUrl: './user-requests-admin.html',
 })
-export class UserRequestsAdminPage implements OnInit {
+export class UserRequestsAdminPage implements OnInit, OnDestroy {
+    /**
+     * mine: giriş yapan yöneticiye düşen talepler (sorumlusu olduğu uygulama / kategoridekiler, kendisine atananlar ve
+     * sorumlusu olmayanlar); all: tüm şirketlerin talepleri.
+     */
+    scope: 'mine' | 'all' = 'mine';
     requests: UserRequestResponse[] = [];
     filteredItems: UserRequestResponse[] = [];
     pagedItems: UserRequestResponse[] = [];
@@ -35,7 +43,8 @@ export class UserRequestsAdminPage implements OnInit {
     categories: RequestCategoryResponse[] = [];
     priorities: RequestPriorityResponse[] = [];
     statuses: RequestStatusResponse[] = [];
-    users: User[] = [];
+    /** Talep atanabilecek kullanıcılar: destek yöneticileri. */
+    managers: RequestResponsibleUser[] = [];
     loading = false;
     showModal = false;
     editMode = false;
@@ -46,6 +55,13 @@ export class UserRequestsAdminPage implements OnInit {
     totalPages = 1;
     totalPagesArray: number[] = [];
     totalCount = 0;
+
+    // Kapatma / silme onayı
+    pendingAction: { kind: 'close' | 'delete'; request: UserRequestResponse } | null = null;
+    actionBusy = false;
+    saving = false;
+
+    private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
     form: any = {
         userId: '',
@@ -65,27 +81,43 @@ export class UserRequestsAdminPage implements OnInit {
         private categoryService: RequestCategoriesService,
         private priorityService: RequestPrioritiesService,
         private statusService: RequestStatusesService,
-        private usersService: UsersService,
+        private responsiblesService: RequestResponsiblesService,
         private userMenuService: UserMenuService,
         private authStateService: AuthStateService,
+        private urlState: UrlQueryStateService,
+        private route: ActivatedRoute,
     ) {}
 
     ngOnInit(): void {
+        this.readStateFromUrl();
         this.loadRequests();
         this.loadApplications();
         this.loadCategories();
         this.loadPriorities();
         this.loadStatuses();
-        this.loadUsers();
+        this.loadManagers();
+    }
+
+    ngOnDestroy(): void {
+        if (this.searchTimer) clearTimeout(this.searchTimer);
+    }
+
+    setScope(scope: 'mine' | 'all'): void {
+        if (this.scope === scope) return;
+        this.scope = scope;
+        this.currentPage = 1;
+        this.loadRequests();
     }
 
     async loadRequests(): Promise<void> {
         this.loading = true;
         try {
+            this.writeStateToUrl();
             const response = await this.requestService.adminGetPaged({
                 pageNumber: this.currentPage,
                 pageSize: this.pageSize,
                 searchTerm: this.filterText,
+                onlyMine: this.scope === 'mine',
             });
             const paged = response?.data;
             this.requests = paged?.items ?? [];
@@ -94,8 +126,15 @@ export class UserRequestsAdminPage implements OnInit {
             this.totalCount = paged?.totalCount ?? this.pagedItems.length;
             this.totalPages = paged?.totalPages ?? Math.max(1, Math.ceil(this.totalCount / this.pageSize));
             this.totalPagesArray = Array.from({ length: this.totalPages }, (_, index) => index + 1);
+
+            // Adresteki sayfa artık yoksa ilk sayfa açılır
+            if (this.currentPage > this.totalPages && this.totalCount > 0) {
+                this.currentPage = 1;
+                await this.loadRequests();
+            }
         } catch (err) {
             console.error('Admin UserRequests load error:', err);
+            this.toast('error', this.describeError(err) || 'Talepler yüklenemedi.');
         } finally {
             this.loading = false;
         }
@@ -141,18 +180,22 @@ export class UserRequestsAdminPage implements OnInit {
         }
     }
 
-    async loadUsers(): Promise<void> {
+    async loadManagers(): Promise<void> {
         try {
-            const response = await this.usersService.getAll();
-            this.users = this.extractArray(response?.data);
+            const response = await this.responsiblesService.getCandidates();
+            this.managers = response?.data ?? [];
         } catch (err) {
-            console.error('Users load error:', err);
+            console.error('Managers load error:', err);
         }
     }
 
+    /** Arama yazılırken 400 ms duraksamadan sonra arar. */
     onFilterChange(): void {
-        this.currentPage = 1;
-        this.loadRequests();
+        if (this.searchTimer) clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+            this.currentPage = 1;
+            this.loadRequests();
+        }, 400);
     }
 
     setPage(page: number): void {
@@ -183,8 +226,7 @@ export class UserRequestsAdminPage implements OnInit {
     }
 
     getUserFullName(id: string): string {
-        const user = this.users.find(item => item.id === id);
-        return user ? `${user.name} ${user.lastName}` : '-';
+        return this.managers.find(item => item.userId === id)?.fullName ?? '-';
     }
 
     openCreate(): void {
@@ -223,6 +265,8 @@ export class UserRequestsAdminPage implements OnInit {
     }
 
     async save(): Promise<void> {
+        if (this.saving) return;
+        this.saving = true;
         try {
             if (this.editMode && this.selectedRequest) {
                 const requestBody: UpdateUserRequestRequest = {
@@ -249,34 +293,46 @@ export class UserRequestsAdminPage implements OnInit {
 
             this.showModal = false;
             await this.loadRequests();
-        } catch (err: any) {
+        } catch (err) {
             console.error('Save error:', err);
-            const message = err.status === 0
-                ? `Sunucuya bağlanılamadı.\nURL: ${err.url}\nMesaj: ${err.message}`
-                : `Hata ${err.status}: ${err.error?.message || err.error?.title || JSON.stringify(err.error)}`;
-            alert('İşlem hatası:\n' + message);
+            this.toast('error', this.describeError(err) || 'Talep kaydedilemedi.');
+        } finally {
+            this.saving = false;
         }
     }
 
-    async closeRequest(request: UserRequestResponse): Promise<void> {
-        if (confirm(`"${request.subject}" talebini kapatmak istediğinize emin misiniz?`)) {
-            try {
-                await this.requestService.close(request.id);
-                await this.loadRequests();
-            } catch (err) {
-                console.error('Close error:', err);
-            }
-        }
+    closeRequest(request: UserRequestResponse): void {
+        this.pendingAction = { kind: 'close', request };
     }
 
-    async deleteRequest(request: UserRequestResponse): Promise<void> {
-        if (confirm(`"${request.subject}" talebini silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.requestService.delete(request.id);
-                await this.loadRequests();
-            } catch (err) {
-                console.error('Delete error:', err);
+    deleteRequest(request: UserRequestResponse): void {
+        this.pendingAction = { kind: 'delete', request };
+    }
+
+    cancelPendingAction(): void {
+        if (!this.actionBusy) this.pendingAction = null;
+    }
+
+    async confirmPendingAction(): Promise<void> {
+        const action = this.pendingAction;
+        if (!action || this.actionBusy) return;
+
+        this.actionBusy = true;
+        try {
+            if (action.kind === 'close') {
+                await this.requestService.close(action.request.id);
+                this.toast('success', 'Talep kapatıldı.');
+            } else {
+                await this.requestService.delete(action.request.id);
+                this.toast('success', 'Talep silindi.');
             }
+            this.pendingAction = null;
+            await this.loadRequests();
+        } catch (err) {
+            console.error('Request action error:', err);
+            this.toast('error', this.describeError(err) || 'İşlem yapılamadı.');
+        } finally {
+            this.actionBusy = false;
         }
     }
 
@@ -297,5 +353,30 @@ export class UserRequestsAdminPage implements OnInit {
         } catch {
             return dateStr;
         }
+    }
+
+    private readStateFromUrl(): void {
+        this.scope = this.urlState.read(this.route, 'scope') === 'all' ? 'all' : 'mine';
+        this.filterText = this.urlState.read(this.route, 'q');
+        const page = Number(this.urlState.read(this.route, 'page'));
+        this.currentPage = Number.isInteger(page) && page > 0 ? page : 1;
+    }
+
+    private writeStateToUrl(): void {
+        this.urlState.write(this.route, {
+            scope: this.scope === 'all' ? 'all' : null,
+            q: this.filterText,
+            page: this.currentPage > 1 ? this.currentPage : null,
+        });
+    }
+
+    private toast(icon: 'success' | 'error', title: string): void {
+        Swal.fire({ toast: true, position: 'top-end', icon, title, showConfirmButton: false, timer: icon === 'error' ? 4000 : 2200 });
+    }
+
+    private describeError(err: unknown): string {
+        const httpError = err as { status?: number; error?: { message?: string; title?: string } } | null;
+        if (httpError?.status === 0) return 'Sunucuya bağlanılamadı.';
+        return httpError?.error?.message || httpError?.error?.title || '';
     }
 }

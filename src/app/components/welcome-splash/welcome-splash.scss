@@ -9,6 +9,7 @@
   justify-content: center;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   overflow: hidden;
+  cursor: pointer;
   animation: overlayIn 0.5s ease-out forwards;
 
   &.fade-out {
@@ -217,7 +218,15 @@
   height: 100%;
   background: linear-gradient(90deg, #3b82f6, #8b5cf6);
   border-radius: 3px;
-  animation: progressFill 2.8s ease-in-out 0.7s forwards;
+  animation: progressFill 2.1s ease-in-out 0.7s forwards;
+}
+
+.splash-skip {
+  margin: 1rem 0 0;
+  color: #64748b;
+  font-size: 0.8125rem;
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out 0.8s forwards;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

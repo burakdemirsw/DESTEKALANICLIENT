@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthStateService } from '@core/services/auth-state.service';
 
 const SPLASH_SHOWN_KEY = 'welcomeSplashShownDate';
+const AUTO_DISMISS_MS = 2800;
 
 @Component({
   selector: 'app-welcome-splash',
@@ -42,8 +43,17 @@ export class WelcomeSplash implements OnInit, OnDestroy {
     // Show splash
     this.visible = true;
 
-    // Auto dismiss after 3.5 seconds
-    this.dismissTimer = setTimeout(() => this.dismiss(), 3500);
+    // Kendiliğinden kapanır; tıklama ya da herhangi bir tuş beklemeden geçer
+    this.dismissTimer = setTimeout(() => this.dismiss(), AUTO_DISMISS_MS);
+  }
+
+  @HostListener('document:keydown')
+  onKeydown(): void {
+    if (this.visible) this.dismiss();
+  }
+
+  skip(): void {
+    this.dismiss();
   }
 
   ngOnDestroy(): void {
@@ -53,6 +63,11 @@ export class WelcomeSplash implements OnInit, OnDestroy {
   }
 
   private dismiss(): void {
+    if (this.fadingOut) return;
+    if (this.dismissTimer) {
+      clearTimeout(this.dismissTimer);
+      this.dismissTimer = null;
+    }
     this.fadingOut = true;
 
     // Mark as shown today
@@ -82,7 +97,7 @@ export class WelcomeSplash implements OnInit, OnDestroy {
 
   private capitalize(str: string): string {
     if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    return str.charAt(0).toLocaleUpperCase('tr-TR') + str.slice(1).toLocaleLowerCase('tr-TR');
   }
 
   private formatDate(dateStr: string): string {

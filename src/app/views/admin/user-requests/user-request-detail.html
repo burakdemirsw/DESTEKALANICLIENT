@@ -10,6 +10,11 @@
             <a [routerLink]="['/admin/user-requests']">Talepler</a>
             <span aria-hidden="true">/</span>
             <span class="sa-mono">{{ request.requestNo || 'Talep' }}</span>
+            @if (request.requestNo) {
+                <button type="button" class="td-icon-btn" (click)="copyRequestNo()" title="Talep numarasını kopyala" aria-label="Talep numarasını kopyala">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            }
         </nav>
 
         <div class="sa-page-head align-items-start">
@@ -24,6 +29,9 @@
                     } @else {
                         <span class="badge bg-success-subtle text-success">Aktif</span>
                     }
+                    @if (waitingLabel) {
+                        <span class="td-waiting"><i class="fa-regular fa-hourglass-half me-1"></i>{{ waitingLabel }}</span>
+                    }
                     <span>Oluşturma: {{ formatDate(request.createdDate) }}</span>
                     @if (request.closedDate) {
                         <span><i class="fa-solid fa-lock me-1"></i>Kapanış: {{ formatDate(request.closedDate) }}</span>
@@ -31,20 +39,27 @@
                 </div>
             </div>
             <div class="sa-head-actions">
+                <button type="button" class="btn btn-light" (click)="copyRequestLink()">
+                    <i class="fa-solid fa-link me-2"></i>Bağlantıyı Kopyala
+                </button>
                 @if (canEditRequest()) {
                     <button type="button" class="btn btn-light" (click)="openEditModal()">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Düzenle
                     </button>
                 }
                 @if (canCloseRequest()) {
-                    <button type="button" class="btn btn-light" (click)="closeRequest()">
+                    <button type="button" class="btn btn-light" (click)="openCloseConfirm()">
                         <i class="fa-solid fa-lock me-2"></i>Kapat
                     </button>
                 }
                 @if (canComposeMessage()) {
-                    <button type="button" class="btn btn-primary" (click)="openReplyModal()">
+                    <button type="button" class="btn btn-primary" (click)="focusComposer()">
                         <i class="fa-solid fa-reply me-2"></i>Yanıtla
                     </button>
+                } @else if (isRequestCompleted()) {
+                    <a class="btn btn-primary" [routerLink]="['/admin/user-requests']" [queryParams]="similarRequestQuery">
+                        <i class="fa-solid fa-plus me-2"></i>Benzer Yeni Talep Aç
+                    </a>
                 }
             </div>
         </div>
@@ -54,22 +69,40 @@
                 <div class="sa-panel">
                     <div class="sa-panel-head td-panel-head">
                         <h2 class="sa-panel-title">Yanıtlar</h2>
-                        @if (!messagesLoading && messages.length > 0) {
+                        @if (messagesLoaded && messages.length > 0) {
                             <span class="sa-panel-note">{{ messages.length }} mesaj</span>
                         }
                     </div>
 
                     <div class="td-thread" #chatBody>
-                        @if (messagesLoading) {
+                        <!-- Talebin açıklaması akışın ilk kaydı olarak gösterilir -->
+                        @if (request.description) {
+                            <article class="td-msg td-msg--origin">
+                                <div class="td-avatar" aria-hidden="true">{{ getInitial(ownerName) }}</div>
+                                <div class="td-msg-main">
+                                    <div class="td-msg-head">
+                                        <span class="td-msg-name">{{ ownerName }}</span>
+                                        <span class="td-msg-role">Talep açıklaması</span>
+                                        <span class="td-msg-date" [title]="getRelativeTimeLabel(request.createdDate)">
+                                            {{ formatDate(request.createdDate) }}
+                                            <span class="d-none d-sm-inline">· {{ getRelativeTimeLabel(request.createdDate) }}</span>
+                                        </span>
+                                    </div>
+                                    <div class="td-msg-body">{{ request.description }}</div>
+                                </div>
+                            </article>
+                        }
+
+                        @if (!messagesLoaded && messagesLoading) {
                             <div class="sa-empty">
                                 <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Mesajlar yükleniyor...
                             </div>
                         } @else {
                             @for (msg of messages; track msg.id) {
-                                @let isStaff = (msg.from || '').toLowerCase() === 'admin';
+                                @let isStaff = isStaffMessage(msg);
                                 <article class="td-msg" [class.td-msg--staff]="isStaff">
                                     <div class="td-avatar" [class.td-avatar--staff]="isStaff" aria-hidden="true">
-                                        {{ getMessageSenderLabel(msg).charAt(0).toUpperCase() }}
+                                        {{ getInitial(getMessageSenderLabel(msg)) }}
                                     </div>
                                     <div class="td-msg-main">
                                         <div class="td-msg-head">
@@ -91,13 +124,22 @@
                                             </span>
                                         </div>
 
-                                        <div class="td-msg-body">{{ msg.message }}</div>
+                                        @if (msg.message) {
+                                            <div class="td-msg-body">{{ msg.message }}</div>
+                                        }
 
                                         @if (hasMessageAttachment(msg)) {
-                                            @if (isImageAttachment(msg)) {
-                                                <button type="button" class="td-attachment-image" (click)="openImagePreview(msg)" aria-label="Resmi aç">
-                                                    <img [src]="msg.fileUrl" alt="Mesaj eki" />
-                                                </button>
+                                            @if (isImageAttachment(msg) && !failedAttachmentIds.has(msg.id)) {
+                                                @if (attachmentImageUrls[msg.id]; as imageUrl) {
+                                                    <button type="button" class="td-attachment-image" (click)="openImagePreview(msg)" aria-label="Resmi büyüt">
+                                                        <img [src]="imageUrl" [alt]="getAttachmentFileName(msg)" />
+                                                    </button>
+                                                } @else {
+                                                    <div class="td-attachment td-attachment-loading">
+                                                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                        <span class="sa-cell-sub">Resim yükleniyor...</span>
+                                                    </div>
+                                                }
                                             } @else {
                                                 <div class="td-attachment">
                                                     <i class="fa-regular fa-file text-primary"></i>
@@ -105,9 +147,15 @@
                                                         <span class="sa-mono">{{ getAttachmentFileName(msg) }}</span>
                                                         <span class="sa-cell-sub">{{ getAttachmentTypeLabel(msg) }}</span>
                                                     </div>
-                                                    <a class="fw-medium" [href]="msg.fileUrl" target="_blank" rel="noopener noreferrer" (click)="openAttachmentAccessLog(msg, 'download')">
-                                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Aç
-                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-light td-attachment-download"
+                                                            [disabled]="downloadingAttachmentId === msg.id" (click)="downloadAttachment(msg)">
+                                                        @if (downloadingAttachmentId === msg.id) {
+                                                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                                        } @else {
+                                                            <i class="fa-solid fa-download me-1"></i>
+                                                        }
+                                                        İndir
+                                                    </button>
                                                 </div>
                                             }
                                         }
@@ -121,9 +169,86 @@
                         }
                     </div>
 
-                    @if (!canComposeMessage() && isRequestCompleted()) {
+                    @if (canComposeMessage()) {
+                        <div class="td-composer" [class.is-dragging]="dragActive"
+                             (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+                            @if (hasAdminRole) {
+                                <div class="td-composer-tools">
+                                    <button type="button" class="btn btn-sm btn-light" (click)="toggleCannedReplies()" [attr.aria-expanded]="showCannedReplies">
+                                        <i class="fa-regular fa-comment-dots me-1"></i>Hazır Yanıtlar
+                                    </button>
+                                </div>
+                                @if (showCannedReplies) {
+                                    <div class="td-canned">
+                                        @for (reply of cannedReplies; track reply.id) {
+                                            <div class="td-canned-item">
+                                                <button type="button" class="td-canned-text" (click)="insertCannedReply(reply)">{{ reply.text }}</button>
+                                                <button type="button" class="td-icon-btn" (click)="removeCannedReply(reply)" title="Hazır yanıtı sil" aria-label="Hazır yanıtı sil">
+                                                    <i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        } @empty {
+                                            <div class="sa-muted small py-1">Kayıtlı hazır yanıt yok.</div>
+                                        }
+                                        <button type="button" class="btn btn-sm btn-light mt-2" [disabled]="!newMessage.trim()" (click)="saveCannedReply()">
+                                            <i class="fa-solid fa-plus me-1"></i>Yazılanı hazır yanıt olarak kaydet
+                                        </button>
+                                    </div>
+                                }
+                            }
+
+                            <textarea #replyTextarea
+                                      class="form-control td-composer-input"
+                                      rows="3"
+                                      aria-label="Yanıtınız"
+                                      [class.is-invalid]="shouldShowReplyLengthWarning()"
+                                      [(ngModel)]="newMessage"
+                                      name="newMessage"
+                                      [disabled]="sending"
+                                      placeholder="Yanıtınızı yazın... Ekran görüntüsünü Ctrl+V ile yapıştırabilirsiniz."
+                                      (keydown.enter)="onMessageKeydown($any($event))"
+                                      (paste)="onPaste($event)"></textarea>
+                            @if (shouldShowReplyLengthWarning()) {
+                                <div class="invalid-feedback d-block">Mesaj en az 10 karakter olmalıdır.</div>
+                            }
+                            @if (attachmentError) {
+                                <div class="text-danger small mt-1">{{ attachmentError }}</div>
+                            }
+                            @if (attachmentFileName) {
+                                <div class="selected-file-chip mt-2">
+                                    <span><i class="fa-regular fa-file me-1"></i>{{ attachmentFileName }}</span>
+                                    <button type="button" class="btn btn-sm btn-light" [disabled]="sending" (click)="clearAttachment()">Kaldır</button>
+                                </div>
+                            }
+
+                            <div class="td-composer-foot">
+                                <div class="td-composer-actions">
+                                    <input #messageFileInput type="file" class="d-none" [accept]="attachmentAccept" (change)="onAttachmentSelected($event)" />
+                                    <button type="button" class="btn btn-light" [disabled]="sending" (click)="messageFileInput.click()">
+                                        <i class="fa-solid fa-paperclip me-1"></i>Dosya Ekle
+                                    </button>
+                                    <span class="reply-hint d-none d-md-inline">
+                                        Enter gönderir, Shift+Enter yeni satır. Dosyayı buraya sürükleyebilirsiniz.
+                                    </span>
+                                </div>
+                                <button type="button" class="btn btn-primary" [disabled]="sending" (click)="sendMessage()">
+                                    @if (sending) {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Gönderiliyor...
+                                    } @else {
+                                        <i class="fa-solid fa-paper-plane me-1"></i>Gönder
+                                    }
+                                </button>
+                            </div>
+                            <div class="reply-hint mt-1">{{ attachmentRulesText }}</div>
+
+                            @if (dragActive) {
+                                <div class="td-drop-hint"><i class="fa-solid fa-file-arrow-up me-2"></i>Dosyayı bırakın</div>
+                            }
+                        </div>
+                    } @else if (isRequestCompleted()) {
                         <div class="td-closed-notice">
-                            <i class="fa-solid fa-circle-check me-2"></i>Bu talep tamamlandığı için yanıt gönderilemez.
+                            <i class="fa-solid fa-circle-check me-2"></i>Bu talep kapandığı için yanıt gönderilemez.
+                            <a class="fw-medium ms-1" [routerLink]="['/admin/user-requests']" [queryParams]="similarRequestQuery">Benzer yeni talep açın</a>.
                         </div>
                     }
                 </div>
@@ -141,12 +266,14 @@
                         </div>
                         <div>
                             <dt>Talep Sahibi</dt>
-                            <dd>{{ request.userName || getUserFullName(request.userId) }}</dd>
+                            <dd>{{ ownerName }}</dd>
                         </div>
-                        <div>
-                            <dt>Atanan Kişi</dt>
-                            <dd>{{ request.assignedUserId ? (request.assignedUserName || getUserFullName(request.assignedUserId)) : 'Atanmadı' }}</dd>
-                        </div>
+                        @if (hasAdminRole && request.companyDescription) {
+                            <div>
+                                <dt>Şirket</dt>
+                                <dd>{{ request.companyDescription }}</dd>
+                            </div>
+                        }
                         <div>
                             <dt>Uygulama</dt>
                             <dd>{{ request.applicationName || '-' }}</dd>
@@ -155,9 +282,72 @@
                             <dt>Kategori</dt>
                             <dd>{{ request.categoryName || getCategoryName(request.categoryId) }}</dd>
                         </div>
+
+                        @if (hasAdminRole) {
+                            <div class="td-quick-row">
+                                <dt><label for="quickStatus">Durum</label></dt>
+                                <dd>
+                                    <select id="quickStatus" class="form-select form-select-sm td-quick-select"
+                                            [ngModel]="quickForm.statusId" (ngModelChange)="saveQuickField('statusId', $event)"
+                                            [disabled]="!!quickSaving">
+                                        @for (status of statusOptions; track status.id) {
+                                            <option [value]="status.id">{{ status.name }}</option>
+                                        }
+                                    </select>
+                                </dd>
+                            </div>
+                            <div class="td-quick-row">
+                                <dt><label for="quickPriority">Öncelik</label></dt>
+                                <dd>
+                                    <select id="quickPriority" class="form-select form-select-sm td-quick-select"
+                                            [ngModel]="quickForm.priorityId" (ngModelChange)="saveQuickField('priorityId', $event)"
+                                            [disabled]="!!quickSaving">
+                                        @for (priority of priorityOptions; track priority.id) {
+                                            <option [value]="priority.id">{{ priority.name }}</option>
+                                        }
+                                    </select>
+                                </dd>
+                            </div>
+                            <div class="td-quick-row">
+                                <dt><label for="quickAssignee">Atanan Kişi</label></dt>
+                                <dd>
+                                    <select id="quickAssignee" class="form-select form-select-sm td-quick-select"
+                                            [ngModel]="quickForm.assignedUserId" (ngModelChange)="saveQuickField('assignedUserId', $event)"
+                                            [disabled]="!!quickSaving">
+                                        <option value="">Atanmadı</option>
+                                        @if (isAssigneeMissingFromOptions) {
+                                            <option [value]="request.assignedUserId">{{ assignedName }}</option>
+                                        }
+                                        @for (user of assigneeOptions; track user.id) {
+                                            <option [value]="user.id">{{ userLabel(user) }}</option>
+                                        }
+                                    </select>
+                                    @if (!isAssignedToMe) {
+                                        <button type="button" class="btn btn-sm btn-light mt-2" [disabled]="!!quickSaving" (click)="assignToMe()">
+                                            <i class="fa-solid fa-hand me-1"></i>Üstlen
+                                        </button>
+                                    }
+                                </dd>
+                            </div>
+                            @if (quickSaving) {
+                                <div class="td-quick-saving">
+                                    <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Kaydediliyor...
+                                </div>
+                            }
+                        } @else {
+                            <div>
+                                <dt>Öncelik</dt>
+                                <dd>{{ request.priorityName || getPriorityName(request.priorityId) }}</dd>
+                            </div>
+                            <div>
+                                <dt>Atanan Kişi</dt>
+                                <dd>{{ assignedName }}</dd>
+                            </div>
+                        }
+
                         <div>
-                            <dt>Öncelik</dt>
-                            <dd>{{ request.priorityName || getPriorityName(request.priorityId) }}</dd>
+                            <dt>Son Güncelleme</dt>
+                            <dd>{{ request.updatedDate ? getRelativeTimeLabel(request.updatedDate) : '-' }}</dd>
                         </div>
                     </dl>
                 </div>
@@ -171,52 +361,6 @@
             <button type="button" class="btn btn-primary btn-sm" (click)="goBack()">
                 <i class="fa-solid fa-arrow-left me-1"></i> Listeye Dön
             </button>
-        </div>
-    </div>
-}
-
-<!-- ═══ Reply Modal ═══ -->
-@if (showReplyModal && canComposeMessage()) {
-    <div class="modal-backdrop-modern" (click)="closeReplyModal()">
-        <div class="modal-modern reply-modal" (click)="$event.stopPropagation()">
-            <div class="modal-modern-header">
-                <h5><i class="fa-solid fa-reply"></i> Yanıtla</h5>
-                <button class="modal-close-btn" (click)="closeReplyModal()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="modal-modern-body reply-modal-body">
-                <div class="reply-body">
-                    <textarea class="form-control reply-textarea"
-                              #replyTextarea
-                              [class.is-invalid]="shouldShowReplyLengthWarning()"
-                              [(ngModel)]="newMessage"
-                              name="newMessageModal"
-                              rows="5"
-                              placeholder="Yanıtınızı yazın..."
-                              (keydown.enter)="onMessageKeydown($any($event))"></textarea>
-                    @if (shouldShowReplyLengthWarning()) {
-                        <div class="invalid-feedback d-block mt-1">Mesaj içeriği en az 10 karakter olmalıdır.</div>
-                    }
-                    <div class="reply-attachment-row">
-                        <input #messageFileInput type="file" class="form-control" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.zip,.rar,.7z" (change)="onAttachmentSelected($event)" />
-                        @if (attachmentFileName) {
-                            <div class="selected-file-chip">
-                                <span>{{ attachmentFileName }}</span>
-                                <button type="button" class="btn btn-sm btn-light" (click)="clearAttachment()">Kaldır</button>
-                            </div>
-                        }
-                    </div>
-                    <div class="reply-footer">
-                        <span class="reply-hint">
-                            <i class="fa-regular fa-keyboard me-1"></i> Enter ile gönderin, Shift+Enter ile yeni satır
-                        </span>
-                        <button class="btn btn-primary" (click)="sendMessage()" [disabled]="!canSendReply()">
-                            <i class="fa-solid fa-reply me-1"></i> Yanıtla
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 }
@@ -235,84 +379,72 @@
     </div>
 }
 
-<!-- ═══ Edit Modal ═══ -->
+<!-- ═══ Düzenleme ═══ -->
 @if (showEditModal) {
     <div class="modal-backdrop-modern" (click)="closeEditModal()">
-        <div class="modal-modern" (click)="$event.stopPropagation()">
+        <div class="modal-modern" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
             <div class="modal-modern-header">
                 <h5><i class="fa-solid fa-pen-to-square"></i> Talep Düzenle</h5>
-                <button class="modal-close-btn" (click)="closeEditModal()">
+                <button class="modal-close-btn" aria-label="Kapat" [disabled]="editSaving" (click)="closeEditModal()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="modal-modern-body">
-                <form>
+                <form (ngSubmit)="saveEdit()">
                     <div class="form-group-modern">
-                        <label>Konu</label>
-                        <input type="text" class="form-control" [(ngModel)]="editForm.subject" name="editSubject" required>
+                        <label for="editSubject">Konu</label>
+                        <input id="editSubject" type="text" class="form-control" [class.is-invalid]="editAttempted && !editForm.subject.trim()"
+                               [(ngModel)]="editForm.subject" name="editSubject" required>
+                        @if (editAttempted && !editForm.subject.trim()) {
+                            <div class="invalid-feedback d-block">Konu zorunludur.</div>
+                        }
                     </div>
                     <div class="form-group-modern">
-                        <label>Açıklama</label>
-                        <textarea class="form-control" [(ngModel)]="editForm.description" name="editDescription" rows="4" required></textarea>
+                        <label for="editDescription">Açıklama</label>
+                        <textarea id="editDescription" class="form-control" [(ngModel)]="editForm.description" name="editDescription" rows="4"></textarea>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group-modern">
-                                <label>Kategori</label>
-                                <select class="form-select" [(ngModel)]="editForm.categoryId" name="editCategoryId" required>
-                                    <option value="">Seçiniz...</option>
-                                    @for (category of categories; track $index) {
-                                        <option [value]="category.id">{{ category.name }}</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group-modern">
-                                <label>Öncelik</label>
-                                <select class="form-select" [(ngModel)]="editForm.priorityId" name="editPriorityId" required>
-                                    <option value="">Seçiniz...</option>
-                                    @for (priority of priorities; track $index) {
-                                        <option [value]="priority.id">{{ priority.name }}</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group-modern">
-                                <label>Durum</label>
-                                <select class="form-select" [(ngModel)]="editForm.statusId" name="editStatusId" required>
-                                    <option value="">Seçiniz...</option>
-                                    @for (status of statuses; track $index) {
-                                        <option [value]="status.id">{{ status.name }}</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group-modern">
-                                <label>Atanan Kişi</label>
-                                <select class="form-select" [(ngModel)]="editForm.assignedUserId" name="editAssignedUserId">
-                                    <option value="">Atanmadı</option>
-                                    @for (user of users; track $index) {
-                                        <option [value]="user.id">{{ user.name }} {{ user.lastName }}</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
+                    <div class="form-group-modern">
+                        <label for="editCategoryId">Kategori</label>
+                        <select id="editCategoryId" class="form-select" [class.is-invalid]="editAttempted && !editForm.categoryId"
+                                [(ngModel)]="editForm.categoryId" name="editCategoryId" required>
+                            <option value="">Seçiniz...</option>
+                            @for (category of categories; track category.id) {
+                                <option [value]="category.id">{{ category.name }}</option>
+                            }
+                        </select>
+                        @if (editAttempted && !editForm.categoryId) {
+                            <div class="invalid-feedback d-block">Kategori seçimi zorunludur.</div>
+                        }
                     </div>
                     <div class="form-switch-modern">
                         <input class="form-check-input" type="checkbox" [(ngModel)]="editForm.isBlocked" name="editIsBlocked" id="editIsBlockedSwitch">
                         <label class="form-check-label" for="editIsBlockedSwitch">Pasif (Engelli)</label>
                     </div>
+                    <p class="reply-hint mt-3 mb-0">Durum, öncelik ve atanan kişi sağdaki Talep Bilgileri panelinden değiştirilir.</p>
                 </form>
             </div>
             <div class="modal-modern-footer">
-                <button type="button" class="btn btn-light" (click)="closeEditModal()">İptal</button>
-                <button type="button" class="btn btn-primary" (click)="saveEdit()">
-                    <i class="fa-solid fa-check me-1"></i> Kaydet
+                <button type="button" class="btn btn-light" [disabled]="editSaving" (click)="closeEditModal()">Vazgeç</button>
+                <button type="button" class="btn btn-primary" [disabled]="editSaving" (click)="saveEdit()">
+                    @if (editSaving) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    } @else {
+                        <i class="fa-solid fa-check me-1"></i>
+                    }
+                    Kaydet
                 </button>
             </div>
         </div>
     </div>
+}
+
+@if (showCloseConfirm && request) {
+    <app-confirm-modal
+        title="Talebi Kapat"
+        [message]="closeConfirmMessage"
+        confirmText="Talebi Kapat"
+        [danger]="true"
+        [busy]="closing"
+        (confirmed)="confirmCloseRequest()"
+        (cancelled)="showCloseConfirm = false" />
 }

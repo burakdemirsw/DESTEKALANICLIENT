@@ -1,0 +1,75 @@
+<div class="dl-home">
+
+  <header class="home-nav">
+    <a class="nav-brand" routerLink="/home">Destek <span>Alanı</span></a>
+    @if (isSignedIn) {
+      <a class="nav-cta" routerLink="/dashboard">Panele Git<i class="fa-solid fa-arrow-right"></i></a>
+    } @else {
+      <a class="nav-cta" routerLink="/auth/sign-in">Panele Giriş<i class="fa-solid fa-arrow-right"></i></a>
+    }
+  </header>
+
+  <main>
+
+    <section class="home-lead">
+      <p class="eyebrow">Raf Takip müşteri destek merkezi</p>
+      <h1 class="lead-title">Destek taleplerinizi <em>tek yerden</em> açın ve takip edin.</h1>
+      <p class="lead-copy">
+        {{ appName }}; kullandığınız uygulamalarla ilgili sorun, istek ve sorularınızı destek ekibine iletmeniz,
+        yanıtları tek akışta izlemeniz ve talebinizin hangi aşamada olduğunu her an görmeniz için hazırlandı.
+      </p>
+    </section>
+
+    <section class="home-steps" aria-label="Nasıl çalışır">
+      <ol class="steps">
+        @for (step of steps; track step.title; let i = $index) {
+          <li class="step">
+            <span class="step-no">{{ no(i) }}</span>
+            <h2 class="step-title">{{ step.title }}</h2>
+            <p class="step-copy">{{ step.description }}</p>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <section class="home-refs" aria-label="Referanslar">
+      <div class="refs-head">
+        <div>
+          <p class="eyebrow">Referanslar</p>
+          <h2 class="refs-title">Depolarını Raf Takip WMS ile yöneten markalar.</h2>
+        </div>
+        <p class="refs-count">
+          <b>{{ references.length }}</b>
+          marka; streetwear, tesettür, çocuk giyim, aksesuar, kırtasiye ve ecza deposu.
+        </p>
+      </div>
+
+      <ul class="refs-grid">
+        @for (reference of references; track reference.name) {
+          <li>
+            @if (reference.url) {
+              <a class="ref" [href]="reference.url" target="_blank" rel="noopener" [title]="reference.name + ' sitesini aç'">
+                <span class="ref-name">{{ reference.name }}<i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                <span class="ref-cat">{{ reference.category }}</span>
+              </a>
+            } @else {
+              <div class="ref">
+                <span class="ref-name">{{ reference.name }}</span>
+                <span class="ref-cat">{{ reference.category }}</span>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="home-foot">
+    <span class="foot-note">© {{ year }} {{ appName }} · Talepleriniz için tek adres</span>
+    @if (!isSignedIn) {
+      <a class="foot-link" routerLink="/auth/sign-up">Hesap oluşturun<i class="fa-solid fa-arrow-right"></i></a>
+    }
+  </footer>
+
+</div>

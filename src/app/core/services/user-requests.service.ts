@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import {
     CreateUserRequestRequest,
+    CreateUserRequestWithFilesResponse,
     UpdateUserRequestRequest,
     CreateUserRequestMessageRequest,
+    UserRequestAdminPagedRequest,
     UserRequestPagedRequest,
     UserRequestResponse,
     UserRequestMessageResponse,
@@ -27,10 +29,12 @@ export class UserRequestsService {
         );
     }
 
-    adminGetPaged(req?: AdminPaginationRequest): Promise<ApiResponse<PagedResult<UserRequestResponse>>> {
+    // onlyMine: true ise yalnız giriş yapan yöneticiye düşen talepler gelir ("Bana Düşenler").
+    adminGetPaged(req?: AdminPaginationRequest & Pick<UserRequestAdminPagedRequest, 'onlyMine'>): Promise<ApiResponse<PagedResult<UserRequestResponse>>> {
+        const body: UserRequestAdminPagedRequest = { ...buildAdminPaginationRequest(req), onlyMine: req?.onlyMine ?? false };
         return this.http.post<PagedResult<UserRequestResponse>>(
             { controller: 'UserRequests', action: 'admin-paged' },
-            buildAdminPaginationRequest(req),
+            body,
         );
     }
 
@@ -93,29 +97,32 @@ export class UserRequestsService {
         return this.http.post<any>({ controller: 'UserRequests' }, request);
     }
 
-    // Talebi açar; dosya eklendiyse talebin ilk mesajı olarak yükler. Talep açılıp dosya yüklenemezse talep yine
-    // açılmış sayılır, attachmentFailed true döner (kullanıcı detaydan tekrar ekleyebilir).
-    async createWithAttachment(
+    // Talebi dosyalarıyla birlikte tek istekte açar. Sunucu dosyaları talebi açmadan önce denetler; biri geçersizse
+    // (exe, içeriği uzantısıyla uyuşmayan dosya, 5 MB üstü) talep açılmaz ve istek hata döner. failedFiles yalnız
+    // denetimden geçip sunucuda kaydedilemeyen dosyaları içerir (talep açılmıştır, dosya detaydan yeniden eklenebilir).
+    async createWithAttachments(
         request: CreateUserRequestRequest,
-        file: File | null,
-    ): Promise<{ id: string | null; attachmentFailed: boolean }> {
-        const response = await this.create(request);
-        const id: string | null = response?.data?.id ?? response?.data?.Id ?? null;
-        if (!id || !file) {
-            return { id, attachmentFailed: false };
+        files: File[],
+    ): Promise<{ id: string | null; failedFiles: string[] }> {
+        if (!files.length) {
+            const response = await this.create(request);
+            return { id: response?.data?.id ?? response?.data?.Id ?? null, failedFiles: [] };
         }
 
-        try {
-            await this.createMessageWithFile({
-                requestId: id,
-                senderUserId: request.userId,
-                message: 'Talep açılırken eklenen dosya.',
-                file,
-            });
-            return { id, attachmentFailed: false };
-        } catch {
-            return { id, attachmentFailed: true };
+        const formData = new FormData();
+        if (request.applicationId) {
+            formData.append('applicationId', request.applicationId);
         }
+        formData.append('categoryId', request.categoryId);
+        formData.append('subject', request.subject);
+        formData.append('description', request.description);
+        files.forEach(file => formData.append('files', file, file.name));
+
+        const response = await this.http.post<CreateUserRequestWithFilesResponse>(
+            { controller: 'UserRequests', action: 'with-files' },
+            formData,
+        );
+        return { id: response?.data?.request?.id ?? null, failedFiles: response?.data?.failedFiles ?? [] };
     }
 
     update(id: string, request: UpdateUserRequestRequest): Promise<ApiResponse<any>> {
@@ -165,5 +172,11 @@ export class UserRequestsService {
         }
 
         return this.http.post<any>({ controller: 'UserRequests', action: 'messages/with-file' }, formData);
+    }
+
+    // Mesajın dosya ekini yetkili uçtan indirir; ekler herkese açık bir adreste durmaz, yalnız talebi görebilen
+    // kullanıcı indirebilir.
+    downloadMessageFile(messageId: string): Promise<Blob> {
+        return this.http.getBlob({ controller: 'UserRequests', action: `messages/${messageId}/file` });
     }
 }

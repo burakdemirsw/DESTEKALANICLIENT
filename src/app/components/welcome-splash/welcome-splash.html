@@ -1,5 +1,5 @@
 @if (visible) {
-<div class="splash-overlay" [class.fade-out]="fadingOut">
+<div class="splash-overlay" [class.fade-out]="fadingOut" role="dialog" aria-label="Hoş geldiniz" (click)="skip()">
 
   <!-- Floating brand shapes -->
   <div class="floating-shapes">
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Welcome text -->
-    <h1 class="splash-greeting">Hos Geldiniz</h1>
+    <h1 class="splash-greeting">Hoş Geldiniz</h1>
 
     <!-- User name -->
     <h2 class="splash-name">{{ fullName }}</h2>
@@ -38,6 +38,8 @@
     <div class="splash-progress">
       <div class="splash-progress-bar"></div>
     </div>
+
+    <p class="splash-skip">Geçmek için tıklayın</p>
   </div>
 </div>
 }

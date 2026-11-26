@@ -1,16 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
+import { ConfirmModal } from '@app/components/confirm-modal';
 import { RolesService } from '@/app/core/services/roles.service';
 import { UsersService } from '@/app/core/services/users.service';
 import { User } from '@/app/core/models/user/user.models';
 import { Role } from '@/app/core/models/role/role.models';
 import { RoleUser } from '@/app/core/models/role/role.models';
-import { AuthStateService } from '@/app/core/services/auth-state.service';
 
 @Component({
     selector: 'app-role-assignments-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ConfirmModal],
     templateUrl: './role-assignments.html',
 })
 export class RoleAssignmentsPage implements OnInit {
@@ -34,10 +35,14 @@ export class RoleAssignmentsPage implements OnInit {
     selectedUserRoles: RoleUser[] = [];
     selectedRoleIds: string[] = [];
 
+    // Rol kaldırma onayı
+    pendingRemoval: RoleUser | null = null;
+    removing = false;
+    assigning = false;
+
     constructor(
         private rolesService: RolesService,
         private usersService: UsersService,
-        private authStateService: AuthStateService,
     ) {}
 
     ngOnInit(): void {
@@ -47,11 +52,8 @@ export class RoleAssignmentsPage implements OnInit {
     async loadData(): Promise<void> {
         this.loading = true;
         try {
-            const usersResp = await this.usersService.getAll({
-                pageNumber: 1,   
-                pageSize: 1000,
-                companyId: this.authStateService.profile?.companyId ?? '',
-            });
+            // Tüm şirketlerin kullanıcıları: başka şirketteki bir kullanıcı da yönetici yapılabilsin
+            const usersResp = await this.usersService.adminGetAll({ pageNumber: 1, pageSize: 1000 });
             this.users = usersResp?.data?.items ?? [];
 
             const rolesResp = await this.rolesService.getAll();
@@ -63,6 +65,7 @@ export class RoleAssignmentsPage implements OnInit {
             this.applyFilterAndPaging();
         } catch (err) {
             console.error('LoadData error:', err);
+            this.toast('error', this.describeError(err) || 'Kullanıcılar ve roller yüklenemedi.');
         } finally {
             this.loading = false;
         }
@@ -85,7 +88,8 @@ export class RoleAssignmentsPage implements OnInit {
         this.filteredItems = this.users.filter(u =>
             (u.name && u.name.toLowerCase().includes(text)) ||
             (u.lastName && u.lastName.toLowerCase().includes(text)) ||
-            (u.email && u.email.toLowerCase().includes(text))
+            (u.email && u.email.toLowerCase().includes(text)) ||
+            (u.companyName && u.companyName.toLowerCase().includes(text))
         );
 
         this.totalPages = Math.ceil(this.filteredItems.length / this.pageSize) || 1;
@@ -153,7 +157,8 @@ export class RoleAssignmentsPage implements OnInit {
     }
 
     async assignRoles(): Promise<void> {
-        if (!this.selectedUser || this.selectedRoleIds.length === 0) return;
+        if (!this.selectedUser || this.selectedRoleIds.length === 0 || this.assigning) return;
+        this.assigning = true;
         try {
             await this.rolesService.bulkAssignRoles({
                 roleUsers: this.selectedRoleIds.map(roleId => ({
@@ -163,20 +168,46 @@ export class RoleAssignmentsPage implements OnInit {
             });
             this.selectedRoleIds = [];
             await this.refreshRoleUsers();
+            this.toast('success', 'Roller atandı.');
         } catch (err) {
             console.error('Assign error:', err);
+            this.toast('error', this.describeError(err) || 'Rol atanamadı.');
+        } finally {
+            this.assigning = false;
         }
     }
 
-    async removeRole(roleUser: RoleUser): Promise<void> {
-        if (confirm(`Bu rolü kaldırmak istediğinize emin misiniz?`)) {
-            try {
-                await this.rolesService.removeRoleUser(roleUser.id);
-                await this.refreshRoleUsers();
-            } catch (err) {
-                console.error('Remove error:', err);
-            }
+    removeRole(roleUser: RoleUser): void {
+        this.pendingRemoval = roleUser;
+    }
+
+    cancelRemoval(): void {
+        if (!this.removing) this.pendingRemoval = null;
+    }
+
+    async confirmRemoval(): Promise<void> {
+        const roleUser = this.pendingRemoval;
+        if (!roleUser || this.removing) return;
+
+        this.removing = true;
+        try {
+            await this.rolesService.removeRoleUser(roleUser.id);
+            await this.refreshRoleUsers();
+            this.pendingRemoval = null;
+            this.toast('success', 'Rol kaldırıldı.');
+        } catch (err) {
+            console.error('Remove error:', err);
+            this.toast('error', this.describeError(err) || 'Rol kaldırılamadı.');
+        } finally {
+            this.removing = false;
         }
+    }
+
+    /** Onay penceresinde gösterilecek kullanıcı ve rol adı. */
+    get removalMessage(): string {
+        if (!this.pendingRemoval || !this.selectedUser) return '';
+        const name = `${this.selectedUser.name ?? ''} ${this.selectedUser.lastName ?? ''}`.trim();
+        return `${name} kullanıcısından "${this.getRoleName(this.pendingRemoval.roleId)}" rolü kaldırılacak; bu role bağlı menüleri göremeyecek.`;
     }
 
     private async refreshRoleUsers(): Promise<void> {
@@ -194,5 +225,15 @@ export class RoleAssignmentsPage implements OnInit {
     closeModal(): void {
         this.showAssignModal = false;
         this.selectedUser = null;
+    }
+
+    private toast(icon: 'success' | 'error', title: string): void {
+        Swal.fire({ toast: true, position: 'top-end', icon, title, showConfirmButton: false, timer: icon === 'error' ? 4000 : 2200 });
+    }
+
+    private describeError(err: unknown): string {
+        const httpError = err as { status?: number; error?: { message?: string; title?: string } } | null;
+        if (httpError?.status === 0) return 'Sunucuya bağlanılamadı.';
+        return httpError?.error?.message || httpError?.error?.title || '';
     }
 }

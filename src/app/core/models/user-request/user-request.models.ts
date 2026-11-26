@@ -67,6 +67,12 @@ export interface CreateUserRequestRequest {
     description: string;
 }
 
+// POST UserRequests/with-files yanıtı. failedFiles: denetimden geçip sunucuda kaydedilemeyen dosyaların adları.
+export interface CreateUserRequestWithFilesResponse {
+    request: UserRequestResponse;
+    failedFiles: string[];
+}
+
 export interface UpdateUserRequestRequest {
     assignedUserId: string | null;
     applicationId: string | null;
@@ -134,6 +140,20 @@ export interface UserRequestStatusSummaryReportResponse {
     dayCount: number;
     totalCount: number;
     items: UserRequestStatusSummaryItemResponse[];
+}
+
+/**
+ * Destek yöneticisinin talep listesi (UserRequests/admin-paged).
+ * onlyMine: yalnız yöneticiye düşen talepler (sorumlusu olduğu uygulama / kategoridekiler, kendisine atananlar
+ * ve hiç sorumlusu olmayanlar).
+ */
+export interface UserRequestAdminPagedRequest {
+    pageNumber?: number;
+    pageSize?: number;
+    searchTerm?: string;
+    sortBy?: string;
+    sortDescending?: boolean;
+    onlyMine?: boolean;
 }
 
 export interface UserRequestPagedRequest {

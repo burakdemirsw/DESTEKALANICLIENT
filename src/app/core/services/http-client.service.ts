@@ -44,6 +44,19 @@ export class HttpClientService {
   }
 
   /**
+   * Dosyayı Blob olarak indirir (yetki isteyen dosya uçları için; Bearer başlığını interceptor ekler).
+   * Yanıt ApiResponse'a sarılmaz.
+   */
+  getBlob(requestParameter: Partial<RequestParameters>): Promise<Blob> {
+    const url = requestParameter.fullEndPoint
+      ?? `${this.url(requestParameter)}${requestParameter.queryString ? `?${requestParameter.queryString}` : ''}`;
+
+    return firstValueFrom(
+      this.httpClient.get(url, { headers: requestParameter.headers, responseType: 'blob' })
+    );
+  }
+
+  /**
    * HTTP POST isteği gönderir.
    * Tüm API yanıtları ApiResponse<T> olarak döner.
    */
