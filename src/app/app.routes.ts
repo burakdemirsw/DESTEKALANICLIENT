@@ -1,17 +1,16 @@
-﻿import {Routes} from '@angular/router';
+import {Routes} from '@angular/router';
 import {MainLayout} from '@layouts/main-layout/main-layout';
-import {Landing} from './views/landing/landing';
 
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: 'home',
+        redirectTo: 'dashboard',
         pathMatch: 'full',
     },
     {
         path: 'home',
-        component: Landing,
-        data: {title: 'Destek Alanı - AI Destekli Müşteri İletişim Platformu'}
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
     },
     {
         path: '',
@@ -26,14 +25,4 @@ export const routes: Routes = [
         path: '',
         loadChildren: () => import('./views/error/error.route').then((mod) => mod.ERROR_PAGES_ROUTES)
     },
-    {
-        path: '',
-        loadChildren: () => import('./views/other-pages/other-pages.route').then((mod) => mod.OTHER_PAGES_ROUTES)
-    },
-    {
-        path: 'landing',
-        redirectTo: 'home',
-        pathMatch: 'full'
-    },
 ];
-

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AuthResponse, ActivePlanInfo } from '../models/auth/auth.models';
+import { AuthResponse } from '../models/auth/auth.models';
 
 const AUTH_DATA_KEY = 'authData';
 
@@ -15,11 +15,6 @@ export class AuthStateService {
       this.loadFromStorage();
     }
     return this._authData;
-  }
-
-  /** Aktif abonelik planı */
-  get activePlan(): ActivePlanInfo | null {
-    return this.profile?.activePlan ?? null;
   }
 
   /** Kullanıcı adı soyadı birleşik */

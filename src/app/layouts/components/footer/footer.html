@@ -1,6 +1,8 @@
 <div class="container-fluid">
     <div class="row">
         <div class="text-center col-12">© {{ currentYear }} {{ appName }} By <span
-            class="fw-semibold">{{ credits.name }}</span></div>
+            class="fw-semibold">{{ credits.name }}</span>
+            <span class="d-inline-block">· <a routerLink="/release-notes" class="text-reset" title="Sürüm notlarını aç">Sürüm {{ appVersion }}</a></span>
+        </div>
     </div>
 </div>

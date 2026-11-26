@@ -1,171 +1,175 @@
 <app-welcome-splash />
 
-<div class="dashboard-shell container-fluid mt-3">
-  <div class="dashboard-top-bg"></div>
+<div class="container-fluid sa-page">
+  <div class="sa-page-head">
+    <h1 class="sa-title">Destek Yönetimi</h1>
 
-  <div class="dashboard-header">
-    <div class="dashboard-title-wrap">
-      <span class="eyebrow">İş akışı</span>
-      <h1 class="dashboard-title">Destek Yönetimi</h1>
-    </div>
-
-    <div class="top-action-area justify-content-between">
-      <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary top-create-btn secondary" [routerLink]="['/admin/user-requests']">
-          <i class="fa-regular fa-rectangle-list me-2"></i>Destek Taleplerim
-        </a>
-        <a class="btn btn-primary top-create-btn" [routerLink]="['/admin/user-requests']">
-          <i class="fa-solid fa-plus me-2"></i>Yeni Talep Oluştur
-        </a>
-      </div>
-
-      <div class="range-toolbar">
+    <div class="sa-head-actions">
+      <div class="sa-segment" role="group" aria-label="Dönem">
         @for (day of rangeOptions; track day) {
-          <button type="button" class="range-btn" [class.active]="selectedRange === day" (click)="setDayRange(day)">
+          <button type="button" class="sa-segment-btn" [class.active]="selectedRange === day" (click)="setDayRange(day)">
             {{ day }} Gün
           </button>
         }
-        <button type="button" class="range-btn refresh" (click)="refreshDashboard()">
+        <button type="button" class="sa-segment-btn" (click)="refreshDashboard()">
           <i class="fa-solid fa-rotate-right me-1"></i>Yenile
         </button>
       </div>
+      <a class="btn btn-light" [routerLink]="['/admin/user-requests']">
+        <i class="fa-regular fa-rectangle-list me-2"></i>Destek Taleplerim
+      </a>
+      <a class="btn btn-primary" [routerLink]="['/admin/user-requests']">
+        <i class="fa-solid fa-plus me-2"></i>Yeni Talep Oluştur
+      </a>
     </div>
   </div>
 
-  <div class="row g-4 align-items-stretch mb-0 top-panels">
-    <div class="col-12">
-      <div class="simple-card h-100 summary-card">
-        <div class="card-header-row">
-          <div>
-            <div class="card-chip">Durum Özeti</div>
-            <h3 class="card-heading">Destek Taleplerim</h3>
+  <!-- Durum özeti -->
+  @if (loading) {
+    <div class="sa-panel sa-empty mb-3">
+      <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Durum özeti yükleniyor...
+    </div>
+  } @else {
+    @if (supportStatuses.length > 0) {
+      <div class="sa-kpis mb-3">
+        @for (status of supportStatuses; track status.title) {
+          <div class="sa-kpi">
+            <div class="sa-kpi-label">
+              @if (status.isSolved) {
+                <i class="fa-solid fa-check me-1"></i>
+              }
+              {{ status.title }}
+            </div>
+            <div class="sa-kpi-figures">
+              <span class="sa-kpi-value">{{ status.count }}</span>
+              <span class="sa-kpi-share">%{{ getStatusShare(status.count) }}</span>
+            </div>
+            <div class="sa-meter"><span [style.width.%]="getStatusShare(status.count)"></span></div>
           </div>
-          <span class="live-dot"><span class="live-pulse"></span>Canlı</span>
-        </div>
-        <p class="card-subheading">Tüm destek kayıtlarınızın anlık durum dağılımı.</p>
-        <div class="separator"></div>
+        }
+      </div>
+    } @else {
+      <div class="sa-panel sa-empty mb-3">Durum özeti verisi bulunamadı.</div>
+    }
+  }
 
-        @if (loading) {
-          <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted mb-0">Durum özeti yükleniyor...</p>
-          </div>
-        } @else {
-          @if (supportStatuses.length > 0) {
-            <div class="status-grid">
-              @for (status of supportStatuses; track status.title) {
-                <div class="status-item" [ngClass]="status.colorClass" [style.background-color]="status.colorCode">
-                  <div class="status-topline">
-                    <span class="status-badge">{{ status.isSolved ? 'Kapandı' : 'Aktif' }}</span>
-                  </div>
-                  <p class="status-title">{{ status.title }}</p>
-                  <div class="status-count-wrap">
-                    @if (status.isSolved) {
-                      <i class="fa-solid fa-check me-1"></i>
-                    }
-                    <span class="status-count">{{ status.count }}</span>
-                  </div>
+  <div class="row g-3">
+    <div class="col-12 col-xl-6">
+      <div class="sa-panel">
+        <div class="sa-panel-head">
+          <h2 class="sa-panel-title">
+            Günlük Açılan Talepler
+            @if (rangeLoading) {
+              <span class="spinner-border spinner-border-sm text-primary ms-2" role="status"></span>
+            }
+          </h2>
+          <span class="sa-panel-note">Son {{ selectedRange }} gün</span>
+        </div>
+        <div class="sa-panel-body">
+          @if (dailyOpenedSeries.length > 0) {
+            <div class="sa-columns">
+              @for (item of dailyOpenedSeries; track item.label) {
+                <div class="sa-column">
+                  <span class="sa-column-count">{{ item.count }}</span>
+                  <div class="sa-column-bar" [style.height.%]="getOpenedBarHeight(item.count)"></div>
                 </div>
               }
             </div>
+            <div class="sa-column-labels">
+              @for (item of dailyOpenedSeries; track item.label) {
+                <span>{{ item.label }}</span>
+              }
+            </div>
           } @else {
-            <div class="text-center py-4 text-muted">
-              Durum özeti verisi bulunamadı.
-            </div>
-          }
-        }
-      </div>
-    </div>
-
-    <div class="col-12 col-xxl-6">
-      <div class="simple-card h-100">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h4 class="mb-0 chart-title">Son Gün Bazında Açılan Talep Raporu</h4>
-          @if (rangeLoading) {
-            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+            <div class="sa-muted">Rapor verisi bulunamadı.</div>
           }
         </div>
-        <p class="card-subheading mb-3">Seçili dönem: son {{ selectedRange }} gün</p>
-
-        @if (dailyOpenedSeries.length > 0) {
-          <div class="bar-chart-list">
-            @for (item of dailyOpenedSeries; track item.label) {
-              <div class="bar-chart-item">
-                <span class="bar-label">{{ item.label }}</span>
-                <div class="bar-track">
-                  <div class="bar-value" [style.width.%]="getOpenedBarWidth(item.count)"></div>
-                </div>
-                <span class="bar-count">{{ item.count }}</span>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="text-muted">Rapor verisi bulunamadı.</div>
-        }
       </div>
     </div>
 
-    <div class="col-12 col-xxl-6">
-      <div class="simple-card h-100">
-        <h4 class="mb-2 chart-title">Son Gelen 5 Talep</h4>
-        <p class="card-subheading mb-3">En güncel talepleriniz</p>
-
-        @if (recentRequests.length > 0) {
-          <div class="recent-list">
-            @for (request of recentRequests; track request.id) {
-              <a class="recent-item" [routerLink]="['/admin/user-requests', request.id]">
-                <div class="recent-copy">
-                  <div class="recent-subject">{{ request.subject || '-' }}</div>
-                  <div class="recent-meta">{{ request.requestNo || '-' }} • {{ formatDate(request.createdDate) }}</div>
-                  @if (request.companyDescription) {
-                    <div class="recent-description">{{ request.companyDescription }}</div>
-                  }
-                </div>
-                <span class="recent-status">{{ request.statusName || '-' }}</span>
-              </a>
-            }
-          </div>
-        } @else {
-          <div class="text-muted">Talep bulunamadı.</div>
-        }
-      </div>
-    </div>
-
-    <div class="col-12 col-xl-6">
-      <div class="simple-card h-100">
-        <h4 class="mb-2 chart-title">Duruma Göre Dağılım</h4>
-        <div class="stack-list">
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="sa-panel">
+        <div class="sa-panel-head">
+          <h2 class="sa-panel-title">Duruma Göre Dağılım</h2>
+        </div>
+        <div class="sa-panel-body">
           @for (item of statusBreakdown; track item.label) {
-            <div class="stack-item">
-              <div class="d-flex justify-content-between small mb-1">
+            <div class="sa-breakdown-row">
+              <div class="sa-breakdown-line">
                 <span>{{ item.label }}</span>
-                <span>{{ item.count }} ({{ item.percent }}%)</span>
+                <span class="sa-muted text-nowrap">{{ item.count }} · %{{ item.percent }}</span>
               </div>
-              <div class="stack-track">
-                <div class="stack-fill" [style.width.%]="item.percent"></div>
-              </div>
+              <div class="sa-meter"><span [style.width.%]="item.percent"></span></div>
             </div>
+          } @empty {
+            <div class="sa-muted">Kayıt bulunamadı.</div>
           }
         </div>
       </div>
     </div>
 
-    <div class="col-12 col-xl-6">
-      <div class="simple-card h-100">
-        <h4 class="mb-2 chart-title">Önceliğe Göre Dağılım</h4>
-        <div class="stack-list">
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="sa-panel">
+        <div class="sa-panel-head">
+          <h2 class="sa-panel-title">Önceliğe Göre Dağılım</h2>
+        </div>
+        <div class="sa-panel-body">
           @for (item of priorityBreakdown; track item.label) {
-            <div class="stack-item">
-              <div class="d-flex justify-content-between small mb-1">
+            <div class="sa-breakdown-row">
+              <div class="sa-breakdown-line">
                 <span>{{ item.label }}</span>
-                <span>{{ item.count }} ({{ item.percent }}%)</span>
+                <span class="sa-muted text-nowrap">{{ item.count }} · %{{ item.percent }}</span>
               </div>
-              <div class="stack-track alt">
-                <div class="stack-fill alt" [style.width.%]="item.percent"></div>
-              </div>
+              <div class="sa-meter"><span [style.width.%]="item.percent"></span></div>
             </div>
+          } @empty {
+            <div class="sa-muted">Kayıt bulunamadı.</div>
           }
         </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="sa-panel">
+        <div class="sa-panel-head">
+          <h2 class="sa-panel-title">Son Talepler</h2>
+          <a class="fw-medium" [routerLink]="['/admin/user-requests']">Tümünü gör</a>
+        </div>
+        @if (recentRequests.length > 0) {
+          <div class="table-responsive">
+            <table class="table table-centered table-hover sa-table">
+              <thead>
+                <tr>
+                  <th>Talep No</th>
+                  <th>Konu</th>
+                  <th class="d-none d-md-table-cell">Öncelik</th>
+                  <th>Durum</th>
+                  <th class="d-none d-md-table-cell">Tarih</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (request of recentRequests; track request.id) {
+                  <tr>
+                    <td class="text-nowrap">
+                      <a class="sa-mono" [routerLink]="['/admin/user-requests', request.id]">{{ request.requestNo || 'Talep' }}</a>
+                    </td>
+                    <td>
+                      <a class="sa-cell-main" [routerLink]="['/admin/user-requests', request.id]">{{ request.subject || '-' }}</a>
+                      @if (request.companyDescription) {
+                        <div class="sa-cell-sub">{{ request.companyDescription }}</div>
+                      }
+                    </td>
+                    <td class="d-none d-md-table-cell">{{ request.priorityName || '-' }}</td>
+                    <td><span class="sa-pill">{{ request.statusName || '-' }}</span></td>
+                    <td class="d-none d-md-table-cell sa-muted text-nowrap">{{ formatDate(request.createdDate) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="sa-empty">Talep bulunamadı.</div>
+        }
       </div>
     </div>
   </div>

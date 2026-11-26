@@ -15,7 +15,7 @@ const defaultState: LayoutState = {
     width: 'fluid',
     topbar: {color: 'light'},
     sidenav: {
-        color: 'light',
+        color: 'dark',
         size: 'default',
         user: false
     },

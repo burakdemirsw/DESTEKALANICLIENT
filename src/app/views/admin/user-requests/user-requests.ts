@@ -133,6 +133,13 @@ export class UserRequestsPage implements OnInit {
         await this.loadRequests();
     }
 
+    /** Durum sekmesi: seçilen durumu filtreye yazar ve listeyi ilk sayfadan yükler. */
+    async setStatusFilter(statusId: string): Promise<void> {
+        if (this.filters.statusId === statusId) return;
+        this.filters.statusId = statusId;
+        await this.onFilterChange();
+    }
+
     async clearFilters(): Promise<void> {
         this.filters = {
             searchTerm: '',

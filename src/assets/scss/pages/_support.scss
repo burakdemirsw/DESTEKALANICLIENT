@@ -1,0 +1,423 @@
+//
+// _support.scss
+// Destek Alanı sayfalarının (Anasayfa, Talepler, Talep Detayı) ortak görünümü.
+// Tek vurgu rengi (tema rengi) + gri tonlar; gölge ve gradyan yok, ince çerçeve var.
+//
+
+.sa-page {
+    padding-top: 1.5rem;
+    padding-bottom: 2.5rem;
+}
+
+.sa-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.sa-title {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--#{$prefix}body-color);
+    overflow-wrap: anywhere;
+}
+
+.sa-subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--#{$prefix}secondary-color);
+    font-size: 0.875rem;
+}
+
+.sa-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sa-muted {
+    color: var(--#{$prefix}secondary-color);
+}
+
+.sa-mono {
+    font-family: var(--#{$prefix}font-monospace);
+    font-size: 0.8125rem;
+}
+
+// Dönem seçici (7 Gün / 30 Gün ...)
+.sa-segment {
+    display: inline-flex;
+    border: 1px solid #dfdfe3;
+    border-radius: 8px;
+    background: var(--#{$prefix}secondary-bg);
+    overflow: hidden;
+}
+
+.sa-segment-btn {
+    min-height: 38px;
+    padding: 0 0.875rem;
+    border: 0;
+    border-left: 1px solid #dfdfe3;
+    background: transparent;
+    color: var(--#{$prefix}secondary-color);
+    font-weight: 500;
+
+    &:first-child {
+        border-left: 0;
+    }
+
+    &:hover {
+        color: var(--#{$prefix}body-color);
+    }
+
+    &.active {
+        background: #09090b;
+        color: #fafafa;
+        font-weight: 600;
+    }
+}
+
+// Panel (kart)
+.sa-panel {
+    height: 100%;
+    background: var(--#{$prefix}secondary-bg);
+    border: 1px solid var(--#{$prefix}border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sa-panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+    padding: 0.875rem 1.25rem;
+}
+
+.sa-panel-title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--#{$prefix}body-color);
+}
+
+.sa-panel-note {
+    color: var(--#{$prefix}secondary-color);
+    font-size: 0.75rem;
+}
+
+.sa-panel-body {
+    padding: 0 1.25rem 1.25rem;
+}
+
+.sa-empty {
+    padding: 1.5rem 1.25rem;
+    color: var(--#{$prefix}secondary-color);
+    text-align: center;
+}
+
+// Durum özeti şeridi
+.sa-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    background: var(--#{$prefix}border-color);
+    border: 1px solid var(--#{$prefix}border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sa-kpi {
+    flex: 1 1 160px;
+    min-width: 0;
+    padding: 1rem 1.25rem;
+    background: var(--#{$prefix}secondary-bg);
+}
+
+.sa-kpi-label {
+    color: var(--#{$prefix}secondary-color);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+.sa-kpi-figures {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    margin-top: 0.5rem;
+}
+
+.sa-kpi-value {
+    font-family: var(--#{$prefix}font-monospace);
+    font-size: 1.875rem;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--#{$prefix}body-color);
+}
+
+.sa-kpi-share {
+    color: var(--#{$prefix}secondary-color);
+    font-size: 0.75rem;
+}
+
+// İnce oran çubuğu
+.sa-meter {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--#{$prefix}tertiary-bg);
+    overflow: hidden;
+
+    > span {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: var(--#{$prefix}purple);
+    }
+}
+
+.sa-kpi .sa-meter {
+    margin-top: 0.875rem;
+}
+
+// Günlük sütun grafik
+.sa-columns {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.875rem;
+    height: 200px;
+    border-bottom: 1px solid var(--#{$prefix}border-color);
+}
+
+.sa-column {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.sa-column-count {
+    font-family: var(--#{$prefix}font-monospace);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.sa-column-bar {
+    width: 100%;
+    max-width: 44px;
+    min-height: 2px;
+    border-radius: 4px 4px 0 0;
+    background: var(--#{$prefix}purple);
+}
+
+.sa-column-labels {
+    display: flex;
+    gap: 0.875rem;
+    margin-top: 0.5rem;
+
+    > span {
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: center;
+        color: var(--#{$prefix}secondary-color);
+        font-size: 0.75rem;
+    }
+}
+
+// Dağılım satırları
+.sa-breakdown-row {
+    padding: 0.625rem 0;
+    border-top: 1px solid var(--#{$prefix}border-color);
+
+    &:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+}
+
+.sa-breakdown-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.375rem;
+    font-size: 0.8125rem;
+
+    > span:first-child {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}
+
+// Gri durum etiketi (renkli rozet yerine)
+.sa-pill {
+    display: inline-block;
+    padding: 0.1875rem 0.5625rem;
+    border-radius: 6px;
+    background: var(--#{$prefix}tertiary-bg);
+    color: #3f3f46;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+[data-bs-theme="dark"] .sa-pill {
+    color: #d4d4d8;
+}
+
+// Tablo
+.sa-table {
+    margin-bottom: 0;
+
+    > thead > tr > th {
+        padding: 0.625rem 0.75rem;
+        background: var(--#{$prefix}body-bg);
+        border-top: 1px solid var(--#{$prefix}border-color);
+        color: var(--#{$prefix}secondary-color);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    > tbody > tr > td {
+        padding: 0.8125rem 0.75rem;
+        vertical-align: middle;
+    }
+
+    > thead > tr > th:first-child,
+    > tbody > tr > td:first-child {
+        padding-left: 1.25rem;
+    }
+
+    > thead > tr > th:last-child,
+    > tbody > tr > td:last-child {
+        padding-right: 1.25rem;
+    }
+}
+
+.sa-cell-main {
+    font-weight: 500;
+    color: var(--#{$prefix}body-color);
+    overflow-wrap: anywhere;
+}
+
+a.sa-cell-main:hover {
+    color: var(--#{$prefix}link-color);
+}
+
+.sa-cell-sub {
+    color: var(--#{$prefix}secondary-color);
+    font-size: 0.75rem;
+}
+
+// Durum sekmeleri
+.sa-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.25rem;
+    padding: 0 0.75rem;
+    border-bottom: 1px solid var(--#{$prefix}border-color);
+}
+
+.sa-tab {
+    min-height: 46px;
+    padding: 0 0.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--#{$prefix}secondary-color);
+    font-weight: 500;
+
+    &:hover {
+        color: var(--#{$prefix}body-color);
+    }
+
+    &.active {
+        color: var(--#{$prefix}body-color);
+        font-weight: 600;
+        box-shadow: inset 0 -2px 0 var(--#{$prefix}primary);
+    }
+}
+
+// Filtre alanı
+.sa-filter {
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--#{$prefix}border-color);
+    background: var(--#{$prefix}body-bg);
+}
+
+.sa-panel-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--#{$prefix}border-color);
+}
+
+// Bilgi listesi (etiket - değer)
+.sa-info {
+    margin: 0;
+
+    > div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+        border-top: 1px solid var(--#{$prefix}border-color);
+    }
+
+    dt {
+        color: var(--#{$prefix}secondary-color);
+        font-size: 0.8125rem;
+        font-weight: 400;
+    }
+
+    dd {
+        margin: 0;
+        font-weight: 500;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sa-head-actions,
+    .sa-head-actions > .btn {
+        width: 100%;
+    }
+
+    .sa-segment {
+        width: 100%;
+
+        .sa-segment-btn {
+            flex: 1 1 0;
+        }
+    }
+
+    .sa-columns,
+    .sa-column-labels {
+        gap: 0.375rem;
+    }
+
+    .sa-filter .form-control,
+    .sa-filter .form-select {
+        font-size: 16px;
+    }
+}

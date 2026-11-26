@@ -1,0 +1,8 @@
+# Sıradaki sürümün notları. Build alınınca (ng build) buradaki maddeler v<sürüm>.txt dosyasına taşınır
+# (örn. v2.0.0.1.txt), bu dosyada yalnız '#' ile başlayan satırlar kalır.
+# Müşterinin anlayacağı dille yazılır: ekran adı başlık, altında "- " ile ne değiştiği. Kod, tablo, dosya adı yazılmaz.
+
+Sürüm Notları (yeni sayfa)
+- Her güncellemede eklenen yenilikler ve düzeltmeler bu sayfada listelenir; notlarda ekran adı, kelime, sürüm no ya da
+  tarihle aranabilir, bir sürümün ya da ekranın notları tek tıkla kopyalanır.
+- Sayfanın alt bilgisinde kullanılan sürüm numarası görünür; tıklanınca Sürüm Notları açılır.

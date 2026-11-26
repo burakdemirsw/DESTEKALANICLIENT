@@ -1,0 +1,9 @@
+{
+  "builders": {
+    "application": {
+      "implementation": "./index.js",
+      "schema": "./application.schema.json",
+      "description": "Build numarasını artırıp @angular/build:application builder'ını aynı seçeneklerle çalıştırır (şema kopyası: application.schema.json, sync-schema.js ile güncellenir)"
+    }
+  }
+}

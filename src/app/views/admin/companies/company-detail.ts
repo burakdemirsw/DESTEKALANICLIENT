@@ -108,10 +108,6 @@ export class CompanyDetailPage implements OnInit {
     settingsErrorMessage = '';
     settingsForm = {
         isTwoFactorAuthEnabled: false,
-        isAutoReplyEnabled: false,
-        isUseWorkHours: false,
-        workHoursStart: '09:00' as string | null,
-        workHoursEnd: '18:00' as string | null,
     };
 
     private companyId = '';
@@ -558,10 +554,6 @@ export class CompanyDetailPage implements OnInit {
                 this.setting = data;
                 this.settingsForm = {
                     isTwoFactorAuthEnabled: data.isTwoFactorAuthEnabled,
-                    isAutoReplyEnabled: data.isAutoReplyEnabled,
-                    isUseWorkHours: data.isUseWorkHours ?? false,
-                    workHoursStart: data.workHoursStart ?? '09:00',
-                    workHoursEnd: data.workHoursEnd ?? '18:00',
                 };
             }
         } catch (err: any) {
@@ -581,10 +573,6 @@ export class CompanyDetailPage implements OnInit {
             if (this.setting) {
                 const req: UpdateCompanySettingRequest = {
                     isTwoFactorAuthEnabled: this.settingsForm.isTwoFactorAuthEnabled,
-                    isAutoReplyEnabled: this.settingsForm.isAutoReplyEnabled,
-                    isUseWorkHours: this.settingsForm.isUseWorkHours,
-                    workHoursStart: this.settingsForm.isUseWorkHours ? this.settingsForm.workHoursStart : null,
-                    workHoursEnd: this.settingsForm.isUseWorkHours ? this.settingsForm.workHoursEnd : null,
                 };
                 await this.companySettingsService.update(this.setting.id, req);
                 this.settingsSuccessMessage = 'Ayarlar başarıyla güncellendi.';
@@ -592,10 +580,6 @@ export class CompanyDetailPage implements OnInit {
                 const req: CreateCompanySettingRequest = {
                     companyId: this.companyId,
                     isTwoFactorAuthEnabled: this.settingsForm.isTwoFactorAuthEnabled,
-                    isAutoReplyEnabled: this.settingsForm.isAutoReplyEnabled,
-                    isUseWorkHours: this.settingsForm.isUseWorkHours,
-                    workHoursStart: this.settingsForm.isUseWorkHours ? this.settingsForm.workHoursStart : null,
-                    workHoursEnd: this.settingsForm.isUseWorkHours ? this.settingsForm.workHoursEnd : null,
                 };
                 await this.companySettingsService.create(req);
                 this.settingsSuccessMessage = 'Ayarlar başarıyla oluşturuldu.';

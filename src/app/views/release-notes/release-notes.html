@@ -1,0 +1,132 @@
+<div class="row">
+    <div class="col-12">
+
+        <!-- Başlık kartı: kullanılan sürüm (tıklanınca kopyalanır), altında notlarda arama -->
+        <div class="card release-hero">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <div class="flex-grow-1">
+                        <h4 class="card-title mb-1"><i class="fa-solid fa-code-branch me-2"></i>Sürüm Notları</h4>
+                        <p class="text-muted mb-0">Her güncellemede eklenen yenilikler ve düzeltmeler</p>
+                    </div>
+                    <button type="button" class="btn btn-soft-primary release-current" title="Sürüm numarasını kopyala"
+                            (click)="copyVersion()">
+                        <span class="release-current-label">Kullandığınız sürüm</span>
+                        <span class="fw-semibold">{{ appVersion }}</span>
+                        <i class="fa-solid" [class.fa-check]="copiedKey === 'version'" [class.fa-copy]="copiedKey !== 'version'"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+                    <div class="release-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" class="form-control" placeholder="Notlarda ara: ekran adı, kelime, sürüm no, tarih..."
+                               autocomplete="off" [ngModel]="searchText" (ngModelChange)="onSearchChange($event)"
+                               (keydown.escape)="clearSearch()">
+                        @if (searchText) {
+                            <button type="button" class="release-search-clear" title="Aramayı temizle" (click)="clearSearch()">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        }
+                    </div>
+                    @if (versions) {
+                        <span class="small text-muted">
+                            @if (isSearching) {
+                                {{ visibleNotes.length }} sürümde {{ visibleItemCount }} not bulundu
+                            } @else {
+                                {{ versions.length }} sürüm
+                            }
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Her sürüm ayrı kart: ekran adı başlık, altında maddeler; aranan kelime vurgulanır -->
+        @for (note of visibleNotes; track note.version.text) {
+            <div class="card">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <h5 class="card-title mb-0">
+                        <i class="fa-solid fa-code-branch text-muted me-2"></i>Sürüm
+                        <ng-container [ngTemplateOutlet]="highlighted" [ngTemplateOutletContext]="{ $implicit: note.version }"></ng-container>
+                    </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">
+                            <ng-container [ngTemplateOutlet]="highlighted" [ngTemplateOutletContext]="{ $implicit: note.date }"></ng-container>
+                        </span>
+                        <button type="button" class="btn btn-light btn-sm"
+                                [title]="isSearching ? 'Bu sürümün görünen notlarını kopyala' : 'Bu sürümün notlarını kopyala'"
+                                (click)="copyNote(note)">
+                            @if (copiedKey === note.version.text) {
+                                <i class="fa-solid fa-check me-1"></i>Kopyalandı
+                            } @else {
+                                <i class="fa-regular fa-copy me-1"></i>Kopyala
+                            }
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @for (section of note.sections; track $index; let s = $index) {
+                        <div class="release-note-section">
+                            @if (section.title.text) {
+                                <h6 class="release-note-title">
+                                    <ng-container [ngTemplateOutlet]="highlighted" [ngTemplateOutletContext]="{ $implicit: section.title }"></ng-container>
+                                    <button type="button" class="release-section-copy" title="Bu ekranın maddelerini kopyala"
+                                            (click)="copySection(note, section, s)">
+                                        <i [class]="copiedKey === note.version.text + '#' + s ? 'fa-solid fa-check' : 'fa-regular fa-copy'"></i>
+                                    </button>
+                                </h6>
+                            }
+                            <ul class="release-note-items">
+                                @for (item of section.items; track $index) {
+                                    <li><ng-container [ngTemplateOutlet]="highlighted" [ngTemplateOutletContext]="{ $implicit: item }"></ng-container></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (errorMessage) {
+            <div class="card">
+                <div class="card-body release-empty">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <p class="mb-0">{{ errorMessage }}</p>
+                </div>
+            </div>
+        } @else if (isLoading && visibleNotes.length === 0) {
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Sürüm notları yükleniyor...</p>
+            </div>
+        } @else if (isSearching && visibleNotes.length === 0) {
+            <div class="card">
+                <div class="card-body release-empty">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <p class="mb-0">"{{ searchText.trim() }}" ile eşleşen not bulunamadı.</p>
+                </div>
+            </div>
+        } @else if (notes.length === 0) {
+            <div class="card">
+                <div class="card-body release-empty">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <p class="mb-0">Henüz yayınlanmış sürüm notu yok.</p>
+                </div>
+            </div>
+        }
+
+        @if (hasMore && notes.length > 0 && !isSearching) {
+            <div class="text-center mb-3">
+                <button type="button" class="btn btn-light release-more" [disabled]="isLoading" (click)="loadMore()">
+                    <i class="fa-solid me-1" [class.fa-angles-down]="!isLoading" [class.fa-spinner]="isLoading" [class.fa-spin]="isLoading"></i>
+                    Daha Eski Sürümler
+                </button>
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- Aranan kelime <mark> ile vurgulanır; metin parçalara bölündüğü için [innerHTML] kullanılmaz -->
+<ng-template #highlighted let-value>@for (part of value.parts; track $index) {@if (part.match) {<mark class="release-mark">{{ part.text }}</mark>} @else {<ng-container>{{ part.text }}</ng-container>}}</ng-template>

@@ -1,0 +1,6 @@
+{
+  "name": "build-number",
+  "private": true,
+  "description": "ng build öncesinde src/environments/version.ts içindeki build numarasını artıran builder",
+  "builders": "builders.json"
+}

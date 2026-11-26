@@ -11,8 +11,6 @@ import { UserRequestResponse } from '@core/models/user-request/user-request.mode
 interface SupportStatus {
   title: string;
   count: number;
-  colorClass: string;
-  colorCode?: string;
   isSolved?: boolean;
 }
 
@@ -190,8 +188,16 @@ export class Dashboard1 {
     return `${year}-${month}-${day}`;
   }
 
-  getOpenedBarWidth(value: number): number {
-    return Math.max(8, Math.round((value / this.maxDailyOpenedCount) * 100));
+  /** Sütun yüksekliği (%); sayı etiketi sütunun üstünde durduğu için en çok %85. */
+  getOpenedBarHeight(value: number): number {
+    if (value <= 0) return 0;
+    return Math.max(4, Math.round((value / this.maxDailyOpenedCount) * 85));
+  }
+
+  /** Bir durumun tüm talepler içindeki payı (%). */
+  getStatusShare(count: number): number {
+    const total = this.supportStatuses.reduce((sum, status) => sum + status.count, 0);
+    return total > 0 ? Math.round((count / total) * 100) : 0;
   }
 
   formatDate(value?: string): string {
@@ -209,25 +215,12 @@ export class Dashboard1 {
 
   private mapStatusItem(item: UserRequestStatusSummaryItemResponse): SupportStatus {
     const normalized = this.normalizeStatusName(item.statusName);
-    const colorClass = this.getColorClassByStatus(normalized);
-    const colorCode = this.normalizeColorCode(item.colorCode);
-    const isSolved = normalized.includes('cozum') || normalized.includes('tamam');
 
     return {
       title: item.statusName,
       count: item.count,
-      colorClass,
-      colorCode,
-      isSolved,
+      isSolved: normalized.includes('cozum') || normalized.includes('tamam'),
     };
-  }
-
-  private normalizeColorCode(colorCode?: string | null): string | undefined {
-    if (!colorCode) return undefined;
-    const trimmed = colorCode.trim();
-    if (!trimmed) return undefined;
-    if (trimmed.startsWith('#')) return trimmed;
-    return `#${trimmed}`;
   }
 
   private normalizeStatusName(statusName: string): string {
@@ -239,14 +232,6 @@ export class Dashboard1 {
       .replaceAll('ü', 'u')
       .replaceAll('ö', 'o')
       .replaceAll('ç', 'c');
-  }
-
-  private getColorClassByStatus(statusName: string): string {
-    if (statusName.includes('cozum') || statusName.includes('tamam')) return 'status-cyan';
-    if (statusName.includes('cevap')) return 'status-mint';
-    if (statusName.includes('bekliyor') || statusName.includes('incele')) return 'status-blue';
-    if (statusName.includes('islem')) return 'status-sky';
-    return 'status-gray';
   }
 
 }

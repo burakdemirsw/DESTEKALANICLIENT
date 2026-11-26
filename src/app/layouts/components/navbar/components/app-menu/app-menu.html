@@ -20,7 +20,11 @@
 <ng-template #MenuItemWithChildren let-item="item" let-wrapperClass="wrapperClass" let-togglerClass="togglerClass">
     <li ngbDropdown [class]="wrapperClass" class="dropdown" [class.active]="isChildActive(item)">
         <a ngbDropdownToggle [class]="togglerClass" class="dropdown-toggle drop-arrow-none" role="button">
-            @if (item.icon) {
+            @if (item.faIcon) {
+                <span>
+                <i [class]="item.faIcon + ' menu-icon'"></i>
+            </span>
+            } @else if (item.icon) {
                 <span>
                 <lucide-angular class="menu-icon" [img]="item.icon"/>
             </span>
@@ -58,7 +62,11 @@
            [class.disabled]="item.isDisabled"
            [class.special-menu]="item.isSpecial"
         >
-            @if (item.icon) {
+            @if (item.faIcon) {
+                <span>
+               <i [class]="item.faIcon + ' menu-icon'"></i>
+              </span>
+            } @else if (item.icon) {
                 <span>
                <lucide-angular class="menu-icon" [img]="item.icon"/>
               </span>
