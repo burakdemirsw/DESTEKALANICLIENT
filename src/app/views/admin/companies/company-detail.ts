@@ -17,6 +17,7 @@ import {
     UpdateCompanySettingRequest,
 } from '@/app/core/models/company-setting/company-setting.models';
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/app/constants';
+import { RowActions } from '@app/components/row-actions/row-actions';
 
 interface AddressOption {
     id: string;
@@ -34,7 +35,7 @@ interface UserFormModel {
 
 @Component({
     selector: 'app-company-detail-page',
-    imports: [CommonModule, RouterModule, FormsModule],
+    imports: [CommonModule, RouterModule, FormsModule, RowActions],
     templateUrl: './company-detail.html',
     styleUrls: ['./company-detail.scss'],
 })

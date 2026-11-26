@@ -115,12 +115,12 @@ export function buildAdminPaginationRequest(req?: Partial<AdminPaginationRequest
  * @returns  `?PageNumber=1&PageSize=20&...` şeklinde string
  */
 /**
- * localStorage'daki userProfile'dan companyId'yi okur.
- * AuthStateService ile aynı kaynağı kullanır.
+ * localStorage'daki authData'dan companyId'yi okur.
+ * AuthStateService ile aynı kaynağı (AUTH_DATA_KEY = 'authData') kullanır.
  */
 function getCompanyIdFromStorage(): string {
     try {
-        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const profile = JSON.parse(localStorage.getItem('authData') || '{}');
         return profile.companyId || '';
     } catch {
         return '';

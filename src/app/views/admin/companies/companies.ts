@@ -10,6 +10,7 @@ import { AddressesService } from '@/app/core/services/addresses.service';
 import { PagedResult } from '@/app/core/models/pagination.model';
 import { AuthStateService } from '@core/services/auth-state.service';
 import { UrlQueryStateService } from '@core/services/url-query-state.service';
+import { RowActions } from '@app/components/row-actions/row-actions';
 
 type CompanyModalMode = 'create' | 'edit' | 'copy';
 
@@ -85,7 +86,7 @@ function formFromCompany(item: Company): CompanyFormModel {
 // işlemleri detayında (/admin/companies/:id) yapılır.
 @Component({
     selector: 'app-companies-page',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, RowActions],
     templateUrl: './companies.html',
     styleUrl: './companies.scss',
 })

@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 import { PageTitle } from '@app/components/page-title';
 import { ConfirmModal } from '@app/components/confirm-modal';
+import { RowActions } from '@app/components/row-actions/row-actions';
 import { RequestResponsiblesService } from '@/app/core/services/request-responsibles.service';
 import { UrlQueryStateService } from '@/app/core/services/url-query-state.service';
 import { RequestResponsibleUser } from '@/app/core/models/request-responsible/request-responsible.models';
@@ -27,7 +28,7 @@ import { AuthStateService } from '@core/services/auth-state.service';
 
 @Component({
     selector: 'app-user-requests-admin-page',
-    imports: [CommonModule, FormsModule, RouterModule, PageTitle, ConfirmModal],
+    imports: [CommonModule, FormsModule, RouterModule, PageTitle, ConfirmModal, RowActions],
     templateUrl: './user-requests-admin.html',
 })
 export class UserRequestsAdminPage implements OnInit, OnDestroy {

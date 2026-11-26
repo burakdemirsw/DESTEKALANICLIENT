@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { appName, currentYear } from '@/app/constants';
+import { APP_BUILD_DATE, APP_VERSION } from '@/environments/version';
 import { AuthStateService } from '@core/services/auth-state.service';
 
 /** "Nasıl çalışır" bölümündeki adım */
@@ -23,6 +24,10 @@ interface SupportStep {
 export class LandingPage {
   readonly appName = appName;
   readonly year = currentYear;
+  readonly appVersion = APP_VERSION;
+  /** Yayın tarihi: sürümün build tarihi ("26.11.2026 21:13"); altta yalnız gün, saat ipucunda gösterilir */
+  readonly buildDate = APP_BUILD_DATE;
+  readonly releaseDate = APP_BUILD_DATE.split(' ')[0];
   /** Oturum açıksa üstteki düğme doğrudan panele götürür */
   readonly isSignedIn = !!inject(AuthStateService).profile;
 

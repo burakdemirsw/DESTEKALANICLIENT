@@ -4,10 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { UserTypesService } from '@/app/core/services/user-types.service';
 import { UserType, CreateUserTypeRequest, UpdateUserTypeRequest } from '@/app/core/models/user/user-type.models';
 import { AuthStateService } from '@core/services/auth-state.service';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-user-types-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RowActions, ConfirmModal],
     templateUrl: './user-types.html',
 })
 export class UserTypesPage implements OnInit {
@@ -77,10 +80,7 @@ export class UserTypesPage implements OnInit {
             await this.loadItems();
         } catch (err: any) {
             console.error('Save error:', err);
-            const msg = err.status === 0
-                ? `Sunucuya bağlanılamadı.\nURL: ${err.url}\nMesaj: ${err.message}`
-                : `Hata ${err.status}: ${err.error?.message || err.error?.title || JSON.stringify(err.error)}`;
-            alert('İşlem hatası:\n' + msg);
+            showToast('error', describeHttpError(err) || 'Kaydedilemedi.');
         }
     }
 
@@ -88,14 +88,33 @@ export class UserTypesPage implements OnInit {
         this.showModal = false;
     }
 
-    async deleteItem(item: UserType): Promise<void> {
-        if (confirm('Bu kullanıcı türünü silmek istediğinize emin misiniz?')) {
-            try {
-                await this.service.delete(item.id);
-                await this.loadItems();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: UserType | null = null;
+    deleting = false;
+
+    deleteItem(item: UserType): void {
+        this.pendingDelete = item;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const item = this.pendingDelete;
+        if (!item || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.service.delete(item.id);
+            this.pendingDelete = null;
+            showToast('success', 'Kullanıcı tipi silindi.');
+            await this.loadItems();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Kullanıcı tipi silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

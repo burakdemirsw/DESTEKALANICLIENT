@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PageTitle } from '@app/components/page-title';
 import { RequestResponsiblesModal } from '@app/components/request-responsibles-modal/request-responsibles-modal';
+import { AuthStateService } from '@core/services/auth-state.service';
 import { RequestApplicationsService } from '@core/services/request-applications.service';
 import { RequestCategoriesService } from '@core/services/request-categories.service';
 import { RequestResponsiblesService } from '@core/services/request-responsibles.service';
@@ -10,6 +11,7 @@ import {
     RequestResponsibleTargetType,
     RequestResponsibleUser,
 } from '@core/models/request-responsible/request-responsible.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
 
 type ResponsibleTab = RequestResponsibleTargetType | 'manager';
 
@@ -41,7 +43,7 @@ const LOOKUP_PAGE_SIZE = 500;
  */
 @Component({
     selector: 'app-request-responsibles-page',
-    imports: [FormsModule, PageTitle, RequestResponsiblesModal],
+    imports: [FormsModule, PageTitle, RequestResponsiblesModal, RowActions],
     templateUrl: './request-responsibles.html',
     styleUrl: './request-responsibles.scss',
 })
@@ -73,6 +75,7 @@ export class RequestResponsiblesPage implements OnInit {
         private applicationsService: RequestApplicationsService,
         private categoriesService: RequestCategoriesService,
         private responsiblesService: RequestResponsiblesService,
+        private authStateService: AuthStateService,
     ) {}
 
     ngOnInit(): void {
@@ -96,9 +99,10 @@ export class RequestResponsiblesPage implements OnInit {
         this.loading = true;
         this.loadError = '';
         try {
+            const companyId = this.authStateService.profile?.companyId ?? '';
             const [appsResponse, categoriesResponse, assignmentsResponse, candidatesResponse] = await Promise.all([
-                this.applicationsService.getPaged({ companyId: '', pageNumber: 1, pageSize: LOOKUP_PAGE_SIZE }),
-                this.categoriesService.getPaged({ companyId: '', pageNumber: 1, pageSize: LOOKUP_PAGE_SIZE }),
+                this.applicationsService.getPaged({ companyId, pageNumber: 1, pageSize: LOOKUP_PAGE_SIZE }),
+                this.categoriesService.getPaged({ companyId, pageNumber: 1, pageSize: LOOKUP_PAGE_SIZE }),
                 this.responsiblesService.getAssignments(),
                 this.responsiblesService.getCandidates(),
             ]);

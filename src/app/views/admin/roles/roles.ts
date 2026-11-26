@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RolesService } from '@/app/core/services/roles.service';
 import { Role, CreateRoleRequest, UpdateRoleRequest } from '@/app/core/models/role/role.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-roles-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RowActions, ConfirmModal],
     templateUrl: './roles.html',
 })
 export class RolesPage implements OnInit {
@@ -78,14 +81,33 @@ export class RolesPage implements OnInit {
         }
     }
 
-    async deleteRole(role: Role): Promise<void> {
-        if (confirm(`"${role.roleDescription}" rolünü silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.rolesService.delete(role.id);
-                await this.loadRoles();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: Role | null = null;
+    deleting = false;
+
+    deleteRole(role: Role): void {
+        this.pendingDelete = role;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const role = this.pendingDelete;
+        if (!role || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.rolesService.delete(role.id);
+            this.pendingDelete = null;
+            showToast('success', 'Rol silindi.');
+            await this.loadRoles();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Rol silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

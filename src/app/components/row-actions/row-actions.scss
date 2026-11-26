@@ -1,0 +1,8 @@
+// Dokunma alanı en az ~36px (telefonda parmakla açılabilsin)
+.row-actions-toggle {
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

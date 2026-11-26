@@ -33,6 +33,7 @@
                         <table class="table table-centered table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
+                                    <th class="actions-col">İşlemler</th>
                                     <th class="d-none d-md-table-cell">#</th>
                                     <th>Şirket Adı</th>
                                     <th class="d-none d-md-table-cell">Vergi No</th>
@@ -42,12 +43,28 @@
                                     <th class="d-none d-xl-table-cell">Şehir</th>
                                     <th class="text-center d-none d-sm-table-cell">Durum</th>
                                     <th class="d-none d-xl-table-cell">Oluşturulma</th>
-                                    <th class="text-end">İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @for (item of pagedItems; track item.id; let idx = $index) {
                                     <tr>
+                                        <td class="actions-col">
+                                            <app-row-actions>
+                                                <a class="dropdown-item" [routerLink]="['/admin/companies', item.id]">
+                                                    <i class="fa-regular fa-eye me-2 text-muted"></i>Detay
+                                                </a>
+                                                <button type="button" class="dropdown-item" (click)="openCopy(item)">
+                                                    <i class="fa-regular fa-copy me-2 text-muted"></i>Kopyala
+                                                </button>
+                                                <button type="button" class="dropdown-item" (click)="openEdit(item)">
+                                                    <i class="fa-regular fa-pen-to-square me-2 text-muted"></i>Düzenle
+                                                </button>
+                                                <div class="dropdown-divider"></div>
+                                                <button type="button" class="dropdown-item text-danger" (click)="askDelete(item)">
+                                                    <i class="fa-regular fa-trash-can me-2"></i>Sil
+                                                </button>
+                                            </app-row-actions>
+                                        </td>
                                         <td class="d-none d-md-table-cell text-muted">{{ (currentPage - 1) * pageSize + idx + 1 }}</td>
                                         <td class="company-name-cell">
                                             <a class="fw-semibold text-break" [routerLink]="['/admin/companies', item.id]">{{ item.name || '-' }}</a>
@@ -70,26 +87,6 @@
                                             }
                                         </td>
                                         <td class="d-none d-xl-table-cell small text-muted">{{ item.createdDate | date:'dd.MM.yyyy HH:mm' }}</td>
-                                        <td class="text-end">
-                                            <div class="d-inline-flex flex-wrap justify-content-end gap-1">
-                                                <a class="btn btn-soft-primary btn-sm action-btn" [routerLink]="['/admin/companies', item.id]"
-                                                   title="Detay: bilgiler, kullanıcılar, ayarlar" aria-label="Detay">
-                                                    <i class="fa-solid fa-eye"></i><span class="d-none d-xxl-inline ms-1">Detay</span>
-                                                </a>
-                                                <button type="button" class="btn btn-soft-primary btn-sm action-btn" (click)="openCopy(item)"
-                                                        title="Kopyala" aria-label="Kopyala">
-                                                    <i class="fa-regular fa-copy"></i><span class="d-none d-xxl-inline ms-1">Kopyala</span>
-                                                </button>
-                                                <button type="button" class="btn btn-soft-primary btn-sm action-btn" (click)="openEdit(item)"
-                                                        title="Düzenle" aria-label="Düzenle">
-                                                    <i class="fa-solid fa-pen-to-square"></i><span class="d-none d-xxl-inline ms-1">Düzenle</span>
-                                                </button>
-                                                <button type="button" class="btn btn-soft-danger btn-sm action-btn" (click)="askDelete(item)"
-                                                        title="Sil" aria-label="Sil">
-                                                    <i class="fa-solid fa-trash"></i><span class="d-none d-xxl-inline ms-1">Sil</span>
-                                                </button>
-                                            </div>
-                                        </td>
                                     </tr>
                                 } @empty {
                                     <tr><td colspan="10" class="text-center text-muted py-4">Şirket bulunamadı.</td></tr>

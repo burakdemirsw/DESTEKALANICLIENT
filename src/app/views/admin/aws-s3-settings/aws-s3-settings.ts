@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AwsS3SettingsService } from '@/app/core/services/aws-s3-settings.service';
 import { AwsS3SettingResponse, CreateAwsS3SettingRequest, UpdateAwsS3SettingRequest } from '@/app/core/models/aws-s3/aws-s3.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-aws-s3-settings-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RowActions, ConfirmModal],
     templateUrl: './aws-s3-settings.html',
 })
 export class AwsS3SettingsPage implements OnInit {
@@ -136,14 +139,33 @@ export class AwsS3SettingsPage implements OnInit {
         }
     }
 
-    async deleteSetting(setting: AwsS3SettingResponse): Promise<void> {
-        if (confirm(`"${setting.bucketName}" AWS S3 ayarını silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.awsS3Service.delete(setting.id);
-                await this.loadSettings();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: AwsS3SettingResponse | null = null;
+    deleting = false;
+
+    deleteSetting(setting: AwsS3SettingResponse): void {
+        this.pendingDelete = setting;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const setting = this.pendingDelete;
+        if (!setting || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.awsS3Service.delete(setting.id);
+            this.pendingDelete = null;
+            showToast('success', 'AWS S3 ayarı silindi.');
+            await this.loadSettings();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'AWS S3 ayarı silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

@@ -35,7 +35,18 @@
   </main>
 
   <footer class="home-foot">
-    <span class="foot-note">© {{ year }} {{ appName }} · Talepleriniz için tek adres</span>
+    <span class="foot-note">
+      © {{ year }} {{ appName }} · Talepleriniz için tek adres
+      <!-- Sürüm notları giriş istediği için bağlantı yalnız oturum açıkken -->
+      <span class="d-inline-block" [title]="'Yayın: ' + buildDate">·
+        @if (isSignedIn) {
+          <a routerLink="/release-notes" class="text-reset">Sürüm {{ appVersion }}</a>
+        } @else {
+          Sürüm {{ appVersion }}
+        }
+        · Yayın tarihi {{ releaseDate }}
+      </span>
+    </span>
     @if (!isSignedIn) {
       <a class="foot-link" routerLink="/auth/sign-up">Hesap oluşturun<i class="fa-solid fa-arrow-right"></i></a>
     }

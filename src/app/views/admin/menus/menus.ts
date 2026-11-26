@@ -5,10 +5,13 @@ import { MenusService } from '@/app/core/services/menus.service';
 import { Menu, CreateMenuRequest, UpdateMenuRequest } from '@/app/core/models/menu/menu.models';
 import { FA_ICONS } from '@/app/constants/fa-icons';
 import { UserMenuService } from '@/app/core/services/user-menu.service';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-menus-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RowActions, ConfirmModal],
     templateUrl: './menus.html',
 })
 export class MenusPage implements OnInit {
@@ -165,15 +168,34 @@ export class MenusPage implements OnInit {
         }
     }
 
-    async deleteMenu(menu: Menu): Promise<void> {
-        if (confirm(`"${menu.name}" menüsünü silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.menusService.delete(menu.id);
-                await this.loadMenus();
-                await this.userMenuService.loadUserMenus();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: Menu | null = null;
+    deleting = false;
+
+    deleteMenu(menu: Menu): void {
+        this.pendingDelete = menu;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const menu = this.pendingDelete;
+        if (!menu || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.menusService.delete(menu.id);
+            this.pendingDelete = null;
+            showToast('success', 'Menü silindi.');
+            await this.loadMenus();
+            await this.userMenuService.loadUserMenus();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Menü silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

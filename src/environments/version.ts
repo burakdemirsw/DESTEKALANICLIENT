@@ -3,6 +3,6 @@
 // bir artırılır; elle değiştirilmez. Ana sürüm atlatılacaksa yalnız APP_VERSION_BASE düzenlenir.
 // APP_BUILD_DATE aynı anda build'in yerel tarih / saatiyle yazılır (commit mesajında sürümün yanında görünür).
 export const APP_VERSION_BASE = '2.0.0';
-export const APP_BUILD_NUMBER = 3;
-export const APP_BUILD_DATE = '26.11.2026 21:13';
+export const APP_BUILD_NUMBER = 4;
+export const APP_BUILD_DATE = '26.11.2026 22:40';
 export const APP_VERSION = `${APP_VERSION_BASE}.${APP_BUILD_NUMBER}`;

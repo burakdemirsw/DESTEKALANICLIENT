@@ -543,17 +543,24 @@
                                 <table class="table table-centered table-hover mb-0">
                                     <thead class="table-light">
                                         <tr>
+                                            <th class="actions-col">İşlemler</th>
                                             <th>Ad</th>
                                             <th>Soyad</th>
                                             <th>E-posta</th>
                                             <th>Cinsiyet</th>
                                             <th>Durum</th>
-                                            <th class="text-end">İşlemler</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @for (user of pagedUsers; track user.id) {
                                             <tr>
+                                                <td class="actions-col">
+                                                    <app-row-actions>
+                                                        <button type="button" class="dropdown-item" (click)="openEditUser(user)">
+                                                            <i class="fa-regular fa-pen-to-square me-2 text-muted"></i>Düzenle
+                                                        </button>
+                                                    </app-row-actions>
+                                                </td>
                                                 <td>{{ user.name }}</td>
                                                 <td>{{ user.lastName }}</td>
                                                 <td>{{ user.email }}</td>
@@ -562,9 +569,6 @@
                                                     <span class="badge" [class]="user.isBlocked ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'">
                                                         {{ user.isBlocked ? 'Engelli' : 'Aktif' }}
                                                     </span>
-                                                </td>
-                                                <td class="text-end">
-                                                    <button class="btn btn-soft-primary btn-sm" (click)="openEditUser(user)">Düzenle</button>
                                                 </td>
                                             </tr>
                                         } @empty {

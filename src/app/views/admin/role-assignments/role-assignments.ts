@@ -8,10 +8,11 @@ import { UsersService } from '@/app/core/services/users.service';
 import { User } from '@/app/core/models/user/user.models';
 import { Role } from '@/app/core/models/role/role.models';
 import { RoleUser } from '@/app/core/models/role/role.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
 
 @Component({
     selector: 'app-role-assignments-page',
-    imports: [CommonModule, FormsModule, ConfirmModal],
+    imports: [CommonModule, FormsModule, ConfirmModal, RowActions],
     templateUrl: './role-assignments.html',
 })
 export class RoleAssignmentsPage implements OnInit {

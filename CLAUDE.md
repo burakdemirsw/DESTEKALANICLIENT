@@ -156,6 +156,22 @@ değiştirilmez.
     değilse `router.navigate`. Birden çok sayfada gerekirse bu mantık ortak servise alınır.
   - Modal / panel açan düğmeler kapsam dışıdır.
 
+## Satır İşlemleri (İşlemler Kolonu)
+
+- **Tablolarda satır işlemleri (detay, düzenle, sil, iptal vb.) her zaman ilk (en sol) kolonda ve tek bir açılır menü
+  (dropdown) içinde olur**; satırda yan yana düğme dizilmez, işlemler sağ kolona konmaz.
+  - Ortak bileşen kullanılır: `RowActions` (`@app/components/row-actions/row-actions`, `<app-row-actions>`). Hücre
+    `<td class="actions-col">`, başlık `<th class="actions-col">İşlemler</th>` (sınıf `src/styles.scss`'te; kolonu
+    dar tutar). Öğeler içerik olarak verilir: `<a class="dropdown-item" [routerLink]>`, `<button type="button"
+    class="dropdown-item">`, solda gri simge (`me-2 text-muted`). Bileşen ⋮ düğmesini (en az 36px) ve menüyü
+    sayfa gövdesine taşıyarak açar; tablo ya da modal içinde kesilmez. Sayfada ayrıca `ngbDropdown` yazılmaz.
+  - Sıra: önce gezinme (Detay), sonra düzenleme; geri alınması zor işlemler (Sil, İptal Et) `dropdown-divider` ile
+    ayrılıp en altta kırmızı metinle (`text-danger`) durur. O satırda yapılamayan işlem (iptal edilmiş talebi iptal
+    etme) menüde gösterilmez; rolün yetkisi olmayan işlem de gösterilmez (yetkiyi yine API verir).
+  - Sayfa açan öğe `routerLink`'li `<a>` olur (bkz. "Listeden Detay / İşlem Ekranı Açma"); onay isteyen işlem modal
+    açar (bkz. "Onay ve Değer Sorma"). Satır tıklamasıyla çakışırsa `(click)="$event.stopPropagation()"`.
+  - Örnek: Talep Uygulamaları (`views/admin/request-applications`), Şirketler (`views/admin/companies`).
+
 ## Filtre Formları
 
 - **Filtre yazıları okunamıyorsa (etiket, placeholder, seçili değer ya da tarih kesiliyor / sığmıyorsa) filtreler alt

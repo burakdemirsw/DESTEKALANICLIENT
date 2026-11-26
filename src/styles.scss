@@ -15,6 +15,12 @@
 
 @use "./assets/scss/app.scss";
 
+// Tablo satır işlemleri kolonu (app-row-actions): tablonun en solunda, yalnız menü düğmesi kadar geniş
+.actions-col {
+    width: 1%;
+    white-space: nowrap;
+}
+
 // Chat sayfası aktifken content-page scroll'u engelle
 .content-page.chat-page-active {
     height: 100vh;

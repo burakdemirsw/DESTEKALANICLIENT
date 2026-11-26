@@ -14,15 +14,6 @@
     max-width: 320px;
 }
 
-// Satır işlemleri: simge düğmeleri dokunmaya yetecek büyüklükte (en az 36px)
-.action-btn {
-    min-width: 36px;
-    min-height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .copy-note {
     display: flex;
     align-items: flex-start;

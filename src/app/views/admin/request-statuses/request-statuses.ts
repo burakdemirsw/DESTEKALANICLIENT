@@ -5,10 +5,13 @@ import { PageTitle } from '@app/components/page-title';
 import { RequestStatusesService } from '@/app/core/services/request-statuses.service';
 import { RequestStatusResponse, CreateRequestStatusRequest, UpdateRequestStatusRequest } from '@/app/core/models/request-status/request-status.models';
 import { AuthStateService } from '@core/services/auth-state.service';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-request-statuses-page',
-    imports: [CommonModule, FormsModule, PageTitle],
+    imports: [CommonModule, FormsModule, PageTitle, RowActions, ConfirmModal],
     templateUrl: './request-statuses.html',
 })
 export class RequestStatusesPage implements OnInit {
@@ -125,21 +128,37 @@ export class RequestStatusesPage implements OnInit {
                 await this.loadStatuses();
                 return;
             }
-            const msg = err.status === 0
-                ? `Sunucuya bağlanılamadı.\nURL: ${err.url}\nMesaj: ${err.message}`
-                : `Hata ${err.status}: ${err.error?.message || err.error?.title || JSON.stringify(err.error)}`;
-            alert('İşlem hatası:\n' + msg);
+            showToast('error', describeHttpError(err) || 'Kaydedilemedi.');
         }
     }
 
-    async deleteStatus(status: RequestStatusResponse): Promise<void> {
-        if (confirm(`"${status.name}" durumunu silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.statusService.delete(status.id);
-                await this.loadStatuses();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: RequestStatusResponse | null = null;
+    deleting = false;
+
+    deleteStatus(status: RequestStatusResponse): void {
+        this.pendingDelete = status;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const status = this.pendingDelete;
+        if (!status || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.statusService.delete(status.id);
+            this.pendingDelete = null;
+            showToast('success', 'Durum silindi.');
+            await this.loadStatuses();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Durum silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

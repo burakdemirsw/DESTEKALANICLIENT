@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MailSettingsService } from '@/app/core/services/mail-settings.service';
 import { MailSetting, CreateMailSettingRequest, UpdateMailSettingRequest } from '@/app/core/models/mail/mail.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-mail-settings-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RowActions, ConfirmModal],
     templateUrl: './mail-settings.html',
 })
 export class MailSettingsPage implements OnInit {
@@ -107,14 +110,33 @@ export class MailSettingsPage implements OnInit {
         }
     }
 
-    async deleteSetting(setting: MailSetting): Promise<void> {
-        if (confirm(`"${setting.userName}" mail ayarını silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.mailService.delete(setting.id);
-                await this.loadSettings();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: MailSetting | null = null;
+    deleting = false;
+
+    deleteSetting(setting: MailSetting): void {
+        this.pendingDelete = setting;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const setting = this.pendingDelete;
+        if (!setting || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.mailService.delete(setting.id);
+            this.pendingDelete = null;
+            showToast('success', 'Mail ayarı silindi.');
+            await this.loadSettings();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Mail ayarı silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

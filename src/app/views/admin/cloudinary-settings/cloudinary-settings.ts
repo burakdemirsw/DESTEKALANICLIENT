@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CloudinarySettingsService } from '@/app/core/services/cloudinary-settings.service';
 import { CloudinarySettingResponse, CreateCloudinarySettingRequest, UpdateCloudinarySettingRequest } from '@/app/core/models/cloudinary/cloudinary.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-cloudinary-settings-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RowActions, ConfirmModal],
     templateUrl: './cloudinary-settings.html',
 })
 export class CloudinarySettingsPage implements OnInit {
@@ -131,14 +134,33 @@ export class CloudinarySettingsPage implements OnInit {
         }
     }
 
-    async deleteSetting(setting: CloudinarySettingResponse): Promise<void> {
-        if (confirm(`"${setting.cloudName}" Cloudinary ayarını silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.cloudinaryService.delete(setting.id);
-                await this.loadSettings();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: CloudinarySettingResponse | null = null;
+    deleting = false;
+
+    deleteSetting(setting: CloudinarySettingResponse): void {
+        this.pendingDelete = setting;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const setting = this.pendingDelete;
+        if (!setting || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.cloudinaryService.delete(setting.id);
+            this.pendingDelete = null;
+            showToast('success', 'Cloudinary ayarı silindi.');
+            await this.loadSettings();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Cloudinary ayarı silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

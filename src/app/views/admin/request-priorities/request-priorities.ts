@@ -5,10 +5,13 @@ import { PageTitle } from '@app/components/page-title';
 import { RequestPrioritiesService } from '@/app/core/services/request-priorities.service';
 import { RequestPriorityResponse, CreateRequestPriorityRequest, UpdateRequestPriorityRequest } from '@/app/core/models/request-priority/request-priority.models';
 import { AuthStateService } from '@core/services/auth-state.service';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-request-priorities-page',
-    imports: [CommonModule, FormsModule, PageTitle],
+    imports: [CommonModule, FormsModule, PageTitle, RowActions, ConfirmModal],
     templateUrl: './request-priorities.html',
 })
 export class RequestPrioritiesPage implements OnInit {
@@ -143,21 +146,37 @@ export class RequestPrioritiesPage implements OnInit {
                 await this.loadPriorities();
                 return;
             }
-            const msg = err.status === 0
-                ? `Sunucuya bağlanılamadı.\nURL: ${err.url}\nMesaj: ${err.message}`
-                : `Hata ${err.status}: ${err.error?.message || err.error?.title || JSON.stringify(err.error)}`;
-            alert('İşlem hatası:\n' + msg);
+            showToast('error', describeHttpError(err) || 'Kaydedilemedi.');
         }
     }
 
-    async deletePriority(priority: RequestPriorityResponse): Promise<void> {
-        if (confirm(`"${priority.name}" önceliğini silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.priorityService.delete(priority.id);
-                await this.loadPriorities();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: RequestPriorityResponse | null = null;
+    deleting = false;
+
+    deletePriority(priority: RequestPriorityResponse): void {
+        this.pendingDelete = priority;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const priority = this.pendingDelete;
+        if (!priority || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.priorityService.delete(priority.id);
+            this.pendingDelete = null;
+            showToast('success', 'Öncelik silindi.');
+            await this.loadPriorities();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Öncelik silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

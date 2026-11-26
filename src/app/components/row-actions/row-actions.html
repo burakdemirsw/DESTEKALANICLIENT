@@ -1,0 +1,9 @@
+<div ngbDropdown container="body" placement="bottom-start bottom-end top-start top-end">
+    <button type="button" class="btn btn-sm btn-soft-secondary drop-arrow-none row-actions-toggle" ngbDropdownToggle
+            [title]="label" [attr.aria-label]="label">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+    </button>
+    <div ngbDropdownMenu>
+        <ng-content />
+    </div>
+</div>

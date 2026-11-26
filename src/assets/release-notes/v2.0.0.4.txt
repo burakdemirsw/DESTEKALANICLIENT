@@ -1,0 +1,27 @@
+Sürüm 2.0.0.4 - 26.11.2026 22:40
+
+Talep Sorumluları
+- Sayfa açılırken uygulama ve kategori listesi yüklenemeyip hata veriyordu; düzeltildi.
+- "Sorumluları Düzenle" satırın başındaki işlem menüsüne taşındı.
+
+Tüm Talepler
+- Detay, Düzenle, Kapat ve Sil işlemleri satırın başındaki tek bir menüde toplandı. Kapatılmış talepte "Kapat"
+  gösterilmez.
+
+Talep Uygulamaları, Talep Kategorileri, Talep Durumları, Talep Öncelikleri
+- Düzenle ve Sil işlemleri satırın başındaki tek bir menüde toplandı.
+- Silme onayı artık sayfanın içinde açılan pencerede soruluyor; silindiğinde ya da silinemediğinde ekranın sağ üstünde
+  bilgi verilir.
+- Kategori, durum ve öncelik kaydedilemediğinde hata mesajı ekranın sağ üstünde gösterilir.
+
+Şirketler, Şirket Detayı
+- Detay, Kopyala, Düzenle ve Sil işlemleri satırın başındaki tek bir menüde toplandı.
+
+Sistem Yönetimi (Roller, Rol Atamaları, Menüler, Kullanıcı Tipleri, Mail Ayarları, AWS S3 Ayarları, Cloudinary Ayarları)
+- Satır işlemleri (Düzenle, Sil, Rolleri Yönet, Kaldır) satırın başındaki tek bir menüde toplandı.
+- Silme onayı artık sayfanın içinde açılan pencerede soruluyor; kullanıcı tipi kaydedilemediğinde hata mesajı ekranın
+  sağ üstünde gösterilir.
+
+Tanıtım Sayfası
+- Sayfanın altında uygulamanın sürümü ve yayın tarihi gösterilir; giriş yapmışsanız sürüme tıklayınca sürüm notları
+  açılır.

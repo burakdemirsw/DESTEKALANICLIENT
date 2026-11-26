@@ -9,6 +9,9 @@ import {
   CreateRequestApplicationRequest,
   UpdateRequestApplicationRequest,
 } from '@core/models/request-application/request-application.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 interface RequestApplicationForm {
   applicationName: string;
@@ -19,7 +22,7 @@ interface RequestApplicationForm {
 
 @Component({
   selector: 'app-request-applications-page',
-  imports: [CommonModule, FormsModule, PageTitle],
+  imports: [CommonModule, FormsModule, PageTitle, RowActions, ConfirmModal],
   templateUrl: './request-applications.html',
 })
 export class RequestApplicationsPage implements OnInit {
@@ -152,16 +155,33 @@ export class RequestApplicationsPage implements OnInit {
     }
   }
 
-  async deleteItem(item: RequestApplicationResponse): Promise<void> {
-    if (!confirm(`"${item.applicationName ?? ''}" uygulamasını silmek istediğinize emin misiniz?`)) {
-      return;
-    }
+  // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+  pendingDelete: RequestApplicationResponse | null = null;
+  deleting = false;
 
+  deleteItem(item: RequestApplicationResponse): void {
+    this.pendingDelete = item;
+  }
+
+  cancelDelete(): void {
+    if (!this.deleting) this.pendingDelete = null;
+  }
+
+  async confirmDelete(): Promise<void> {
+    const item = this.pendingDelete;
+    if (!item || this.deleting) return;
+
+    this.deleting = true;
     try {
       await this.requestApplicationsService.delete(item.id);
+      this.pendingDelete = null;
+      showToast('success', 'Uygulama silindi.');
       await this.loadItems();
     } catch (err) {
-      console.error('RequestApplications delete error:', err);
+      console.error('Delete error:', err);
+      showToast('error', describeHttpError(err) || 'Uygulama silinemedi.');
+    } finally {
+      this.deleting = false;
     }
   }
 

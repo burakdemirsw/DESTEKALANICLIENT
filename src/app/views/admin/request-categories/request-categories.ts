@@ -7,10 +7,13 @@ import { RequestCategoryResponse, CreateRequestCategoryRequest, UpdateRequestCat
 import { AuthStateService } from '@core/services/auth-state.service';
 import { RequestApplicationsService } from '@/app/core/services/request-applications.service';
 import { RequestApplicationResponse } from '@/app/core/models/request-application/request-application.models';
+import { RowActions } from '@app/components/row-actions/row-actions';
+import { describeHttpError, showToast } from '@/app/utils/feedback';
+import { ConfirmModal } from '@app/components/confirm-modal';
 
 @Component({
     selector: 'app-request-categories-page',
-    imports: [CommonModule, FormsModule, PageTitle],
+    imports: [CommonModule, FormsModule, PageTitle, RowActions, ConfirmModal],
     templateUrl: './request-categories.html',
 })
 export class RequestCategoriesPage implements OnInit {
@@ -159,21 +162,37 @@ export class RequestCategoriesPage implements OnInit {
                 await this.loadCategories();
                 return;
             }
-            const msg = err.status === 0
-                ? `Sunucuya bağlanılamadı.\nURL: ${err.url}\nMesaj: ${err.message}`
-                : `Hata ${err.status}: ${err.error?.message || err.error?.title || JSON.stringify(err.error)}`;
-            alert('İşlem hatası:\n' + msg);
+            showToast('error', describeHttpError(err) || 'Kaydedilemedi.');
         }
     }
 
-    async deleteCategory(category: RequestCategoryResponse): Promise<void> {
-        if (confirm(`"${category.name}" kategorisini silmek istediğinize emin misiniz?`)) {
-            try {
-                await this.categoryService.delete(category.id);
-                await this.loadCategories();
-            } catch (err) {
-                console.error('Delete error:', err);
-            }
+    // Silme onayı sayfa içi modalda sorulur (tarayıcının confirm penceresi yerine)
+    pendingDelete: RequestCategoryResponse | null = null;
+    deleting = false;
+
+    deleteCategory(category: RequestCategoryResponse): void {
+        this.pendingDelete = category;
+    }
+
+    cancelDelete(): void {
+        if (!this.deleting) this.pendingDelete = null;
+    }
+
+    async confirmDelete(): Promise<void> {
+        const category = this.pendingDelete;
+        if (!category || this.deleting) return;
+
+        this.deleting = true;
+        try {
+            await this.categoryService.delete(category.id);
+            this.pendingDelete = null;
+            showToast('success', 'Kategori silindi.');
+            await this.loadCategories();
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('error', describeHttpError(err) || 'Kategori silinemedi.');
+        } finally {
+            this.deleting = false;
         }
     }
 

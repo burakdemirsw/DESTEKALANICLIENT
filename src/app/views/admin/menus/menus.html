@@ -21,6 +21,7 @@
                         <table class="table table-centered table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
+                                    <th class="actions-col">İşlemler</th>
                                     <th>Ad</th>
                                     <th class="text-center">İkon</th>
                                     <th>Açıklama</th>
@@ -30,12 +31,22 @@
                                     <th>Sıra</th>
                                     <th>Durum</th>
                                     <th>Görünürlük</th>
-                                    <th class="text-end">İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @for (menu of pagedMenus; track $index) {
                                     <tr>
+                                        <td class="actions-col">
+                                            <app-row-actions>
+                                                <button type="button" class="dropdown-item" (click)="openEdit(menu)">
+                                                    <i class="fa-regular fa-pen-to-square me-2 text-muted"></i>Düzenle
+                                                </button>
+                                                <div class="dropdown-divider"></div>
+                                                <button type="button" class="dropdown-item text-danger" (click)="deleteMenu(menu)">
+                                                    <i class="fa-regular fa-trash-can me-2"></i>Sil
+                                                </button>
+                                            </app-row-actions>
+                                        </td>
                                         <td><i [class]="menu.icon" class="me-1" [style.color]="menu.colorCode"></i> {{ menu.name }}</td>
                                         <td class="text-center">
                                             @if (menu.icon) {
@@ -66,10 +77,6 @@
                                             <span class="badge" [class]="menu.isInvisible ? 'bg-warning-subtle text-warning' : 'bg-success-subtle text-success'">
                                                 {{ menu.isInvisible ? 'Gizli' : 'Görünür' }}
                                             </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <button class="btn btn-soft-primary btn-sm me-1" (click)="openEdit(menu)">Düzenle</button>
-                                            <button class="btn btn-soft-danger btn-sm" (click)="deleteMenu(menu)">Sil</button>
                                         </td>
                                     </tr>
                                 } @empty {
@@ -205,4 +212,15 @@
             </div>
         </div>
     </div>
+}
+
+@if (pendingDelete) {
+    <app-confirm-modal
+        title="Menüyü Sil"
+        [message]="'“' + pendingDelete.name + '” menüsü silinecek. Bu işlem geri alınamaz.'"
+        confirmText="Menüyü Sil"
+        [danger]="true"
+        [busy]="deleting"
+        (confirmed)="confirmDelete()"
+        (cancelled)="cancelDelete()" />
 }
