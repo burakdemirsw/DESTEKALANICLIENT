@@ -13,6 +13,7 @@ export interface UserRequest {
     createdDate?: string;
     updatedDate?: string;
     closedDate?: string | null;
+    isClosed?: boolean | null;
     // Expanded
     userName?: string | null;
     userLastName?: string | null;
@@ -53,7 +54,9 @@ export interface UserRequestResponse {
     priorityName: string;
     companyDescription?: string | null;
     userName: string;
+    userLastName?: string | null;
     assignedUserName: string;
+    assignedUserLastName?: string | null;
 }
 
 export interface CreateUserRequestRequest {

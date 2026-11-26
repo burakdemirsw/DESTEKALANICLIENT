@@ -1,218 +1,177 @@
-<!-- Loading State -->
 @if (loading) {
-    <div class="detail-loading">
-        <div class="loading-spinner"></div>
-        <span class="loading-text">Talep yükleniyor...</span>
+    <div class="container-fluid sa-page">
+        <div class="sa-panel sa-empty">
+            <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Talep yükleniyor...
+        </div>
     </div>
 } @else if (request) {
-    <div class="ticket-page">
-        <div class="ticket-hero">
-            <div class="ticket-hero-main">
-                <div class="ticket-hero-eyebrow">Kullanıcı Talebi</div>
-                <div class="ticket-hero-topline">
-                    <div class="ticket-hero-copy">
-                        <h1 class="ticket-subject">{{ request.subject || 'Başlıksız Talep' }}</h1>
-                        <div class="ticket-reference-row">
-                            <span class="ticket-reference-chip">
-                                <i class="fa-solid fa-hashtag"></i>
-                                Talep No {{ request.requestNo || '-' }}
-                            </span>
-                            <span class="ticket-reference-chip">
-                                <i class="fa-regular fa-calendar"></i>
-                                {{ formatDate(request.createdDate) }}
-                            </span>
-                            @if (request.closedDate) {
-                                <span class="ticket-reference-chip ticket-reference-chip--muted">
-                                    <i class="fa-solid fa-lock"></i>
-                                    Kapanış {{ formatDate(request.closedDate) }}
-                                </span>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="ticket-header-side">
-                <div class="ticket-header-actions">
-                    <button class="btn btn-sm action-btn action-btn-secondary" (click)="goBack()">
-                        <i class="fa-solid fa-arrow-rotate-left me-1"></i> Tüm Talepler
-                    </button>
-                    @if (canEditRequest()) {
-                        <button class="btn btn-sm action-btn action-btn-ghost" (click)="openEditModal()">
-                            <i class="fa-solid fa-pen-to-square me-1"></i> Düzenle
-                        </button>
-                    }
-                    @if (canCloseRequest()) {
-                        <button class="btn btn-sm action-btn action-btn-ghost" (click)="closeRequest()">
-                            <i class="fa-solid fa-lock me-1"></i> Kapat
-                        </button>
-                    }
-                    @if (canComposeMessage()) {
-                        <button class="btn btn-sm action-btn action-btn-primary" (click)="openReplyModal()">
-                            <i class="fa-solid fa-reply me-1"></i> Yanıtla
-                        </button>
-                    }
-                </div>
-                <div class="ticket-status-cluster">
+    <div class="container-fluid sa-page">
+        <nav class="td-crumb" aria-label="Konum">
+            <a [routerLink]="['/admin/user-requests']">Talepler</a>
+            <span aria-hidden="true">/</span>
+            <span class="sa-mono">{{ request.requestNo || 'Talep' }}</span>
+        </nav>
+
+        <div class="sa-page-head align-items-start">
+            <div class="td-head-main">
+                <h1 class="sa-title">{{ request.subject || 'Başlıksız Talep' }}</h1>
+                <div class="td-head-meta">
                     @if (request.statusName || getStatusName(request.statusId) !== '-') {
-                        <span
-                            class="ticket-status-pill"
-                            [style.background-color]="getStatusBadgeBackground(request.statusColorCode || request.colorCode)"
-                            [style.color]="getStatusBadgeTextColor(request.statusColorCode || request.colorCode)"
-                            [style.border-color]="getStatusBadgeBorderColor(request.statusColorCode || request.colorCode)">
-                            {{ request.statusName || getStatusName(request.statusId) }}
-                        </span>
+                        <span class="sa-pill">{{ request.statusName || getStatusName(request.statusId) }}</span>
                     }
-                    <span class="ticket-activity-pill" [class.is-blocked]="request.isBlocked">
-                        <i class="fa-solid" [class.fa-circle-check]="!request.isBlocked" [class.fa-circle-pause]="request.isBlocked"></i>
-                        {{ request.isBlocked ? 'Pasif' : 'Aktif' }}
-                    </span>
+                    @if (request.isBlocked) {
+                        <span class="badge bg-danger-subtle text-danger">Pasif</span>
+                    } @else {
+                        <span class="badge bg-success-subtle text-success">Aktif</span>
+                    }
+                    <span>Oluşturma: {{ formatDate(request.createdDate) }}</span>
+                    @if (request.closedDate) {
+                        <span><i class="fa-solid fa-lock me-1"></i>Kapanış: {{ formatDate(request.closedDate) }}</span>
+                    }
                 </div>
             </div>
-        </div>
-
-        <div class="ticket-summary-grid">
-            <div class="ticket-summary-card ticket-summary-card--accent">
-                <div class="summary-label">Talep Sahibi</div>
-                <div class="summary-value">{{ request.userName || getUserFullName(request.userId) }}</div>
-                <div class="summary-note">Talebi oluşturan kullanıcı</div>
-            </div>
-            <div class="ticket-summary-card">
-                <div class="summary-label">Atanan Kişi</div>
-                <div class="summary-value">{{ request.assignedUserId ? (request.assignedUserName || getUserFullName(request.assignedUserId)) : 'Atanmadı' }}</div>
-                <div class="summary-note">İlgilenen ekip üyesi</div>
-            </div>
-            <div class="ticket-summary-card">
-                <div class="summary-label">Uygulama</div>
-                <div class="summary-value">{{ request.applicationName || '-' }}</div>
-                <div class="summary-note">Talebin geldiği ürün</div>
-            </div>
-            <div class="ticket-summary-card">
-                <div class="summary-label">Kategori</div>
-                <div class="summary-value">{{ request.categoryName || getCategoryName(request.categoryId) }}</div>
-                <div class="summary-note">Sorun türü</div>
-            </div>
-            <div class="ticket-summary-card ticket-summary-card--priority">
-                <div class="summary-label">Öncelik</div>
-                <div class="summary-value">{{ request.priorityName || getPriorityName(request.priorityId) }}</div>
-                <div class="summary-note">İşleme alınma seviyesi</div>
+            <div class="sa-head-actions">
+                @if (canEditRequest()) {
+                    <button type="button" class="btn btn-light" (click)="openEditModal()">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Düzenle
+                    </button>
+                }
+                @if (canCloseRequest()) {
+                    <button type="button" class="btn btn-light" (click)="closeRequest()">
+                        <i class="fa-solid fa-lock me-2"></i>Kapat
+                    </button>
+                }
+                @if (canComposeMessage()) {
+                    <button type="button" class="btn btn-primary" (click)="openReplyModal()">
+                        <i class="fa-solid fa-reply me-2"></i>Yanıtla
+                    </button>
+                }
             </div>
         </div>
 
-        <!-- ═══ Messages (Yanıtlar) ═══ -->
-        <div class="ticket-messages-area" #chatBody>
-            @if (messagesLoading) {
-                <div class="messages-loading">
-                    <div class="loading-dots">
-                        <span></span><span></span><span></span>
+        <div class="row g-3 align-items-start">
+            <div class="col-12 col-xl-8">
+                <div class="sa-panel">
+                    <div class="sa-panel-head td-panel-head">
+                        <h2 class="sa-panel-title">Yanıtlar</h2>
+                        @if (!messagesLoading && messages.length > 0) {
+                            <span class="sa-panel-note">{{ messages.length }} mesaj</span>
+                        }
                     </div>
-                    <span class="loading-label">Mesajlar yükleniyor...</span>
-                </div>
-            } @else {
-                @if (messages.length > 0) {
-                    @for (msg of messages; track msg.id) {
-                            <div class="ticket-message-card"
-                                [class.is-outgoing]="isOutgoingMessage(msg)"
-                                [class.is-incoming]="!isOutgoingMessage(msg)"
-                                [ngClass]="getMessageGroupClass({ senderKey: getMessageSenderKey(msg), dateKey: getMessageDateKey(msg.createdDate), messages: [msg] })">
-                            <div class="ticket-msg-layout" [class.ticket-msg-layout--outgoing]="isOutgoingMessage(msg)">
-                                <div class="ticket-msg-user-col" [class.ticket-msg-user-col--outgoing]="isOutgoingMessage(msg)">
-                                    <div class="user-avatar-lg"
-                                         [class.avatar-admin]="(msg.from || '').toLowerCase() === 'admin'"
-                                         [class.avatar-owner]="isRequestOwnerMessage(msg)"
-                                         [class.avatar-replier]="!isRequestOwnerMessage(msg) && (msg.from || '').toLowerCase() !== 'admin'">
-                                        <span>{{ getMessageSenderLabel(msg).charAt(0).toUpperCase() }}</span>
-                                    </div>
-                                    <div class="user-name-label"
-                                         [class.name-owner]="isRequestOwnerMessage(msg)"
-                                         [class.name-replier]="!isRequestOwnerMessage(msg) && (msg.from || '').toLowerCase() !== 'admin'">
-                                        {{ getMessageSenderLabel(msg) }}
-                                    </div>
-                                    @if (msg.from) {
-                                        <div class="user-role-label"
-                                             [class.role-admin]="(msg.from || '').toLowerCase() === 'admin'"
-                                             [class.role-owner]="isRequestOwnerMessage(msg)">
-                                            @if ((msg.from || '').toLowerCase() === 'admin') {
-                                                Müşteri Temsilcisi
-                                            } @else if (isRequestOwnerMessage(msg)) {
-                                                Talep Sahibi
-                                            } @else {
-                                                Kullanıcı
-                                            }
-                                        </div>
-                                    }
-                                </div>
 
-                                <div class="ticket-msg-content-col ticket-msg-group-content" [class.ticket-msg-content-col--outgoing]="isOutgoingMessage(msg)">
-                                    <div class="ticket-msg-item" [class.has-attachment]="hasMessageAttachment(msg)" [class.ticket-msg-item--outgoing]="isOutgoingMessage(msg)">
-                                        <div class="ticket-msg-body">
-                                            {{ msg.message }}
+                    <div class="td-thread" #chatBody>
+                        @if (messagesLoading) {
+                            <div class="sa-empty">
+                                <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>Mesajlar yükleniyor...
+                            </div>
+                        } @else {
+                            @for (msg of messages; track msg.id) {
+                                @let isStaff = (msg.from || '').toLowerCase() === 'admin';
+                                <article class="td-msg" [class.td-msg--staff]="isStaff">
+                                    <div class="td-avatar" [class.td-avatar--staff]="isStaff" aria-hidden="true">
+                                        {{ getMessageSenderLabel(msg).charAt(0).toUpperCase() }}
+                                    </div>
+                                    <div class="td-msg-main">
+                                        <div class="td-msg-head">
+                                            <span class="td-msg-name">{{ getMessageSenderLabel(msg) }}</span>
+                                            @if (msg.from) {
+                                                <span class="td-msg-role" [class.td-msg-role--staff]="isStaff">
+                                                    @if (isStaff) {
+                                                        Müşteri Temsilcisi
+                                                    } @else if (isRequestOwnerMessage(msg)) {
+                                                        Talep Sahibi
+                                                    } @else {
+                                                        Kullanıcı
+                                                    }
+                                                </span>
+                                            }
+                                            <span class="td-msg-date" [title]="getRelativeTimeLabel(msg.createdDate)">
+                                                {{ formatDate(msg.createdDate) }}
+                                                <span class="d-none d-sm-inline">· {{ getRelativeTimeLabel(msg.createdDate) }}</span>
+                                            </span>
                                         </div>
+
+                                        <div class="td-msg-body">{{ msg.message }}</div>
 
                                         @if (hasMessageAttachment(msg)) {
-                                            <div class="ticket-attachment-section">
-                                                <div class="ticket-attachment-label">
-                                                    <i class="fa-solid fa-paperclip me-1"></i>Ek Dosya
+                                            @if (isImageAttachment(msg)) {
+                                                <button type="button" class="td-attachment-image" (click)="openImagePreview(msg)" aria-label="Resmi aç">
+                                                    <img [src]="msg.fileUrl" alt="Mesaj eki" />
+                                                </button>
+                                            } @else {
+                                                <div class="td-attachment">
+                                                    <i class="fa-regular fa-file text-primary"></i>
+                                                    <div class="td-attachment-info">
+                                                        <span class="sa-mono">{{ getAttachmentFileName(msg) }}</span>
+                                                        <span class="sa-cell-sub">{{ getAttachmentTypeLabel(msg) }}</span>
+                                                    </div>
+                                                    <a class="fw-medium" [href]="msg.fileUrl" target="_blank" rel="noopener noreferrer" (click)="openAttachmentAccessLog(msg, 'download')">
+                                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Aç
+                                                    </a>
                                                 </div>
-                                                <div class="ticket-attachment">
-                                                    @if (isImageAttachment(msg)) {
-                                                        <button type="button" class="ticket-attachment-image-link" (click)="openImagePreview(msg)" aria-label="Resmi aç">
-                                                            <img [src]="msg.fileUrl" alt="Mesaj eki" class="ticket-attachment-image" />
-                                                        </button>
-                                                    } @else {
-                                                        <div class="ticket-attachment-file">
-                                                            <div class="attachment-file-main">
-                                                                <div class="attachment-file-icon">
-                                                                    <i class="fa-regular fa-file"></i>
-                                                                </div>
-                                                                <div class="attachment-file-info">
-                                                                    <span class="attachment-file-name">{{ getAttachmentFileName(msg) }}</span>
-                                                                    <span class="attachment-file-type">{{ getAttachmentTypeLabel(msg) }}</span>
-                                                                </div>
-                                                            </div>
-                                                            <a class="ticket-attachment-link" [href]="msg.fileUrl" target="_blank" rel="noopener noreferrer" (click)="openAttachmentAccessLog(msg, 'download')">
-                                                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Aç
-                                                            </a>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </div>
+                                            }
                                         }
                                     </div>
-                                    <div class="ticket-group-latest-date">
-                                        <span>{{ formatDate(msg.createdDate) }}</span>
-                                        <span class="ticket-group-relative-date">{{ getRelativeTimeLabel(msg.createdDate) }}</span>
-                                    </div>
+                                </article>
+                            } @empty {
+                                <div class="sa-empty">
+                                    <i class="fa-regular fa-comments me-2"></i>Henüz yanıt yok.
                                 </div>
-                            </div>
+                            }
+                        }
+                    </div>
+
+                    @if (!canComposeMessage() && isRequestCompleted()) {
+                        <div class="td-closed-notice">
+                            <i class="fa-solid fa-circle-check me-2"></i>Bu talep tamamlandığı için yanıt gönderilemez.
                         </div>
                     }
-                } @else {
-                    <div class="no-messages-state">
-                        <i class="fa-solid fa-comments"></i>
-                        <p>Henüz yanıt yok.</p>
-                    </div>
-                }
-            }
-        </div>
-
-        @if (!canComposeMessage()) {
-            @if (isRequestCompleted()) {  
-                <div class="ticket-closed-notice">
-                    <i class="fa-solid fa-circle-check me-2"></i>
-                    Bu talep tamamlandığı için yanıt gönderilemez.
                 </div>
-            }
-        }
+            </div>
+
+            <div class="col-12 col-xl-4">
+                <div class="sa-panel">
+                    <div class="sa-panel-head">
+                        <h2 class="sa-panel-title">Talep Bilgileri</h2>
+                    </div>
+                    <dl class="sa-info">
+                        <div>
+                            <dt>Talep No</dt>
+                            <dd class="sa-mono">{{ request.requestNo || '-' }}</dd>
+                        </div>
+                        <div>
+                            <dt>Talep Sahibi</dt>
+                            <dd>{{ request.userName || getUserFullName(request.userId) }}</dd>
+                        </div>
+                        <div>
+                            <dt>Atanan Kişi</dt>
+                            <dd>{{ request.assignedUserId ? (request.assignedUserName || getUserFullName(request.assignedUserId)) : 'Atanmadı' }}</dd>
+                        </div>
+                        <div>
+                            <dt>Uygulama</dt>
+                            <dd>{{ request.applicationName || '-' }}</dd>
+                        </div>
+                        <div>
+                            <dt>Kategori</dt>
+                            <dd>{{ request.categoryName || getCategoryName(request.categoryId) }}</dd>
+                        </div>
+                        <div>
+                            <dt>Öncelik</dt>
+                            <dd>{{ request.priorityName || getPriorityName(request.priorityId) }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
     </div>
 } @else {
-    <div class="detail-empty">
-        <div class="empty-icon">
-            <i class="fa-solid fa-inbox"></i>
+    <div class="container-fluid sa-page">
+        <div class="sa-panel sa-empty">
+            <p class="mb-3"><i class="fa-solid fa-inbox me-2"></i>Talep bulunamadı.</p>
+            <button type="button" class="btn btn-primary btn-sm" (click)="goBack()">
+                <i class="fa-solid fa-arrow-left me-1"></i> Listeye Dön
+            </button>
         </div>
-        <h5>Talep bulunamadı.</h5>
-        <button class="btn btn-primary btn-sm btn-back" (click)="goBack()">
-            <i class="fa-solid fa-arrow-left me-1"></i> Listeye Dön
-        </button>
     </div>
 }
 
@@ -252,7 +211,7 @@
                         <span class="reply-hint">
                             <i class="fa-regular fa-keyboard me-1"></i> Enter ile gönderin, Shift+Enter ile yeni satır
                         </span>
-                        <button class="btn action-btn action-btn-primary" (click)="sendMessage()" [disabled]="!canSendReply()">
+                        <button class="btn btn-primary" (click)="sendMessage()" [disabled]="!canSendReply()">
                             <i class="fa-solid fa-reply me-1"></i> Yanıtla
                         </button>
                     </div>
@@ -349,8 +308,8 @@
                 </form>
             </div>
             <div class="modal-modern-footer">
-                <button class="btn-cancel" (click)="closeEditModal()">İptal</button>
-                <button class="btn-save" (click)="saveEdit()">
+                <button type="button" class="btn btn-light" (click)="closeEditModal()">İptal</button>
+                <button type="button" class="btn btn-primary" (click)="saveEdit()">
                     <i class="fa-solid fa-check me-1"></i> Kaydet
                 </button>
             </div>

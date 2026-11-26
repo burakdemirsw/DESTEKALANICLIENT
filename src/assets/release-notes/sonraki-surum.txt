@@ -6,3 +6,31 @@ Sürüm Notları (yeni sayfa)
 - Her güncellemede eklenen yenilikler ve düzeltmeler bu sayfada listelenir; notlarda ekran adı, kelime, sürüm no ya da
   tarihle aranabilir, bir sürümün ya da ekranın notları tek tıkla kopyalanır.
 - Sayfanın alt bilgisinde kullanılan sürüm numarası görünür; tıklanınca Sürüm Notları açılır.
+
+Genel Görünüm
+- Uygulamanın renkleri ve yazı tipi yenilendi: koyu yan menü, açık gri zemin ve tek vurgu rengi kullanılıyor.
+
+Anasayfa
+- Sayfa sadeleştirildi: durum özeti tek şeritte sayı ve oranıyla, günlük açılan talepler sütun grafikle gösterilir.
+- Son talepler tablo olarak listelenir; talep numarasına ya da konusuna tıklanınca talebin detayı açılır.
+
+Kullanıcı Talepleri
+- Talepler kart yerine tablo olarak listelenir; talep numarasına ya da konusuna tıklanınca detay açılır.
+- Listenin üstündeki durum sekmeleriyle talepler tek tıkla duruma göre süzülür.
+
+Talep Detayı
+- Sayfa yeniden düzenlendi: yanıtlar tek akışta, talep bilgileri (talep sahibi, atanan kişi, uygulama, kategori,
+  öncelik) sağdaki panelde gösterilir.
+
+Menü
+- Uygulama yalnız destek merkezi olarak sadeleştirildi: yan menüde Anasayfa, Destek Merkezi, Şirket Bilgileri ve
+  Sistem Yönetimi bulunur.
+- Destek Merkezi'ne Talep Uygulamaları eklendi; talep açarken seçilen uygulamalar buradan tanımlanır.
+- Mesajlaşma, yapay zeka asistanı, sipariş, ürün, müşteri, entegrasyon, sosyal medya, takım ve abonelik ekranları
+  kaldırıldı.
+
+Giriş ve Kayıt
+- Ekranlardaki tanıtım metinleri destek merkezine göre güncellendi.
+
+Şirket Bilgileri
+- Ayarlar sekmesinden otomatik yanıt ve çalışma saatleri seçenekleri kaldırıldı.

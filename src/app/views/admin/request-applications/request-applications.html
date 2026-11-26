@@ -1,10 +1,10 @@
-<app-page-title title="Talep Uygulamalari" subtitle="Yonetim" />
+<app-page-title title="Talep Uygulamaları" subtitle="Yönetim" />
 
 <div class="row">
   <div class="col-12">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0">Talep Uygulamalari</h4>
+        <h4 class="card-title mb-0">Talep Uygulamaları</h4>
         <button class="btn btn-primary btn-sm" (click)="openCreate()">+ Yeni Uygulama</button>
       </div>
 
@@ -12,7 +12,7 @@
         @if (loading) {
           <div class="text-center py-4">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted">Yukleniyor...</p>
+            <p class="mt-2 text-muted">Yükleniyor...</p>
           </div>
         } @else {
           <div class="d-flex mb-3 gap-2">
@@ -29,11 +29,11 @@
             <table class="table table-centered table-hover mb-0">
               <thead class="table-light">
                 <tr>
-                  <th>Uygulama Adi</th>
-                  <th>Aciklama</th>
+                  <th>Uygulama Adı</th>
+                  <th>Açıklama</th>
                   <th>Foto URL</th>
                   <th>Durum</th>
-                  <th class="text-end">Islemler</th>
+                  <th class="text-end">İşlemler</th>
                 </tr>
               </thead>
               <tbody>
@@ -58,13 +58,13 @@
                       }
                     </td>
                     <td class="text-end">
-                      <button class="btn btn-soft-primary btn-sm me-1" (click)="openEdit(item)">Duzenle</button>
+                      <button class="btn btn-soft-primary btn-sm me-1" (click)="openEdit(item)">Düzenle</button>
                       <button class="btn btn-soft-danger btn-sm" (click)="deleteItem(item)">Sil</button>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="5" class="text-center text-muted">Kayit bulunamadi.</td>
+                    <td colspan="5" class="text-center text-muted">Kayıt bulunamadı.</td>
                   </tr>
                 }
               </tbody>
@@ -73,12 +73,12 @@
 
           <div class="d-flex justify-content-between align-items-center mt-2">
             <div class="small text-muted">
-              Toplam: {{ totalCount }} kayit | Sayfa {{ currentPage }} / {{ totalPages }}
+              Toplam: {{ totalCount }} kayıt | Sayfa {{ currentPage }} / {{ totalPages }}
             </div>
             <nav>
               <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" [class.disabled]="currentPage === 1">
-                  <button class="page-link" (click)="setPage(1)" [disabled]="currentPage === 1" title="Ilk Sayfa">&laquo;&laquo;</button>
+                  <button class="page-link" (click)="setPage(1)" [disabled]="currentPage === 1" title="İlk Sayfa">&laquo;&laquo;</button>
                 </li>
                 <li class="page-item" [class.disabled]="currentPage === 1">
                   <button class="page-link" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">&laquo;</button>
@@ -108,17 +108,17 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ editMode ? 'Uygulama Duzenle' : 'Yeni Uygulama' }}</h5>
+          <h5 class="modal-title">{{ editMode ? 'Uygulama Düzenle' : 'Yeni Uygulama' }}</h5>
           <button type="button" class="btn-close" (click)="closeModal()"></button>
         </div>
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label class="form-label">Uygulama Adi</label>
+              <label class="form-label">Uygulama Adı</label>
               <input type="text" class="form-control" [(ngModel)]="form.applicationName" name="applicationName" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Aciklama</label>
+              <label class="form-label">Açıklama</label>
               <textarea class="form-control" [(ngModel)]="form.description" name="description" rows="3" required></textarea>
             </div>
             <div class="mb-3">
@@ -137,8 +137,8 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" (click)="closeModal()">Iptal</button>
-          <button type="button" class="btn btn-primary" (click)="save()">{{ editMode ? 'Guncelle' : 'Kaydet' }}</button>
+          <button type="button" class="btn btn-light" (click)="closeModal()">İptal</button>
+          <button type="button" class="btn btn-primary" (click)="save()">{{ editMode ? 'Güncelle' : 'Kaydet' }}</button>
         </div>
       </div>
     </div>

@@ -9,6 +9,29 @@ projeye özel kural geçerlidir.
 Aşağıdaki kurallar yeni yazılan ve dokunulan koda uygulanır; dokunulmayan sayfalar yalnız bu yüzden, istenmeden
 değiştirilmez.
 
+## Proje Kapsamı (Destek Alanı)
+
+- **Bu uygulamada yalnız sistemin temel alanları, şirket yapısı ve destek talebi (Destek Merkezi) yapısı vardır.**
+  E-ticaret, yapay zeka, sohbet / mesajlaşma, sosyal medya, entegrasyon, abonelik / plan, takım, sipariş, ürün ve
+  müşteri panelleri 26.11.2026'da client, API ve veritabanından kaldırıldı. Bunlara ait sayfa, servis, model, uç nokta ya
+  da tablo yeniden eklenmez; gerekiyorsa önce kullanıcıya sorulur.
+  - Kalan sayfalar: Anasayfa (`/dashboard`); Destek Merkezi (`/admin/user-requests`, `/admin/user-requests/all`,
+    `/admin/user-requests/:id`, `/admin/request-applications`, `/admin/request-categories`, `/admin/request-statuses`,
+    `/admin/request-priorities`); Şirket Bilgileri (`/admin/company-detail`); Sistem Yönetimi (`/admin/companies`,
+    `/admin/user-types`, `/admin/roles`, `/admin/role-assignments`, `/admin/menus`, `/admin/role-menus`,
+    `/admin/mail-settings`, `/admin/aws-s3-settings`, `/admin/cloudinary-settings`); profil (`/users/profile`), sürüm
+    notları, auth ve hata sayfaları.
+  - **Destek talebi yapısını bozacak hiçbir alan kaldırılmaz.** Talep, talep mesajı / dosya eki, talep uygulaması,
+    kategori, durum, öncelik, mail ayarları (bildirim e-postası) ve dosya depolama ayarları (S3 / Cloudinary) bu yapının
+    parçasıdır.
+- **Roller iki tanedir; adları API'de ve talep ekranlarında kullanılır, değiştirilmez:** `Destek Alanı Yönetici` (tüm
+  şirketlerin taleplerini görür, tanımları ve sistemi yönetir) ve `Destek Alanı` (talep açan şirket kullanıcısı; yalnız
+  kendi şirketinin taleplerini görür, kayıt olana otomatik atanır).
+- **Yan menü yalnız destek alanını içerir:** Anasayfa, Destek Merkezi (Destek Taleplerim, Tüm Talepler, Talep
+  Uygulamaları, Talep Kategorileri, Talep Durumları, Talep Öncelikleri), Şirket Bilgileri, Sistem Yönetimi. Yeni sayfa bu
+  gruplardan birine eklenir (bkz. "Yeni Sayfa / Menü"); `Destek Alanı` rolüne yalnız Anasayfa, Destek Taleplerim, Şirket
+  Bilgileri ve profil atanmıştır.
+
 ## Build ve Yerel Sunucu
 
 - **`ng build` (ve diğer production build komutları) ASLA sormadan çalıştırılmaz.** Build uzun sürüyor ve makineyi
@@ -62,12 +85,19 @@ değiştirilmez.
     onay gerekmez.
   - Onay gelmezse iş bu repo üzerinden yapılır; backend'de gereken değişiklik (uç nokta, DTO, entity) kullanıcıya liste
     olarak verilir.
+- Backend reposunun tam yolu `C:\Users\ASUS\source\repos\DESTEKALANIAPI`'dir (çözüm `DestekAlanıApi.slnx`, API projesi
+  `Presentation/Api`). "Proje Kapsamı" backend için de geçerlidir: orada da yalnız sistem, şirket ve destek talebi yapısı
+  vardır.
 
 ## Veritabanı
 
 - **Veritabanında işlem yapılacaksa (sorgu, SP / tablo scripti) ilk DB işleminden önce kullanıcıya hangi veritabanında
   çalışılacağı sorulur.** Tahminle bağlanılmaz. Seçim o konuşma ve o veritabanı içindir; başka bir veritabanına
   geçmeden önce yeniden sorulur. (Uygulamanın menü, rol ve talep tabloları `BgzSupport` veritabanındadır.)
+- Uygulamanın veritabanı adresi: SQL Server `192.168.2.38,1433`, veritabanı `BgzSupport`. Bağlantı cümlesinin tamamı
+  backend reposunda `Presentation/Api/appsettings.json` → `ConnectionStrings:DefaultConnection`'dadır; buraya yazılmaz.
+  - 26.11.2026 temizliğinin scripti backend reposunda `Sql/DestekAlani_Temizlik_2026-11-26.sql`'dir; öncesinin tam
+    yedeği SQL sunucusunun yedek klasöründedir (`BgzSupport_temizlik_oncesi_20261126.bak`).
 - Şifre ve bağlantı cümlesi yanıta, commit'e ya da repo dosyasına yazılmaz.
 - SP / view düzenlenirken canlıdaki güncel tanım (`OBJECT_DEFINITION`) okunur; repodaki `.sql` dosyasına bakılarak
   yazılmaz. Basmadan hemen önce tanım yeniden okunur (`modify_date`); arada değiştiyse yeni hâlinin üzerine kurulur.

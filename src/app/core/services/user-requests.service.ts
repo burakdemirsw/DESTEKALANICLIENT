@@ -42,8 +42,47 @@ export class UserRequestsService {
         return this.http.get<any[]>({ controller: 'UserRequests', action: `by-user/${userId}` });
     }
 
-    getByAssignedUser(assignedUserId: string): Promise<ApiResponse<any[]>> {
-        return this.http.get<any[]>({ controller: 'UserRequests', action: `by-assigned-user/${assignedUserId}` });
+    getByAssignedUser(assignedUserId: string): Promise<ApiResponse<UserRequestResponse[]>> {
+        return this.http.get<UserRequestResponse[]>({ controller: 'UserRequests', action: `by-assigned-user/${assignedUserId}` });
+    }
+
+    // Sayfalı listeyi en çok maxItems kayda kadar sayfa sayfa toplar (CSV dışa aktarım, anasayfa özeti).
+    // stopWhen verilirse her sayfadan sonra sorulur; true dönerse kalan sayfalar istenmez.
+    getAllPaged(
+        req: UserRequestPagedRequest,
+        maxItems: number,
+        stopWhen?: (items: UserRequestResponse[]) => boolean,
+    ): Promise<{ items: UserRequestResponse[]; totalCount: number }> {
+        return this.collectPages(page => this.getPaged({ ...req, ...page }), maxItems, stopWhen);
+    }
+
+    adminGetAllPaged(
+        req: AdminPaginationRequest,
+        maxItems: number,
+        stopWhen?: (items: UserRequestResponse[]) => boolean,
+    ): Promise<{ items: UserRequestResponse[]; totalCount: number }> {
+        return this.collectPages(page => this.adminGetPaged({ ...req, ...page }), maxItems, stopWhen);
+    }
+
+    private async collectPages(
+        fetchPage: (page: { pageNumber: number; pageSize: number }) => Promise<ApiResponse<PagedResult<UserRequestResponse>>>,
+        maxItems: number,
+        stopWhen?: (items: UserRequestResponse[]) => boolean,
+    ): Promise<{ items: UserRequestResponse[]; totalCount: number }> {
+        const pageSize = Math.min(200, maxItems);
+        const items: UserRequestResponse[] = [];
+        let totalCount = 0;
+
+        for (let pageNumber = 1; items.length < maxItems; pageNumber++) {
+            const paged = (await fetchPage({ pageNumber, pageSize }))?.data;
+            const pageItems = paged?.items ?? [];
+            totalCount = paged?.totalCount ?? items.length + pageItems.length;
+            items.push(...pageItems);
+
+            const lastPage = paged?.totalPages ?? pageNumber;
+            if (!pageItems.length || pageNumber >= lastPage || items.length >= totalCount || stopWhen?.(items)) break;
+        }
+        return { items: items.slice(0, maxItems), totalCount };
     }
 
     getByStatus(statusId: string): Promise<ApiResponse<any[]>> {
@@ -52,6 +91,31 @@ export class UserRequestsService {
 
     create(request: CreateUserRequestRequest): Promise<ApiResponse<any>> {
         return this.http.post<any>({ controller: 'UserRequests' }, request);
+    }
+
+    // Talebi açar; dosya eklendiyse talebin ilk mesajı olarak yükler. Talep açılıp dosya yüklenemezse talep yine
+    // açılmış sayılır, attachmentFailed true döner (kullanıcı detaydan tekrar ekleyebilir).
+    async createWithAttachment(
+        request: CreateUserRequestRequest,
+        file: File | null,
+    ): Promise<{ id: string | null; attachmentFailed: boolean }> {
+        const response = await this.create(request);
+        const id: string | null = response?.data?.id ?? response?.data?.Id ?? null;
+        if (!id || !file) {
+            return { id, attachmentFailed: false };
+        }
+
+        try {
+            await this.createMessageWithFile({
+                requestId: id,
+                senderUserId: request.userId,
+                message: 'Talep açılırken eklenen dosya.',
+                file,
+            });
+            return { id, attachmentFailed: false };
+        } catch {
+            return { id, attachmentFailed: true };
+        }
     }
 
     update(id: string, request: UpdateUserRequestRequest): Promise<ApiResponse<any>> {

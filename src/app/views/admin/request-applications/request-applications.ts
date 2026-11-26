@@ -153,7 +153,7 @@ export class RequestApplicationsPage implements OnInit {
   }
 
   async deleteItem(item: RequestApplicationResponse): Promise<void> {
-    if (!confirm(`"${item.applicationName ?? ''}" uygulamasini silmek istediginize emin misiniz?`)) {
+    if (!confirm(`"${item.applicationName ?? ''}" uygulamasını silmek istediğinize emin misiniz?`)) {
       return;
     }
 
