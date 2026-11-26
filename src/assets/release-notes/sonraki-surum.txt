@@ -6,6 +6,7 @@ Sürüm Notları (yeni sayfa)
 - Her güncellemede eklenen yenilikler ve düzeltmeler bu sayfada listelenir; notlarda ekran adı, kelime, sürüm no ya da
   tarihle aranabilir, bir sürümün ya da ekranın notları tek tıkla kopyalanır.
 - Sayfanın alt bilgisinde kullanılan sürüm numarası görünür; tıklanınca Sürüm Notları açılır.
+- Sürüm Notları yan menünün en altında yer alır; bütün kullanıcılar açabilir.
 
 Genel Görünüm
 - Uygulamanın renkleri ve yazı tipi yenilendi: koyu yan menü, açık gri zemin ve tek vurgu rengi kullanılıyor.

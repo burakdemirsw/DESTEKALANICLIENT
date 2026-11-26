@@ -35,8 +35,9 @@ değiştirilmez.
   sorumlusu olmayan talep tüm yöneticilere düşer. Sorumlu yalnız `Destek Alanı Yönetici` rolündeki kullanıcı olabilir.
 - **Yan menü yalnız destek alanını içerir:** Anasayfa, Destek Merkezi (Destek Taleplerim, Tüm Talepler, Talep
   Uygulamaları, Talep Kategorileri, Talep Sorumluları, Talep Durumları, Talep Öncelikleri), Şirket Bilgileri, Sistem
-  Yönetimi (… Sistem Logları). Yeni sayfa bu gruplardan birine eklenir (bkz. "Yeni Sayfa / Menü"); `Destek Alanı`
-  rolüne yalnız Anasayfa, Destek Taleplerim, Şirket Bilgileri, profil ve sürüm notları atanmıştır.
+  Yönetimi (… Sistem Logları) ve en altta ayrı öğe olarak Sürüm Notları (`release-notes`, iki rolde de görünür). Yeni
+  sayfa bu gruplardan birine eklenir (bkz. "Yeni Sayfa / Menü"); `Destek Alanı` rolüne yalnız Anasayfa, Destek
+  Taleplerim, Şirket Bilgileri, profil ve Sürüm Notları atanmıştır.
 
 ## Build ve Yerel Sunucu
 
